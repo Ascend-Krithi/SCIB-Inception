@@ -1,43 +1,36 @@
-%% Sequence Diagram for Youth Account API (Mermaid)
+%% Sequence Diagram: Youth Account Management API
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Banking Web Application
+    participant Parent
+    participant UI as Web UI
     participant API as Youth Account API
-    participant Account as Account Service
-    participant Payment as Payment Service
-    participant Transaction as Transaction Service
+    participant AccountSvc as Account Service
+    participant TxSvc as Transaction Service
+    participant PaymentSvc as Payment Service
     participant DB as Youth Account DB
-
-    %% Dashboard Retrieval
-    Parent->>WebApp: Login & navigate to Dashboard
-    WebApp->>API: GET /api/youth-accounts/{id}/dashboard (OAuth2)
-    API->>Account: Fetch account details
-    API->>Transaction: Fetch recent transactions
-    API->>DB: Fetch spending limit
-    API-->>WebApp: Dashboard data (balance, limit, transactions)
-    WebApp-->>Parent: Display dashboard
-
-    %% Fund Transfer
-    Parent->>WebApp: Initiate fund transfer
-    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer (OAuth2)
-    API->>Payment: Initiate transfer
-    Payment-->>API: Transfer result
-    API->>Account: Update balances
-    API->>Transaction: Log transaction
-    API->>DB: Update settings if needed
-    API-->>WebApp: Transfer confirmation
-    WebApp-->>Parent: Show transfer status
-
-    %% Set Spending Limit
-    Parent->>WebApp: Set new spending limit
-    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit (OAuth2)
-    API->>DB: Update weekly limit
-    API-->>WebApp: Limit updated
-    WebApp-->>Parent: Show confirmation
-
-    %% Transaction History
-    Parent->>WebApp: View transaction history
-    WebApp->>API: GET /api/youth-accounts/{id}/transactions (OAuth2)
-    API->>Transaction: Fetch transactions
-    API-->>WebApp: Transaction data
-    WebApp-->>Parent: Display transactions
+    Note over Parent,UI: OAuth2 authentication, RBAC enforced
+    Parent->>UI: Login & OAuth2 Authorization
+    UI->>API: GET /api/youth-accounts/{id}/dashboard
+    API->>AccountSvc: Get Account Info
+    API->>TxSvc: Get Recent Transactions
+    API->>DB: Get Spending Limit
+    API-->>UI: Dashboard Data (balance, limit, transactions)
+    UI-->>Parent: Show Dashboard
+    Parent->>UI: Initiate Fund Transfer
+    UI->>API: POST /api/youth-accounts/{id}/fund-transfer
+    API->>PaymentSvc: Initiate Fund Transfer
+    PaymentSvc-->>API: Transfer Status
+    API->>AccountSvc: Update Account Balance
+    API->>DB: Update Balance
+    API-->>UI: Transfer Result
+    UI-->>Parent: Show Transfer Confirmation
+    Parent->>UI: Set Spending Limit
+    UI->>API: PUT /api/youth-accounts/{id}/spending-limit
+    API->>DB: Update Spending Limit
+    API-->>UI: Limit Updated
+    UI-->>Parent: Show Limit Confirmation
+    Parent->>UI: View Transactions
+    UI->>API: GET /api/youth-accounts/{id}/transactions
+    API->>TxSvc: Fetch Transactions
+    API-->>UI: Transaction List
+    UI-->>Parent: Show Transaction History
+    Note over API,DB: All actions audit logged
