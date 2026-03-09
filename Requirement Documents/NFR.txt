@@ -1,59 +1,59 @@
-Non-Functional Requirements (NFRs) List
+Non-Functional Requirements (NFRs)
 
 Security
-- OAuth2 authentication for all APIs
-- Parent ownership validation for youth accounts
-- RBAC enforced at API and UI
-- Audit logging for all fund transfers and settings changes
-- Input validation and output filtering
+- OAuth token validation
+- Parent ownership validation
+- RBAC enforced
+- Audit logging of all actions
+- Data encryption at rest and in transit
 
 Compliance
-- GDPR: Data minimization, consent, right to erasure
-- PCI-DSS: Secure fund transfer and storage
-- ISO 27001: Information security management
+- GDPR data protection
+- PCI-DSS for payment processing
+- ISO 27001 information security
 
 Performance
-- API responses < 500 ms for 95% of requests
-- UI loads dashboard within 2 seconds
+- Dashboard API response < 500ms
+- Fund transfer API response < 200ms
 
 Scalability
-- Horizontal scaling for API and UI containers
-- DB read replicas for transaction history
+- Horizontal scaling for APIs
 
 Availability
-- 99.99% uptime SLA
-- HA deployment (Kubernetes)
+- 99.99% uptime
 
 Reliability
-- Automatic failover for API and DB
-- Transaction atomicity for fund transfers
+- Automatic failover
+- Retry logic for external services
 
 Maintainability
-- Modular REST API structure
-- OpenAPI documentation for all endpoints
-- Clear code and architectural documentation
+- Modular architecture
+- Clear documentation
 
 Auditability
-- All user actions (fund transfers, limit changes) logged
-- Audit trail accessible for compliance review
+- All parent actions logged
+- Transaction history traceable
 
 Disaster Recovery
-- RTO < 4 hours, RPO < 1 hour
-- Regular DR drills
+- RTO < 4 hours
+- RPO < 1 hour
 
 Backup
-- Daily encrypted backups of youth account DB
-- Backup retention for 30 days
+- Daily backups
+- Encrypted storage
 
 Monitoring
-- Real-time metrics (API latency, errors)
-- Alerting for failures, anomalous activity
+- Real-time metrics
+- Automated alerting
 
 Logging
-- Centralized log aggregation (ELK stack)
-- Log retention for 90 days
+- Centralized log aggregation
 
 RBAC
-- Parent/guardian access only
-- Role management via admin APIs
+- Role-based access control for all APIs
 
+Enterprise Controls
+- Input validation
+- Output filtering
+- Audit logging
+- RBAC for compliance

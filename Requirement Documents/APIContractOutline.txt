@@ -1,94 +1,73 @@
 API Contract Outline
 
---- Dashboard API ---
 Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-Request: Path parameter youthAccountId
-Response:
-{
-  "youthAccountId": "string",
-  "accountBalance": "decimal",
-  "spendingLimit": "decimal",
-  "currency": "string",
-  "recentTransactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime",
-      "description": "string",
-      "amount": "decimal"
-    }
-  ]
-}
-Error Handling:
-- 403 Unauthorized
-- 404 Not Found
-
---- Fund Transfer API ---
-Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-Request Body:
-{
-  "sourceAccountId": "string",
-  "transferAmount": "decimal",
-  "currency": "string"
-}
-Response:
-{
-  "transferId": "string",
-  "status": "SUCCESS",
-  "updatedBalance": "decimal"
-}
-Error Handling:
-- 400 Insufficient balance
-- 400 Invalid account mapping
-- 500 Transfer service failure
-
---- Spending Limit Configuration API ---
-Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-Request Body:
-{
-  "weeklyLimit": "decimal"
-}
-Response:
-{
-  "youthAccountId": "string",
-  "weeklyLimit": "decimal",
-  "status": "UPDATED"
-}
-Error Handling:
-- 400 Validation error
-- 403 Unauthorized
-
---- Transaction History API ---
-Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-Query Parameters:
-- startDate
-- endDate
-- page
-- pageSize
-Response:
-{
-  "transactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime",
-      "merchant": "string",
-      "amount": "decimal",
-      "transactionType": "debit | credit"
-    }
-  ],
-  "pagination": {
-    "page": "number",
-    "pageSize": "number",
-    "totalRecords": "number"
+- Method: GET
+- Request: Path param youthAccountId
+- Response:
+  {
+    "youthAccountId": "string",
+    "accountBalance": "decimal",
+    "spendingLimit": "decimal",
+    "currency": "string",
+    "recentTransactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "description": "string",
+        "amount": "decimal"
+      }
+    ]
   }
-}
-Error Handling:
-- 403 Unauthorized
-- 404 Not Found
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
---- General Error Handling ---
-- All endpoints return error responses in format:
-{
-  "errorCode": "string",
-  "errorMessage": "string"
-}
-- HTTP status codes: 400, 403, 404, 409, 500
+Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Method: POST
+- Request:
+  {
+    "sourceAccountId": "string",
+    "transferAmount": "decimal",
+    "currency": "string"
+  }
+- Response:
+  {
+    "transferId": "string",
+    "status": "SUCCESS",
+    "updatedBalance": "decimal"
+  }
+- Error Handling: 400 Insufficient funds, 400 Invalid mapping, 500 Transfer failure
+
+Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Method: PUT
+- Request:
+  {
+    "weeklyLimit": "decimal"
+  }
+- Response:
+  {
+    "youthAccountId": "string",
+    "weeklyLimit": "decimal",
+    "status": "UPDATED"
+  }
+- Error Handling: 400 Validation error, 403 Unauthorized
+
+Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+- Method: GET
+- Query Params: startDate, endDate, page, pageSize
+- Response:
+  {
+    "transactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "merchant": "string",
+        "amount": "decimal",
+        "transactionType": "debit | credit"
+      }
+    ],
+    "pagination": {
+      "page": "number",
+      "pageSize": "number",
+      "totalRecords": "number"
+    }
+  }
+- Error Handling: 403 Unauthorized, 404 Not Found
