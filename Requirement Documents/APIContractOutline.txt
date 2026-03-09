@@ -1,8 +1,7 @@
 API Contract Outline
 
-1. Dashboard API
-- Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Request Params: youthAccountId (path)
+Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+- Request: Path param youthAccountId
 - Response:
   {
     "youthAccountId": "string",
@@ -18,14 +17,10 @@ API Contract Outline
       }
     ]
   }
-- Error Handling:
-  - 403 Unauthorized
-  - 404 Not Found
-  - 500 Internal Server Error
+- Error Handling: 403 Unauthorized, 404 Not Found
 
-2. Fund Transfer API
-- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Request Body:
+Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Request:
   {
     "sourceAccountId": "string",
     "transferAmount": "decimal",
@@ -34,18 +29,13 @@ API Contract Outline
 - Response:
   {
     "transferId": "string",
-    "status": "SUCCESS|FAILURE",
+    "status": "SUCCESS",
     "updatedBalance": "decimal"
   }
-- Error Handling:
-  - 400 Insufficient funds
-  - 403 Unauthorized
-  - 409 Invalid account mapping
-  - 500 Transfer service failure
+- Error Handling: 400 Insufficient Balance, 400 Invalid Account, 500 Transfer Service Failure
 
-3. Spending Limit API
-- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Request Body:
+Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Request:
   {
     "weeklyLimit": "decimal"
   }
@@ -55,13 +45,9 @@ API Contract Outline
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Error Handling:
-  - 400 Validation error
-  - 403 Unauthorized
-  - 500 Internal Server Error
+- Error Handling: 400 Validation Error, 403 Unauthorized
 
-4. Transaction History API
-- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
 - Query Params: startDate, endDate, page, pageSize
 - Response:
   {
@@ -71,7 +57,7 @@ API Contract Outline
         "date": "datetime",
         "merchant": "string",
         "amount": "decimal",
-        "transactionType": "debit|credit"
+        "transactionType": "debit | credit"
       }
     ],
     "pagination": {
@@ -80,12 +66,10 @@ API Contract Outline
       "totalRecords": "number"
     }
   }
-- Error Handling:
-  - 403 Unauthorized
-  - 404 Not Found
-  - 500 Internal Server Error
+- Error Handling: 403 Unauthorized, 404 Not Found
 
-Authentication: OAuth token required for all endpoints
-Authorization: Parent must be owner of youth account (RBAC enforced)
-Validation: Input validation, output filtering, audit logging
-Compliance: All endpoints designed for GDPR, PCI-DSS, ISO 27001
+Common Requirements:
+- OAuth2 token required for all endpoints
+- Ownership validation for parent accounts
+- RBAC enforced
+- Standard error structure: { "errorCode": "string", "errorMessage": "string" }

@@ -1,60 +1,56 @@
 Non-Functional Requirements (NFRs)
 
-Security
-- OAuth token validation for all APIs
-- RBAC for parent/youth roles
-- Audit logging for fund transfers, limit changes, account access
+Security:
+- OAuth2 authentication for all APIs
+- Role-Based Access Control (RBAC) for parent/youth
+- Audit logging for fund transfers, limit changes, and account access
+- Input validation and output filtering
 - Data encryption at rest and in transit
 
-Compliance
-- GDPR: Data minimization, parental consent
-- PCI-DSS: Secure fund transfers
-- ISO 27001: Information security controls
+Compliance:
+- GDPR, PCI-DSS, ISO 27001 adherence
+- Audit trail for all sensitive actions
+- Data retention policies for youth account data
 
-Performance
-- API response time < 500ms under normal load
-- Dashboard loads within 2 seconds
+Performance:
+- API response time < 500 ms for 95% of requests
+- Load tested for > 1000 concurrent users
 
-Scalability
-- Web/app/database clusters support horizontal scaling
-- APIs stateless for load balancing
+Scalability:
+- Horizontal scaling for API Gateway and Web App
+- Stateless APIs
 
-Availability
+Availability:
 - 99.99% uptime SLA
-- Automated failover
+- Automatic failover and redundancy
 
-Reliability
-- Consistent transaction logging
-- Error handling for fund allocation and transfers
+Reliability:
+- Transaction integrity and consistency
+- Error handling for all APIs
 
-Maintainability
-- Modular service design
-- API documentation (Swagger/OpenAPI)
-- Automated tests
+Maintainability:
+- Modular API design
+- OpenAPI/Swagger documentation
+- Clear versioning strategy
 
-Auditability
-- All user actions logged
-- Audit trails for regulatory review
+Auditability:
+- All user actions logged and traceable
 
-Disaster Recovery
-- RTO < 4 hours; RPO < 1 hour
-- Daily encrypted backups
+Disaster Recovery:
+- RTO < 4 hours, RPO < 1 hour
+- Automated backup and restore procedures
 
-Backup
-- Encrypted backups; retention policy per compliance
+Backup:
+- Daily encrypted backups of youth account settings and transaction data
 
-Monitoring
-- Real-time metrics (API latency, error rates)
-- Alerting for failures
+Monitoring:
+- Real-time metrics and alerting (API latency, error rates, auth failures)
 
-Logging
-- Centralized log aggregation
-- Access logs, transaction logs
+Logging:
+- Centralized log aggregation, searchable logs
 
-RBAC
-- Role-based access control enforced for all APIs
+RBAC:
+- Strict role-based access enforced at API and UI levels
 
-Enterprise Controls
-- Input validation, output filtering
-- Compliance validation hooks
-- Audit logging
+Traceability:
+- All requirements mapped to ADRs and API endpoints
