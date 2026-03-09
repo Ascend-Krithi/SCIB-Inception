@@ -1,8 +1,8 @@
 API Contract Outline
 
-1. Dashboard API
+--- Dashboard API ---
 Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-Request: OAuth token, youthAccountId (path)
+Request: Path parameter youthAccountId
 Response:
 {
   "youthAccountId": "string",
@@ -21,11 +21,10 @@ Response:
 Error Handling:
 - 403 Unauthorized
 - 404 Not Found
-- 500 Internal Error
 
-2. Fund Transfer API
+--- Fund Transfer API ---
 Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-Request:
+Request Body:
 {
   "sourceAccountId": "string",
   "transferAmount": "decimal",
@@ -38,13 +37,13 @@ Response:
   "updatedBalance": "decimal"
 }
 Error Handling:
-- 400 Insufficient Funds
-- 400 Invalid Account Mapping
-- 500 Transfer Service Failure
+- 400 Insufficient balance
+- 400 Invalid account mapping
+- 500 Transfer service failure
 
-3. Spending Limit Configuration API
+--- Spending Limit Configuration API ---
 Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-Request:
+Request Body:
 {
   "weeklyLimit": "decimal"
 }
@@ -55,11 +54,10 @@ Response:
   "status": "UPDATED"
 }
 Error Handling:
-- 400 Validation Error
+- 400 Validation error
 - 403 Unauthorized
-- 500 Internal Error
 
-4. Transaction History API
+--- Transaction History API ---
 Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
 Query Parameters:
 - startDate
@@ -85,17 +83,12 @@ Response:
 }
 Error Handling:
 - 403 Unauthorized
-- 400 Invalid Parameters
-- 500 Internal Error
+- 404 Not Found
 
-
-Common Aspects:
-- All endpoints require OAuth token in Authorization header
-- Parent ownership of youth account validated for all operations
-- API responds with structured error objects:
-  {
-    "errorCode": "string",
-    "message": "string",
-    "details": "string"
-  }
-- OpenAPI 3.0 schema definitions reused across endpoints
+--- General Error Handling ---
+- All endpoints return error responses in format:
+{
+  "errorCode": "string",
+  "errorMessage": "string"
+}
+- HTTP status codes: 400, 403, 404, 409, 500
