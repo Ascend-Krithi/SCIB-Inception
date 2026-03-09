@@ -1,40 +1,41 @@
-%% Sequence Diagram for 'Parent can allocate and manage funds for a youth account'
-%% Traceability: ADRs SCIB-25 to SCIB-30, OpenAPI endpoints
+%% Sequence Diagram for Youth Account Management APIs
 sequenceDiagram
-    participant Parent as Parent/Guardian (UI)
-    participant WebApp as Web Application
-    participant API as Youth Account Service (API Gateway)
-    participant Account as Account Service
-    participant Tx as Transaction Service
-    participant Payment as Payment Service
-    participant Settings as Settings DB
-    Note over Parent,Settings: All endpoints secured by OAuth, RBAC, audit logging
-    Parent->>WebApp: Log in (OAuth)
-    WebApp->>API: GET /api/youth-accounts/{id}/dashboard
-    API->>Account: Fetch account info
-    API->>Settings: Fetch spending limit
-    API->>Tx: Fetch recent transactions
-    API-->>WebApp: Consolidated dashboard data
-    WebApp-->>Parent: Show dashboard
-    Parent->>WebApp: Initiate fund transfer
-    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
-    API->>Account: Validate source/ownership
-    API->>Payment: Transfer funds
-    Payment-->>API: Transfer result
-    API->>Tx: Record transaction
-    API->>Account: Update balances
-    API-->>WebApp: Transfer response
-    WebApp-->>Parent: Show updated balance
-    Parent->>WebApp: Set spending limit
-    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
-    API->>Settings: Update weekly limit
-    Settings-->>API: Confirm update
-    API-->>WebApp: Status UPDATED
-    WebApp-->>Parent: Show confirmation
-    Parent->>WebApp: View transaction history
-    WebApp->>API: GET /api/youth-accounts/{id}/transactions
-    API->>Tx: Retrieve transactions (with pagination)
-    Tx-->>API: Transaction list
-    API-->>WebApp: Transaction history
-    WebApp-->>Parent: Display transactions
-    Note over API,Tx: All API calls logged for audit, compliance (GDPR, PCI-DSS, ISO 27001)
+    participant Parent as Parent/Guardian
+    participant UI as Parent Portal UI (React SPA)
+    participant API as Youth Account API (Spring Boot REST API)
+    participant DB as Youth Account DB (PostgreSQL)
+    participant AccountService as Account Service
+    participant TransactionService as Transaction Service
+    participant PaymentService as Payment Service
+
+    %% Dashboard API
+    Parent->>UI: Login & request dashboard (OAuth2)
+    UI->>API: GET /api/youth-accounts/{youthAccountId}/dashboard
+    API->>AccountService: Retrieve account details
+    API->>TransactionService: Retrieve recent transactions
+    API->>DB: Fetch spending limit
+    API-->>UI: Dashboard data (balance, limit, recent transactions)
+    UI-->>Parent: Display dashboard
+
+    %% Fund Transfer API
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+    API->>AccountService: Validate source account
+    API->>PaymentService: Initiate transfer
+    API->>DB: Update youth account balance
+    API-->>UI: Transfer result
+    UI-->>Parent: Show transfer status
+
+    %% Spending Limit Configuration API
+    Parent->>UI: Set weekly spending limit
+    UI->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+    API->>DB: Update spending limit
+    API-->>UI: Limit update confirmation
+    UI-->>Parent: Show confirmation
+
+    %% Transaction History API
+    Parent->>UI: View transaction history
+    UI->>API: GET /api/youth-accounts/{youthAccountId}/transactions
+    API->>TransactionService: Fetch transactions
+    API-->>UI: Transaction list with pagination
+    UI-->>Parent: Display transactions

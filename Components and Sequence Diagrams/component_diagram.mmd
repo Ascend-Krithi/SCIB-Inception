@@ -1,36 +1,25 @@
-%% Component Diagram for Youth Account Management
-%% Traceability: ADRs SCIB-25 to SCIB-30, OpenAPI endpoints, HLD architecture
+%% Component Diagram for Youth Account Management Solution
+%% C4 style Mermaid diagram
 flowchart TD
-    subgraph Parent_UI[Parent Web Application (React)]
-        WUI[Web UI]
+    subgraph WebApp [Banking Web Application]
+        UI[Parent Portal UI (React SPA)]
+        API[Youth Account API (Spring Boot REST API)]
+        DB[Youth Account DB (PostgreSQL)]
     end
-    subgraph Youth_Account_Service[Youth Account Service (API Gateway, Java/Spring)]
-        API_GW[API Gateway]
-    end
-    subgraph Account_Service[Account Service (Java/Spring)]
-        ACC[Account Mgmt]
-    end
-    subgraph Transaction_Service[Transaction Service (Java/Spring)]
-        TX[Transaction Processor]
-    end
-    subgraph Payment_Service[Payment Service (Java/Spring)]
-        PAY[Fund Transfer]
-    end
-    subgraph Settings_DB[Settings DB (Postgres)]
-        SET[Spending Limits]
-    end
-    WUI-->|REST API (OAuth, RBAC)|API_GW
-    API_GW-->|REST|ACC
-    API_GW-->|REST|TX
-    API_GW-->|REST|PAY
-    API_GW-->|JDBC|SET
-    ACC-->|Account Data|API_GW
-    TX-->|Transaction Data|API_GW
-    PAY-->|Transfer Result|API_GW
-    SET-->|Limit Data|API_GW
-    classDef secure fill:#e3f7e3,stroke:#333,stroke-width:2px;
-    API_GW,ACC,TX,PAY,SET class secure;
-    %% Compliance/Traceability
-    %% - OAuth2, RBAC, audit logging enforced at API Gateway
-    %% - All components log actions for audit (GDPR, PCI-DSS, ISO 27001)
-    %% - Endpoints mapped to ADRs SCIB-25 to SCIB-30
+    AccountService[(Account Service)]
+    TransactionService[(Transaction Service)]
+    PaymentService[(Payment Service)]
+
+    UI -- REST --> API
+    API -- JDBC --> DB
+    API -- HTTPS --> AccountService
+    API -- HTTPS --> TransactionService
+    API -- HTTPS --> PaymentService
+
+    classDef external fill:#f9f,stroke:#333,stroke-width:2;
+    AccountService,TransactionService,PaymentService:::external
+
+    %% Notes:
+    %% - API handles OAuth2, RBAC, Audit Logging
+    %% - All integrations via secure REST
+    %% - Compliance: GDPR, PCI-DSS, ISO27001
