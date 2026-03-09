@@ -1,62 +1,57 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth2 authentication for all endpoints
-- RBAC for parent/youth roles
-- Audit logging for fund transfers, limit changes, dashboard access
-- Data encryption at rest and in transit
+- OAuth2 authentication for all APIs
+- RBAC enforced at API Gateway
 - Input validation and output filtering
+- Audit logging for all sensitive actions
+- Data encryption at rest and in transit
 
 Compliance
-- GDPR: User data privacy and consent
-- PCI-DSS: Secure handling of payment data
-- ISO 27001: Information security controls
+- GDPR data processing and retention
+- PCI-DSS for payment transactions
+- ISO 27001 information security
 
 Performance
-- API response time < 500ms under normal load
-- Throughput: 1000 requests/sec with < 1% error rate
+- API response time < 500 ms for 95% of requests
+- Fund transfer processing < 1 second
 
 Scalability
-- Horizontal scaling via Kubernetes
-- Stateless APIs
+- Horizontal scaling for API and DB services
 
 Availability
-- 99.99% uptime
-- Automatic failover for service pods
+- 99.99% uptime SLA
+- Automatic failover
 
 Reliability
-- Retry logic for external service calls
-- Circuit breaker for service failures
+- Retry logic for transient failures
+- Transactional integrity for fund transfers
 
 Maintainability
-- Modular microservices
-- Clear documentation
-- Automated CI/CD
+- Modular service architecture
+- OpenAPI/Swagger documentation
+- Automated CI/CD pipeline
 
 Auditability
-- All actions logged with user/session info
-- Logs retained for 1 year
+- All user actions logged with timestamp and actor
 
 Disaster Recovery
-- RTO < 4 hours
-- RPO < 1 hour
-- Daily backups (encrypted)
+- RTO < 4 hours, RPO < 1 hour
 
 Backup
-- Daily encrypted database backups
-- Backup verification jobs
+- Daily encrypted backups
+- Backup verification and restore tests
 
 Monitoring
-- Real-time metrics (Prometheus/Grafana)
-- Alerting for error rates, latency, downtime
+- Real-time metrics collection
+- Automated alerting for anomalies
 
 Logging
-- Centralized log aggregation (ELK stack)
-- Error and access logs
+- Centralized log aggregation
+- Error and access logs retained for 1 year
 
 RBAC
-- Roles: Parent, Youth, Admin
-- Permissions enforced at API Gateway and Auth Service
+- Role-based access enforced for all endpoints
 
-Mapping to Design Decisions
-- All NFRs referenced in HLD section 7, mapped to ADRs SCIB-25 to SCIB-30
+Mapping to ADRs
+- All NFRs traceable to ADRs SCIB-25 to SCIB-30
