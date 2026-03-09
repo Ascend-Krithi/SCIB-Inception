@@ -1,61 +1,61 @@
 Non-Functional Requirements (NFRs)
 
 Security:
-- OAuth authentication for all APIs
-- RBAC enforced for parent/youth access
-- Audit logging of all actions
-- Data encryption at rest and in transit
-- Input validation, output filtering
+- OAuth authentication for APIs
+- RBAC enforced at API gateway
+- Audit logging for all parent/youth operations
+- Input validation and output filtering
+- Data encryption at rest and in transit (TLS)
 
 Compliance:
-- GDPR: Data subject rights, consent, deletion
-- PCI-DSS: Secure payment handling, audit trail
-- ISO 27001: Security controls, risk management
+- GDPR: Personal data protection
+- PCI-DSS: Payment data security
+- ISO 27001: Information security management
 
 Performance:
-- API response < 500ms under normal load
-- Fund transfer processing < 1s
+- API response time < 500ms for 95% of requests
+- Dashboard API must respond within 500ms under normal load
 
 Scalability:
-- Cloud-native, horizontal scaling
-- Load balancing, stateless APIs
+- Horizontal scaling for API gateway and microservices
+- No single point of failure
 
 Availability:
-- 99.99% uptime SLA
-- Automatic failover
+- 99.99% uptime target
 
 Reliability:
-- Transactional integrity for transfers
-- Duplicate prevention
+- Automatic failover for critical services
+- Retry logic for transient failures
 
 Maintainability:
-- Modular microservices
-- API versioning
-- Automated tests
+- Modular architecture
+- Well-documented APIs (OpenAPI/Swagger)
+- Automated CI/CD pipeline
 
 Auditability:
-- All parent/youth actions logged
-- Traceable to ADRs and requirements
+- All operations logged with user/action/timestamp
+- Tamper-proof audit logs
 
 Disaster Recovery:
-- RTO < 4 hours, RPO < 1 hour
-- Geo-redundant backups
+- RTO < 4 hours
+- RPO < 1 hour
+- Backup and restore procedures tested quarterly
 
 Backup:
-- Daily, encrypted backups
+- Daily encrypted backups
+- Backup retention policy (30 days)
 
 Monitoring:
-- Real-time API metrics
-- Alerts for failures, latency
+- Real-time metrics for API usage, latency, errors
+- Alerting for anomalies and failures
 
 Logging:
-- Centralized log aggregation
-- Error, access, transaction logs
+- Centralized log aggregation (ELK stack or Azure Monitor)
+- Structured logging for searchability
 
 RBAC:
-- Role-based access enforced on all endpoints
+- Role-based access enforced for parent/youth
+- Only authorized parents can manage youth accounts
 
-Enterprise Compliance:
-- Input validation, output filtering
-- Audit logging for all API calls
-- RBAC for data access
+Traceability:
+- All NFRs mapped to ADRs and acceptance criteria
