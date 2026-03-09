@@ -1,79 +1,75 @@
 API Contract Outline
 
-1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve dashboard details for youth account
-- Request Params: youthAccountId (path)
-- Response Schema:
-  {
-    "youthAccountId": "string",
-    "accountBalance": "decimal",
-    "spendingLimit": "decimal",
-    "currency": "string",
-    "recentTransactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "description": "string",
-        "amount": "decimal"
-      }
-    ]
-  }
-- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
-
-2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds to youth account
-- Request Body:
-  {
-    "sourceAccountId": "string",
-    "transferAmount": "decimal",
-    "currency": "string"
-  }
-- Response Schema:
-  {
-    "transferId": "string",
-    "status": "SUCCESS",
-    "updatedBalance": "decimal"
-  }
-- Error Handling: 400 Insufficient Balance, 400 Invalid Mapping, 500 Service Failure
-
-3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit
-- Request Body:
-  {
-    "weeklyLimit": "decimal"
-  }
-- Response Schema:
-  {
-    "youthAccountId": "string",
-    "weeklyLimit": "decimal",
-    "status": "UPDATED"
-  }
-- Error Handling: 400 Validation Error, 403 Unauthorized
-
-4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve youth account transaction history
-- Query Params: startDate, endDate, page, pageSize
-- Response Schema:
-  {
-    "transactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "merchant": "string",
-        "amount": "decimal",
-        "transactionType": "debit | credit"
-      }
-    ],
-    "pagination": {
-      "page": "number",
-      "pageSize": "number",
-      "totalRecords": "number"
+- Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+  - Description: Retrieve youth account dashboard
+  - Response:
+    {
+      "youthAccountId": "string",
+      "accountBalance": "decimal",
+      "spendingLimit": "decimal",
+      "currency": "string",
+      "recentTransactions": [
+        {
+          "transactionId": "string",
+          "date": "datetime",
+          "description": "string",
+          "amount": "decimal"
+        }
+      ]
     }
-  }
-- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
+  - Error Handling: 403 Unauthorized, 500 Internal Error
 
-Security:
-- OAuth 2.0 required
-- RBAC enforced
-- Input validation
-- Audit logging
+- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+  - Description: Parent transfers funds
+  - Request:
+    {
+      "sourceAccountId": "string",
+      "transferAmount": "decimal",
+      "currency": "string"
+    }
+  - Response:
+    {
+      "transferId": "string",
+      "status": "SUCCESS",
+      "updatedBalance": "decimal"
+    }
+  - Error Handling: 400 Insufficient Balance, 400 Invalid Account, 500 Service Failure
+
+- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+  - Description: Set weekly spending limit
+  - Request:
+    {
+      "weeklyLimit": "decimal"
+    }
+  - Response:
+    {
+      "youthAccountId": "string",
+      "weeklyLimit": "decimal",
+      "status": "UPDATED"
+    }
+  - Error Handling: 400 Validation Error, 403 Unauthorized
+
+- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+  - Description: Retrieve transaction history
+  - Query Params: startDate, endDate, page, pageSize
+  - Response:
+    {
+      "transactions": [
+        {
+          "transactionId": "string",
+          "date": "datetime",
+          "merchant": "string",
+          "amount": "decimal",
+          "transactionType": "debit | credit"
+        }
+      ],
+      "pagination": {
+        "page": "number",
+        "pageSize": "number",
+        "totalRecords": "number"
+      }
+    }
+  - Error Handling: 403 Unauthorized, 400 Invalid Params
+
+- Security: OAuth token validation, parent ownership checks, RBAC enforced
+- Error Handling: HTTP status codes, descriptive error messages
