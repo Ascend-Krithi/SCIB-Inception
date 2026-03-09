@@ -1,55 +1,61 @@
-Non-Functional Requirements (NFRs)
+Non-Functional Requirements (NFRs) List
 
 Security:
-- OAuth token validation for all endpoints
-- Parent ownership validation
-- RBAC enforced (parent manages youth account)
+- OAuth2 authentication for all APIs
+- RBAC for parent/youth access
+- Audit logging of all actions
+- Input validation and output filtering
 - Data encryption at rest and in transit
-- Audit logging for fund transfers and spending limit changes
 
 Compliance:
-- GDPR: Data protection, user consent, right to erasure
-- PCI-DSS: Secure handling of fund transfers
-- ISO 27001: Security controls and audit trails
+- GDPR: Data subject rights, deletion, consent
+- PCI-DSS: Secure payment processing
+- ISO 27001: Information security controls
 
 Performance:
-- API response time < 500ms under normal load
-- UI loads dashboard within 1 second
+- API response time <500ms (95% requests)
+- Throughput: 1000+ concurrent users
 
 Scalability:
-- Horizontal scaling supported for APIs
-- DB partitioning for large datasets
+- Horizontal scaling of API and DB
+- Load balancing supported
 
 Availability:
-- 99.99% uptime (HA deployment, failover)
+- 99.99% uptime
+- Multi-zone deployment
 
 Reliability:
-- Automatic failover for API and DB
+- Transactional integrity for transfers
+- Automatic failover
 
 Maintainability:
-- Modular architecture, reusable schema definitions
-- Clear API documentation (OpenAPI)
+- Modular codebase
+- Automated CI/CD
+- Clear API/ADR documentation
 
 Auditability:
-- All user actions logged and searchable
+- All user actions logged
+- Tamper-proof logs
 
 Disaster Recovery:
-- RTO < 4 hours, RPO < 1 hour
+- RTO <4 hours, RPO <1 hour
+- DR tested quarterly
 
 Backup:
-- Daily encrypted backups of settings and transactions
+- Daily encrypted backups
+- Automated restore procedures
 
 Monitoring:
-- Real-time metrics, alerting for API and DB
+- Real-time metrics (API, DB, auth)
+- Alerting for failures, slowdowns
 
 Logging:
-- Centralized log aggregation and analysis
+- Centralized log aggregation (ELK/Splunk)
+- Log rotation and retention policies
 
 RBAC:
-- Role-based access control enforced throughout
+- Role-based access enforced at API level
+- Parent can only access their youth accounts
 
-Input Validation:
-- Fund transfer amount, spending limit, and account mapping validated
-
-Output Filtering:
-- Transaction history and dashboard data filtered for parent visibility
+Mapping to Design Decisions:
+- Security, compliance, performance, scalability, and auditability referenced in ADRs SCIB-26 to SCIB-30 and enforced in API design and deployment.
