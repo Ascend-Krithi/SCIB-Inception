@@ -1,58 +1,67 @@
-Non-Functional Requirements (NFRs) List
+Non-Functional Requirements (NFRs)
 
 Security
-- OAuth 2.0 authentication
-- RBAC enforced for parent/youth roles
-- Input validation, output filtering
+- OAuth token validation for all APIs
+- RBAC: Parent access only to owned youth accounts
 - Audit logging for all actions
 - Data encryption at rest and in transit
 
 Compliance
-- GDPR: Data minimization, subject access, erasure
-- PCI-DSS: Secure fund transfer, transaction logging
-- ISO 27001: Information security controls
+- GDPR, PCI-DSS, ISO 27001
+- Data minimization and retention policies
 
 Performance
-- API response time < 500ms (normal load)
-- Fund transfer updates within 1s
+- API response time < 500ms for 95% requests
+- Efficient DB queries and caching
 
 Scalability
-- Horizontal scaling via Azure App Service
-- API supports >1000 concurrent users
+- Stateless APIs, horizontal scaling
+- Elastic load balancing
 
 Availability
 - 99.99% uptime
-- HA, automatic failover
+- Automatic failover
 
 Reliability
-- Transaction logging
-- Automatic failover for APIs
+- Transactional integrity for fund transfers
+- Retry logic for payment service
 
 Maintainability
-- Modular REST API
-- Well-documented OpenAPI schemas
-- Automated CI/CD pipeline
+- Modular architecture
+- OpenAPI/Swagger documentation
+- Automated CI/CD deployment
 
 Auditability
-- All user actions logged with timestamp and user ID
-- Traceability matrix (acceptance criteria to design components)
+- All fund transfers, limit changes, and dashboard accesses logged
+- Traceable actions via unique IDs
 
 Disaster Recovery
-- RTO < 4 hours
-- RPO < 1 hour
+- RTO < 4 hours, RPO < 1 hour
+- Regular DR drills
 
 Backup
 - Daily encrypted backups
-- Automated restore testing
+- Backup retention for 30 days
 
 Monitoring
-- Real-time metrics via Azure Monitor
-- Alerting for failures, latency, errors
+- CloudWatch metrics, alerting for failures and latency
+- Real-time health checks
 
 Logging
 - Centralized log aggregation
-- Structured logs for all APIs
+- Structured logs for API and DB
 
 RBAC
-- Role-based access enforced for all endpoints
-- Parent can only access/manage their youth accounts
+- Role-based access enforced in API and DB
+- Parent authorization validated per request
+
+Input Validation
+- All API requests validated for schema and business rules
+
+Output Filtering
+- Sensitive data masked in responses
+
+Technical Risk Mitigation
+- API latency: DB optimization, caching
+- Unauthorized access: OAuth, RBAC, audit
+- Service failure: Retry, alerting, fallback

@@ -1,7 +1,7 @@
 API Contract Outline
 
-1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve youth account dashboard details
+1. GET /api/youth-accounts/{youthAccountId}/dashboard
+- Summary: Retrieve youth account dashboard details.
 - Request: Path param youthAccountId
 - Response:
   {
@@ -18,11 +18,13 @@ API Contract Outline
       }
     ]
   }
-- Error Handling: 403 Unauthorized, 404 Not Found
+- Errors:
+  - 403 Unauthorized
+  - 404 Not Found
 
-2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds from parent account to youth account
-- Request Body:
+2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Summary: Transfer funds from parent to youth account.
+- Request:
   {
     "sourceAccountId": "string",
     "transferAmount": "decimal",
@@ -34,11 +36,14 @@ API Contract Outline
     "status": "SUCCESS",
     "updatedBalance": "decimal"
   }
-- Error Handling: 400 Insufficient balance, 400 Invalid mapping, 500 Transfer service failure
+- Errors:
+  - 400 Insufficient balance
+  - 400 Invalid account mapping
+  - 500 Transfer service failure
 
-3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit
-- Request Body:
+3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Summary: Configure weekly spending limit.
+- Request:
   {
     "weeklyLimit": "decimal"
   }
@@ -48,11 +53,13 @@ API Contract Outline
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Error Handling: 400 Validation error
+- Errors:
+  - 400 Validation error
+  - 403 Unauthorized
 
-4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve transaction history
-- Query Parameters: startDate, endDate, page, pageSize
+4. GET /api/youth-accounts/{youthAccountId}/transactions
+- Summary: Retrieve youth account transaction history.
+- Request: Query params startDate, endDate, page, pageSize
 - Response:
   {
     "transactions": [
@@ -70,14 +77,9 @@ API Contract Outline
       "totalRecords": "number"
     }
   }
-- Error Handling: 403 Unauthorized, 404 Not Found
+- Errors:
+  - 403 Unauthorized
+  - 404 Not Found
 
-Common Error Handling:
-- 400 Bad Request (input validation)
-- 403 Forbidden (RBAC)
-- 404 Not Found
-- 500 Internal Server Error
-
-Authentication:
-- OAuth 2.0 required for all endpoints
-- Parent ownership validated
+Authentication: OAuth token required for all endpoints.
+RBAC: Parent access enforced for youth account operations.
