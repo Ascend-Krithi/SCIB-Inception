@@ -1,55 +1,53 @@
-%% Sequence Diagram for Youth Account Management (Mermaid)
+%% Sequence Diagram for Youth Account Management APIs
 sequenceDiagram
+    autonumber
     participant Parent as Parent/Guardian
-    participant Web as Web Frontend
+    participant WebApp as Banking Web Application
     participant APIGW as API Gateway
-    participant Auth as Auth Service
-    participant YAS as Youth Account Service
-    participant AccS as Account Service
-    participant TxS as Transaction Service
-    participant PayS as Payment Service
+    participant YouthAPI as Youth Account API Service
+    participant AccountSvc as Account Service
+    participant PaymentSvc as Payment Service
+    participant TxnLedger as Transaction Ledger Service
+    participant SettingsDB as Youth Account Settings DB
+    participant TxnDB as Transaction DB
 
-    Parent->>Web: Login & access dashboard
-    Web->>APIGW: GET /api/youth-accounts/{id}/dashboard (Bearer token)
-    APIGW->>Auth: Validate OAuth2 token (RBAC: parent)
-    Auth-->>APIGW: Token valid
-    APIGW->>YAS: getYouthAccountDashboard(youthAccountId)
-    YAS->>AccS: Fetch youth account data
-    YAS->>TxS: Fetch recent transactions
-    YAS-->>APIGW: Dashboard data
-    APIGW-->>Web: Dashboard JSON
-    Web-->>Parent: Render dashboard
-    Note over Parent,Web: All actions logged for audit
+    %% Dashboard Retrieval
+    Parent->>WebApp: Login & Request Dashboard
+    WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth2)
+    APIGW->>YouthAPI: Forward request (RBAC)
+    YouthAPI->>SettingsDB: Get spending limit
+    YouthAPI->>TxnDB: Get recent transactions
+    YouthAPI->>AccountSvc: Get account balance
+    YouthAPI-->>APIGW: Dashboard data
+    APIGW-->>WebApp: Dashboard data
+    WebApp-->>Parent: Dashboard
 
-    Parent->>Web: Initiate fund transfer
-    Web->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-    APIGW->>Auth: Validate OAuth2 token
-    Auth-->>APIGW: Token valid
-    APIGW->>YAS: transferFundsToYouthAccount
-    YAS->>PayS: Initiate fund transfer
-    PayS-->>YAS: Transfer result
-    YAS-->>APIGW: Fund transfer response
-    APIGW-->>Web: Response
-    Web-->>Parent: Show result
-    Note over Parent,YAS: Fund transfer audit logged
+    %% Fund Transfer
+    Parent->>WebApp: Initiate Fund Transfer
+    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer (OAuth2)
+    APIGW->>YouthAPI: Forward request (RBAC)
+    YouthAPI->>PaymentSvc: Transfer funds
+    PaymentSvc-->>YouthAPI: Transfer result
+    YouthAPI->>AccountSvc: Update balances
+    YouthAPI->>TxnDB: Log transaction
+    YouthAPI-->>APIGW: Transfer response
+    APIGW-->>WebApp: Transfer response
+    WebApp-->>Parent: Confirmation
 
-    Parent->>Web: Update spending limit
-    Web->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-    APIGW->>Auth: Validate OAuth2 token
-    Auth-->>APIGW: Token valid
-    APIGW->>YAS: configureSpendingLimit
-    YAS-->>APIGW: Updated
-    APIGW-->>Web: Response
-    Web-->>Parent: Show confirmation
-    Note over Parent,YAS: Spending limit change audit logged
+    %% Set Spending Limit
+    Parent->>WebApp: Set Spending Limit
+    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit (OAuth2)
+    APIGW->>YouthAPI: Forward request (RBAC)
+    YouthAPI->>SettingsDB: Update limit
+    YouthAPI-->>APIGW: Limit updated
+    APIGW-->>WebApp: Limit updated
+    WebApp-->>Parent: Confirmation
 
-    Parent->>Web: View transactions
-    Web->>APIGW: GET /api/youth-accounts/{id}/transactions?...
-    APIGW->>Auth: Validate OAuth2 token
-    Auth-->>APIGW: Token valid
-    APIGW->>YAS: getYouthAccountTransactions
-    YAS->>TxS: Fetch transactions
-    YAS-->>APIGW: Transaction history
-    APIGW-->>Web: Response
-    Web-->>Parent: Show history
-    Note over Parent,Web: Access logged for audit
+    %% Transaction History
+    Parent->>WebApp: View Transactions
+    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions (OAuth2)
+    APIGW->>YouthAPI: Forward request (RBAC)
+    YouthAPI->>TxnDB: Fetch transactions
+    YouthAPI-->>APIGW: Transaction list
+    APIGW-->>WebApp: Transaction list
+    WebApp-->>Parent: Show history
