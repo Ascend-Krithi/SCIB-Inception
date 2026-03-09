@@ -1,7 +1,7 @@
 API Contract Outline
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Method: GET
+1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+- Description: Retrieve youth account dashboard details
 - Request: Path param youthAccountId
 - Response:
   {
@@ -20,8 +20,8 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
   }
 - Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Method: POST
+2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Description: Transfer funds from parent to youth account
 - Request:
   {
     "sourceAccountId": "string",
@@ -34,10 +34,10 @@ Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
     "status": "SUCCESS",
     "updatedBalance": "decimal"
   }
-- Error Handling: 400 Insufficient funds, 400 Invalid mapping, 500 Transfer failure
+- Error Handling: 400 Insufficient Funds, 400 Invalid Account, 500 Transfer Failure
 
-Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Method: PUT
+3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Description: Configure weekly spending limit
 - Request:
   {
     "weeklyLimit": "decimal"
@@ -48,11 +48,11 @@ Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Error Handling: 400 Validation error, 403 Unauthorized
+- Error Handling: 400 Validation Error, 403 Unauthorized
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Method: GET
-- Query Params: startDate, endDate, page, pageSize
+4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+- Description: Retrieve youth account transaction history
+- Request: Path param youthAccountId, Query params startDate, endDate, page, pageSize
 - Response:
   {
     "transactions": [
@@ -70,4 +70,9 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
       "totalRecords": "number"
     }
   }
-- Error Handling: 403 Unauthorized, 404 Not Found
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
+
+5. Security & Compliance
+- OAuth token validation
+- RBAC: Parent must own youth account
+- Input validation, output filtering, audit logging
