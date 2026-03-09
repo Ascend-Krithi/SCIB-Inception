@@ -1,66 +1,61 @@
 Non-Functional Requirements (NFRs)
 
-Security:
-- OAuth2 authentication for all APIs
-- RBAC enforced (parent/guardian role)
-- Input validation for account IDs, transfer amounts, spending limits
-- Output filtering to restrict data to authorized parents
-- Audit logging for all fund transfers, spending limit changes, and dashboard access
-- Data encryption at rest and in transit (TLS)
+Security
+- OAuth 2.0 authentication for all APIs
+- Parent ownership validation
+- RBAC enforced at API and UI
+- Audit logging for fund transfers, limit changes
+- Data encryption at rest and in transit
 
-Compliance:
-- GDPR: User data privacy, right to erasure, audit trails
-- PCI-DSS: Payment and fund transfer security
-- ISO 27001: Information security management
+Compliance
+- GDPR: Data subject access, deletion, consent logging
+- PCI-DSS: Secure fund transfer, card data never stored
+- ISO 27001: Information security controls
 
-Performance:
-- API response time < 500ms for 95% of requests
-- Dashboard API returns within 500ms under normal load
+Performance
+- API response <500ms under normal load
+- UI loads dashboard in <2s
 
-Scalability:
-- Horizontal scaling for API servers
-- Pagination supported for transaction history
+Scalability
+- Horizontal scaling supported for APIs and UI
 
-Availability:
-- 99.99% uptime (SLA)
+Availability
+- 99.99% uptime for APIs
+- Automatic failover for services
 
-Reliability:
-- Automatic failover for API and DB
-- Transaction integrity for fund transfers
+Reliability
+- ACID transaction support for fund transfers
+- Retry logic for payment service
 
-Maintainability:
-- Modular API design
-- Separation of business logic, data access, and integration
-- OpenAPI documentation for all endpoints
+Maintainability
+- Modular REST APIs
+- Reusable schema definitions
+- Clear, versioned documentation
 
-Auditability:
-- All user actions (fund transfer, limit config, dashboard access) logged
-- Centralized log aggregation
+Auditability
+- All fund transfers, limit changes, and login events logged
+- Audit logs accessible to compliance teams
 
-Disaster Recovery:
+Disaster Recovery
 - RTO < 4 hours
 - RPO < 1 hour
-- Daily encrypted backups
+- Tested failover and backup restore
 
-Backup:
-- Daily backups of settings DB
-- Backup data encrypted
+Backup
+- Daily encrypted backups for settings and transaction data
 
-Monitoring:
-- Real-time metrics and alerting for API, DB, and integration failures
-- Dashboard for operational visibility
+Monitoring
+- Real-time metrics for API and UI
+- Alerting for failures, latency, unauthorized access
 
-Logging:
-- Centralized logging of errors, transactions, and access events
+Logging
+- Centralized log aggregation
+- Structured logs for all key events
 
-RBAC:
-- Role-based access control enforced for all APIs
+RBAC
+- Role-based access enforced for all APIs
+- Parent can manage only their youth accounts
 
-Input Validation:
-- All incoming requests validated for schema and business rules
-
-Output Filtering:
-- API responses filtered to only show authorized data
-
-Audit Logging:
-- All sensitive actions logged for compliance
+Enterprise Overlays
+- Input validation, output filtering, audit logging, RBAC applied for compliance
+- All endpoints and UI components mapped to ADRs for traceability
