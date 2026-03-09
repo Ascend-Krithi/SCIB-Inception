@@ -3,73 +3,72 @@ API Contract Outline
 Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
 - Request: Path param youthAccountId
 - Response:
-  {
-    "youthAccountId": "string",
-    "accountBalance": "decimal",
-    "spendingLimit": "decimal",
-    "currency": "string",
-    "recentTransactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "description": "string",
-        "amount": "decimal"
-      }
-    ]
-  }
-- Error Handling: 403 Unauthorized, 404 Not Found
+{
+  "youthAccountId": "string",
+  "accountBalance": "decimal",
+  "spendingLimit": "decimal",
+  "currency": "string",
+  "recentTransactions": [
+    {
+      "transactionId": "string",
+      "date": "datetime",
+      "description": "string",
+      "amount": "decimal"
+    }
+  ]
+}
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
 Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Request:
-  {
-    "sourceAccountId": "string",
-    "transferAmount": "decimal",
-    "currency": "string"
-  }
+- Request Body:
+{
+  "sourceAccountId": "string",
+  "transferAmount": "decimal",
+  "currency": "string"
+}
 - Response:
-  {
-    "transferId": "string",
-    "status": "SUCCESS",
-    "updatedBalance": "decimal"
-  }
-- Error Handling: 400 Insufficient Balance, 400 Invalid Account, 500 Transfer Service Failure
+{
+  "transferId": "string",
+  "status": "SUCCESS",
+  "updatedBalance": "decimal"
+}
+- Error Handling: 400 Insufficient Funds, 400 Invalid Account, 500 Transfer Failure
 
 Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Request:
-  {
-    "weeklyLimit": "decimal"
-  }
+- Request Body:
+{
+  "weeklyLimit": "decimal"
+}
 - Response:
-  {
-    "youthAccountId": "string",
-    "weeklyLimit": "decimal",
-    "status": "UPDATED"
-  }
-- Error Handling: 400 Validation Error, 403 Unauthorized
+{
+  "youthAccountId": "string",
+  "weeklyLimit": "decimal",
+  "status": "UPDATED"
+}
+- Error Handling: 400 Validation Error, 403 Unauthorized, 500 Internal Error
 
 Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
 - Query Params: startDate, endDate, page, pageSize
 - Response:
-  {
-    "transactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "merchant": "string",
-        "amount": "decimal",
-        "transactionType": "debit | credit"
-      }
-    ],
-    "pagination": {
-      "page": "number",
-      "pageSize": "number",
-      "totalRecords": "number"
+{
+  "transactions": [
+    {
+      "transactionId": "string",
+      "date": "datetime",
+      "merchant": "string",
+      "amount": "decimal",
+      "transactionType": "debit | credit"
     }
+  ],
+  "pagination": {
+    "page": "number",
+    "pageSize": "number",
+    "totalRecords": "number"
   }
-- Error Handling: 403 Unauthorized, 404 Not Found
+}
+- Error Handling: 403 Unauthorized, 400 Invalid Params, 500 Internal Error
 
-Common Requirements:
-- OAuth2 token required for all endpoints
-- Ownership validation for parent accounts
-- RBAC enforced
-- Standard error structure: { "errorCode": "string", "errorMessage": "string" }
+General:
+- All endpoints require OAuth2 token
+- RBAC enforced (parent must own youth account)
+- API contract references OpenAPI/Swagger spec (see SCIB-30)
