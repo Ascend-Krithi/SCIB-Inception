@@ -1,75 +1,82 @@
 API Contract Outline
 
+1. Dashboard API
 - Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-  - Description: Retrieve youth account dashboard
-  - Response:
-    {
-      "youthAccountId": "string",
-      "accountBalance": "decimal",
-      "spendingLimit": "decimal",
-      "currency": "string",
-      "recentTransactions": [
-        {
-          "transactionId": "string",
-          "date": "datetime",
-          "description": "string",
-          "amount": "decimal"
-        }
-      ]
-    }
-  - Error Handling: 403 Unauthorized, 500 Internal Error
-
-- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-  - Description: Parent transfers funds
-  - Request:
-    {
-      "sourceAccountId": "string",
-      "transferAmount": "decimal",
-      "currency": "string"
-    }
-  - Response:
-    {
-      "transferId": "string",
-      "status": "SUCCESS",
-      "updatedBalance": "decimal"
-    }
-  - Error Handling: 400 Insufficient Balance, 400 Invalid Account, 500 Service Failure
-
-- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-  - Description: Set weekly spending limit
-  - Request:
-    {
-      "weeklyLimit": "decimal"
-    }
-  - Response:
-    {
-      "youthAccountId": "string",
-      "weeklyLimit": "decimal",
-      "status": "UPDATED"
-    }
-  - Error Handling: 400 Validation Error, 403 Unauthorized
-
-- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-  - Description: Retrieve transaction history
-  - Query Params: startDate, endDate, page, pageSize
-  - Response:
-    {
-      "transactions": [
-        {
-          "transactionId": "string",
-          "date": "datetime",
-          "merchant": "string",
-          "amount": "decimal",
-          "transactionType": "debit | credit"
-        }
-      ],
-      "pagination": {
-        "page": "number",
-        "pageSize": "number",
-        "totalRecords": "number"
+- Request: OAuth2 token in header
+- Response:
+  {
+    "youthAccountId": "string",
+    "accountBalance": "decimal",
+    "spendingLimit": "decimal",
+    "currency": "string",
+    "recentTransactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "description": "string",
+        "amount": "decimal"
       }
-    }
-  - Error Handling: 403 Unauthorized, 400 Invalid Params
+    ]
+  }
+- Errors: 403 Unauthorized, 404 Not Found, 500 Internal Server Error
 
-- Security: OAuth token validation, parent ownership checks, RBAC enforced
-- Error Handling: HTTP status codes, descriptive error messages
+2. Fund Transfer API
+- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Request:
+  {
+    "sourceAccountId": "string",
+    "transferAmount": "decimal",
+    "currency": "string"
+  }
+- Response:
+  {
+    "transferId": "string",
+    "status": "SUCCESS",
+    "updatedBalance": "decimal"
+  }
+- Errors: 400 Insufficient Balance, 400 Invalid Account, 500 Transfer Failure
+
+3. Spending Limit Configuration API
+- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Request:
+  {
+    "weeklyLimit": "decimal"
+  }
+- Response:
+  {
+    "youthAccountId": "string",
+    "weeklyLimit": "decimal",
+    "status": "UPDATED"
+  }
+- Errors: 400 Validation Error, 403 Unauthorized
+
+4. Transaction History API
+- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+- Query Params: startDate, endDate, page, pageSize
+- Response:
+  {
+    "transactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "merchant": "string",
+        "amount": "decimal",
+        "transactionType": "debit | credit"
+      }
+    ],
+    "pagination": {
+      "page": "number",
+      "pageSize": "number",
+      "totalRecords": "number"
+    }
+  }
+- Errors: 403 Unauthorized, 404 Not Found
+
+Authentication & Error Handling
+- OAuth2 required for all endpoints
+- RBAC enforced (parent only)
+- All error responses in JSON:
+  {
+    "errorCode": "string",
+    "errorMessage": "string"
+  }
