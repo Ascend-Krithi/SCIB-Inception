@@ -1,58 +1,51 @@
-%% Sequence Diagram: Youth Account Management API
+%% Sequence Diagram for Youth Account Management API
 sequenceDiagram
     participant Parent as Parent/Guardian
-    participant WebUI as Web UI
-    participant APIGW as API Gateway
-    participant YAS as Youth Account Service
+    participant UI as Parent Dashboard UI (React SPA)
+    participant API as Youth Account API (Spring Boot)
+    participant Auth as OAuth Service
     participant AccSvc as Account Service
     participant TxnSvc as Transaction Service
-    participant SettingsDB as Settings DB
-    participant LedgerDB as Ledger DB
+    participant PaySvc as Payment Service
 
-    autonumber
-    Parent->>WebUI: Login (OAuth2)
-    WebUI->>APIGW: Authenticate (OAuth2 token)
-    APIGW->>YAS: Validate token, RBAC
-    YAS-->>APIGW: Auth success/fail
-    APIGW-->>WebUI: Auth result
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/dashboard
-    APIGW->>YAS: getDashboard(youthAccountId)
-    YAS->>AccSvc: Fetch account balance
-    AccSvc-->>YAS: Account balance
-    YAS->>SettingsDB: Get spending limit
-    SettingsDB-->>YAS: Limit
-    YAS->>LedgerDB: Get recent transactions
-    LedgerDB-->>YAS: Transactions
-    YAS-->>APIGW: Dashboard data
-    APIGW-->>WebUI: Dashboard JSON
-    WebUI-->>Parent: Render dashboard
-    Note over Parent,WebUI: Parent initiates fund transfer
-    Parent->>WebUI: Transfer funds
-    WebUI->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-    APIGW->>YAS: transferFunds(request)
-    YAS->>AccSvc: Initiate fund transfer
-    AccSvc-->>YAS: Transfer status
-    YAS->>LedgerDB: Log transaction
-    LedgerDB-->>YAS: Log success
-    YAS-->>APIGW: Transfer result
-    APIGW-->>WebUI: Transfer response
-    WebUI-->>Parent: Show result
-    Note over Parent,WebUI: Set spending limit
-    Parent->>WebUI: Set limit
-    WebUI->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-    APIGW->>YAS: setSpendingLimit(request)
-    YAS->>SettingsDB: Update limit
-    SettingsDB-->>YAS: Update status
-    YAS-->>APIGW: Limit update result
-    APIGW-->>WebUI: Update response
-    WebUI-->>Parent: Show result
-    Note over Parent,WebUI: View transaction history
-    Parent->>WebUI: View transactions
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/transactions
-    APIGW->>YAS: getTransactionHistory(params)
-    YAS->>LedgerDB: Query transactions
-    LedgerDB-->>YAS: Transaction list
-    YAS-->>APIGW: Transaction history
-    APIGW-->>WebUI: Transaction data
-    WebUI-->>Parent: Render transactions
-    Note over all: All operations audited, OAuth2 & RBAC enforced
+    Parent->>UI: Login & access dashboard
+    UI->>Auth: OAuth 2.0 Token Request
+    Auth-->>UI: Access Token
+    UI->>API: GET /api/youth-accounts/{id}/dashboard (access token)
+    API->>Auth: Validate Token & RBAC
+    Auth-->>API: Token valid
+    API->>AccSvc: Fetch account data
+    AccSvc-->>API: Account details
+    API->>TxnSvc: Retrieve recent transactions
+    TxnSvc-->>API: Transactions
+    API-->>UI: Dashboard details
+    UI-->>Parent: Render dashboard
+
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{id}/fund-transfer
+    API->>Auth: Validate Token & RBAC
+    Auth-->>API: Token valid
+    API->>PaySvc: Initiate transfer
+    PaySvc-->>API: Transfer status
+    API->>AccSvc: Update balance
+    AccSvc-->>API: Updated balance
+    API-->>UI: Transfer response
+    UI-->>Parent: Show transfer result
+
+    Parent->>UI: Set spending limit
+    UI->>API: PUT /api/youth-accounts/{id}/spending-limit
+    API->>Auth: Validate Token & RBAC
+    Auth-->>API: Token valid
+    API->>AccSvc: Update spending limit
+    AccSvc-->>API: Limit updated
+    API-->>UI: Limit response
+    UI-->>Parent: Show limit update
+
+    Parent->>UI: View transaction history
+    UI->>API: GET /api/youth-accounts/{id}/transactions
+    API->>Auth: Validate Token & RBAC
+    Auth-->>API: Token valid
+    API->>TxnSvc: Fetch transactions
+    TxnSvc-->>API: Transactions
+    API-->>UI: Transaction history
+    UI-->>Parent: Render history
