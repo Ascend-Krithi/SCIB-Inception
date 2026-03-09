@@ -1,39 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mermaid C4-style Component Diagram SVG for Youth Account Management -->
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">
-  <!-- Web UI -->
-  <rect x="50" y="60" width="180" height="80" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" rx="10"/>
-  <text x="140" y="100" font-size="16" text-anchor="middle" fill="#1890ff">Web UI (React/Angular)</text>
-  <!-- API -->
-  <rect x="260" y="60" width="220" height="80" fill="#fffbe6" stroke="#faad14" stroke-width="2" rx="10"/>
-  <text x="370" y="100" font-size="16" text-anchor="middle" fill="#faad14">Youth Account Management API (Spring Boot)</text>
-  <!-- DB -->
-  <rect x="530" y="60" width="170" height="80" fill="#f6ffed" stroke="#52c41a" stroke-width="2" rx="10"/>
-  <text x="615" y="100" font-size="16" text-anchor="middle" fill="#52c41a">Youth Account DB (PostgreSQL)</text>
-  <!-- Account Service -->
-  <rect x="260" y="200" width="170" height="60" fill="#fff0f6" stroke="#eb2f96" stroke-width="2" rx="10"/>
-  <text x="345" y="235" font-size="14" text-anchor="middle" fill="#eb2f96">Account Service</text>
-  <!-- Transaction Service -->
-  <rect x="450" y="200" width="170" height="60" fill="#f9f0ff" stroke="#722ed1" stroke-width="2" rx="10"/>
-  <text x="535" y="235" font-size="14" text-anchor="middle" fill="#722ed1">Transaction Service</text>
-  <!-- Payment Service -->
-  <rect x="640" y="200" width="170" height="60" fill="#fff1f0" stroke="#f5222d" stroke-width="2" rx="10"/>
-  <text x="725" y="235" font-size="14" text-anchor="middle" fill="#f5222d">Payment Service</text>
-  <!-- Arrows -->
-  <!-- UI -> API -->
-  <line x1="230" y1="100" x2="260" y2="100" stroke="#000" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API -> DB -->
-  <line x1="480" y1="100" x2="530" y2="100" stroke="#000" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API -> Account Service -->
-  <line x1="370" y1="140" x2="345" y2="200" stroke="#eb2f96" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API -> Transaction Service -->
-  <line x1="370" y1="140" x2="535" y2="200" stroke="#722ed1" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API -> Payment Service -->
-  <line x1="480" y1="140" x2="725" y2="200" stroke="#f5222d" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- SVG Arrowhead Definition -->
-  <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L10,5 L0,10 L2,5 Z" fill="#000" />
-    </marker>
-  </defs>
+<!-- Mermaid SVG: Component Diagram for Parent-Youth Account Management -->
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
+  <g>
+    <!-- Web Application -->
+    <rect x="50" y="100" width="170" height="60" fill="#f6f7fb" stroke="#222" rx="8"/>
+    <text x="135" y="130" text-anchor="middle" font-size="15" font-weight="bold">Banking Web App</text>
+    <text x="135" y="145" text-anchor="middle" font-size="12">SPA/React (UI)</text>
+    <!-- Youth Account APIs -->
+    <rect x="270" y="100" width="180" height="60" fill="#e0f7fa" stroke="#222" rx="8"/>
+    <text x="360" y="130" text-anchor="middle" font-size="15" font-weight="bold">Youth Account APIs</text>
+    <text x="360" y="145" text-anchor="middle" font-size="12">REST API</text>
+    <!-- Settings DB -->
+    <rect x="500" y="100" width="170" height="60" fill="#fff3e0" stroke="#222" rx="8"/>
+    <text x="585" y="130" text-anchor="middle" font-size="15" font-weight="bold">Settings DB</text>
+    <text x="585" y="145" text-anchor="middle" font-size="12">PostgreSQL</text>
+    <!-- Account Service -->
+    <rect x="270" y="220" width="170" height="60" fill="#e8f5e9" stroke="#222" rx="8"/>
+    <text x="355" y="250" text-anchor="middle" font-size="15" font-weight="bold">Account Service</text>
+    <text x="355" y="265" text-anchor="middle" font-size="12">REST</text>
+    <!-- Transaction Service -->
+    <rect x="500" y="220" width="170" height="60" fill="#ede7f6" stroke="#222" rx="8"/>
+    <text x="585" y="250" text-anchor="middle" font-size="15" font-weight="bold">Transaction Service</text>
+    <text x="585" y="265" text-anchor="middle" font-size="12">REST</text>
+    <!-- Payment Service -->
+    <rect x="730" y="220" width="120" height="60" fill="#fff9c4" stroke="#222" rx="8"/>
+    <text x="790" y="250" text-anchor="middle" font-size="15" font-weight="bold">Payment Service</text>
+    <text x="790" y="265" text-anchor="middle" font-size="12">REST</text>
+    <!-- Arrows -->
+    <g stroke="#222" stroke-width="2" marker-end="url(#arrow)">
+      <!-- UI to API -->
+      <line x1="220" y1="130" x2="270" y2="130" />
+      <!-- API to Settings DB -->
+      <line x1="450" y1="130" x2="500" y2="130" />
+      <!-- API to Account Service -->
+      <line x1="360" y1="160" x2="360" y2="220" />
+      <!-- API to Transaction Service -->
+      <line x1="450" y1="160" x2="585" y2="220" />
+      <!-- API to Payment Service -->
+      <line x1="450" y1="130" x2="730" y2="250" />
+    </g>
+    <!-- Arrow marker definition -->
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#222" />
+      </marker>
+    </defs>
+    <!-- Legend -->
+    <rect x="50" y="350" width="350" height="110" fill="#fafafa" stroke="#888" rx="8"/>
+    <text x="225" y="375" text-anchor="middle" font-size="14" font-weight="bold">Legend</text>
+    <text x="70" y="395" font-size="12">UI/API:</text>
+    <rect x="120" y="385" width="20" height="12" fill="#f6f7fb" stroke="#222"/>
+    <text x="70" y="415" font-size="12">API:</text>
+    <rect x="120" y="405" width="20" height="12" fill="#e0f7fa" stroke="#222"/>
+    <text x="70" y="435" font-size="12">DB:</text>
+    <rect x="120" y="425" width="20" height="12" fill="#fff3e0" stroke="#222"/>
+    <text x="70" y="455" font-size="12">External Service:</text>
+    <rect x="170" y="445" width="20" height="12" fill="#e8f5e9" stroke="#222"/>
+    <rect x="200" y="445" width="20" height="12" fill="#ede7f6" stroke="#222"/>
+    <rect x="230" y="445" width="20" height="12" fill="#fff9c4" stroke="#222"/>
+  </g>
 </svg>

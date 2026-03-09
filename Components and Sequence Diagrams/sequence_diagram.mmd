@@ -1,37 +1,41 @@
-%% Sequence Diagram for Youth Account Management API (Mermaid)
+%% Sequence Diagram: Parent-Youth Account Management
 sequenceDiagram
-  participant Parent
-  participant UI as Web UI
-  participant API as Youth Account Management API
-  participant Account as Account Service
-  participant Transaction as Transaction Service
-  participant Payment as Payment Service
+  participant Parent as Parent/Guardian
+  participant WebApp as Banking Web Application (SPA/React)
+  participant API as Youth Account APIs
+  participant AccountSvc as Account Service
+  participant TransSvc as Transaction Service
+  participant PaymentSvc as Payment Service
+  participant SettingsDB as Youth Account Settings DB
 
-  %% Dashboard retrieval
-  Parent->>UI: Login & View Dashboard
-  UI->>API: GET /api/youth-accounts/{youthAccountId}/dashboard (OAuth2)
-  API->>Account: GET account info (REST)
-  API->>Transaction: GET recent transactions (REST)
-  API-->>UI: Dashboard data (balance, limits, transactions)
-  UI-->>Parent: Display dashboard
+  %% Dashboard Access
+  Parent->>WebApp: Login (OAuth2)
+  WebApp->>API: GET /api/youth-accounts/{youthAccountId}/dashboard (Bearer Token)
+  API->>AccountSvc: Get Account Details
+  API->>SettingsDB: Get Spending Limit
+  API->>TransSvc: Get Recent Transactions
+  API-->>WebApp: Dashboard Response
+  WebApp-->>Parent: Render Dashboard
 
-  %% Fund transfer
-  Parent->>UI: Initiate fund transfer
-  UI->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer (OAuth2)
-  API->>Payment: Initiate transfer (REST)
-  Payment-->>API: Transfer result
-  API-->>UI: Transfer confirmation (status, updatedBalance)
-  UI-->>Parent: Show result
+  %% Fund Transfer
+  Parent->>WebApp: Initiate Fund Transfer
+  WebApp->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+  API->>AccountSvc: Validate Source Account
+  API->>PaymentSvc: Initiate Fund Transfer
+  API->>AccountSvc: Update Account Balance
+  API-->>WebApp: Transfer Response
+  WebApp-->>Parent: Show Transfer Status
 
-  %% Set spending limit
-  Parent->>UI: Set weekly spending limit
-  UI->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit (OAuth2)
-  API-->>UI: Limit update result
-  UI-->>Parent: Show confirmation
+  %% Update Spending Limit
+  Parent->>WebApp: Update Spending Limit
+  WebApp->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+  API->>SettingsDB: Update Weekly Limit
+  API-->>WebApp: Limit Update Response
+  WebApp-->>Parent: Show Update Status
 
-  %% Transaction history
-  Parent->>UI: View transactions
-  UI->>API: GET /api/youth-accounts/{youthAccountId}/transactions (OAuth2)
-  API->>Transaction: Fetch history (REST)
-  API-->>UI: Transaction history
-  UI-->>Parent: Display history
+  %% Transaction History
+  Parent->>WebApp: View Transaction History
+  WebApp->>API: GET /api/youth-accounts/{youthAccountId}/transactions
+  API->>TransSvc: Fetch Transaction History
+  API-->>WebApp: Transaction History Response
+  WebApp-->>Parent: Show Transactions
