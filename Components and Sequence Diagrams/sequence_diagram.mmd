@@ -1,50 +1,50 @@
-%% Sequence Diagram for Youth Account Management (Mermaid)
+%% Sequence Diagram for Parent-Managed Youth Account Management (Mermaid)
 sequenceDiagram
-    participant Parent as Parent/Guardian (Web UI)
-    participant UI as Web UI (React)
+    participant Parent as Parent/Guardian
+    participant WebApp as Web UI (React)
     participant API as Youth Account API (Spring Boot)
     participant Auth as OAuth2 Auth Service
+    participant DB as Account DB (PostgreSQL)
+    participant Settings as Youth Account Settings
     participant Payment as Payment Service
     participant Ledger as Transaction Ledger
-    participant DB as Account DB
-    participant Settings as Settings DB
-
-    %% Dashboard Retrieval
-    Parent->>UI: Login & view dashboard
-    UI->>Auth: Request OAuth2 token
-    Auth-->>UI: OAuth2 token (JWT)
-    UI->>API: GET /api/youth-accounts/{id}/dashboard (Bearer token)
+    Note over Parent,API: All API calls require OAuth2 Bearer token, RBAC, and audit logging
+    Parent->>WebApp: Login (OAuth2)
+    WebApp->>Auth: Authenticate (OAuth2)
+    Auth-->>WebApp: Auth token (JWT)
+    Parent->>WebApp: View Dashboard
+    WebApp->>API: GET /api/youth-accounts/{id}/dashboard [Bearer]
+    API->>Auth: Validate token & RBAC
+    Auth-->>API: OK
     API->>DB: Fetch youth account
     API->>Settings: Fetch spending limit
     API->>Ledger: Fetch recent transactions
-    DB-->>API: Account details
-    Settings-->>API: Spending limit
-    Ledger-->>API: Recent transactions
-    API-->>UI: Dashboard data (balance, limit, txns)
-    UI-->>Parent: Render dashboard
-
-    %% Fund Transfer
-    Parent->>UI: Initiate fund transfer
-    UI->>API: POST /api/youth-accounts/{id}/fund-transfer (Bearer token, amount)
+    API-->>WebApp: Dashboard data (account, limit, transactions)
+    WebApp-->>Parent: Display dashboard
+    Note over Parent,API: Fund Transfer
+    Parent->>WebApp: Transfer Funds
+    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer {amount, account} [Bearer]
+    API->>Auth: Validate token & RBAC
+    Auth-->>API: OK
     API->>Payment: Initiate fund transfer
-    Payment-->>API: Transfer status
+    Payment-->>API: Transfer result
     API->>DB: Update account balance
-    DB-->>API: Updated balance
-    API-->>UI: Transfer result
-    UI-->>Parent: Show transfer status
-
-    %% Set Spending Limit
-    Parent->>UI: Set spending limit
-    UI->>API: PUT /api/youth-accounts/{id}/spending-limit (Bearer, limit)
-    API->>Settings: Update spending limit
-    Settings-->>API: Confirmation
-    API-->>UI: Limit updated
-    UI-->>Parent: Show confirmation
-
-    %% View Transaction History
-    Parent->>UI: View transactions
-    UI->>API: GET /api/youth-accounts/{id}/transactions (Bearer, filters)
+    API-->>WebApp: Transfer response
+    WebApp-->>Parent: Show result
+    Note over Parent,API: Set Spending Limit
+    Parent->>WebApp: Set Limit
+    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit {limit} [Bearer]
+    API->>Auth: Validate token & RBAC
+    Auth-->>API: OK
+    API->>Settings: Update limit
+    API-->>WebApp: Limit updated
+    WebApp-->>Parent: Show result
+    Note over Parent,API: View Transactions
+    Parent->>WebApp: View Transactions
+    WebApp->>API: GET /api/youth-accounts/{id}/transactions [Bearer]
+    API->>Auth: Validate token & RBAC
+    Auth-->>API: OK
     API->>Ledger: Fetch transactions
-    Ledger-->>API: Transaction list
-    API-->>UI: Transactions data
-    UI-->>Parent: Show transaction history
+    API-->>WebApp: Transaction list
+    WebApp-->>Parent: Show transactions
+    Note over API: All actions logged for audit and compliance
