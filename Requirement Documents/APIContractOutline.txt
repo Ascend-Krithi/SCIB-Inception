@@ -1,8 +1,9 @@
 API Contract Outline
 
-1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Request: OAuth token in header
-- Response:
+1. Dashboard API
+Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+Request: Path param youthAccountId
+Response:
 {
   "youthAccountId": "string",
   "accountBalance": "decimal",
@@ -17,39 +18,42 @@ API Contract Outline
     }
   ]
 }
-- Error Handling: 403 Unauthorized, 404 Not Found
+Error Handling: 403 Unauthorized, 404 Not Found
 
-2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Request Body:
+2. Fund Transfer API
+Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+Request Body:
 {
   "sourceAccountId": "string",
   "transferAmount": "decimal",
   "currency": "string"
 }
-- Response:
+Response:
 {
   "transferId": "string",
   "status": "SUCCESS",
   "updatedBalance": "decimal"
 }
-- Error Handling: 400 Insufficient funds, 400 Invalid account, 500 Service failure
+Error Handling: 400 Insufficient Funds, 400 Invalid Mapping, 500 Transfer Failure
 
-3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Request Body:
+3. Spending Limit API
+Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+Request Body:
 {
   "weeklyLimit": "decimal"
 }
-- Response:
+Response:
 {
   "youthAccountId": "string",
   "weeklyLimit": "decimal",
   "status": "UPDATED"
 }
-- Error Handling: 400 Invalid value, 403 Unauthorized
+Error Handling: 400 Validation Error, 403 Unauthorized
 
-4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Query Parameters: startDate, endDate, page, pageSize
-- Response:
+4. Transaction History API
+Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+Query Params: startDate, endDate, page, pageSize
+Response:
 {
   "transactions": [
     {
@@ -66,11 +70,9 @@ API Contract Outline
     "totalRecords": "number"
   }
 }
-- Error Handling: 403 Unauthorized, 400 Invalid params
+Error Handling: 403 Unauthorized, 404 Not Found
 
-5. Security & Compliance
-- OAuth token required for all endpoints
-- RBAC enforced: parent must own youth account
-- Audit logging for all requests
-- Input validation and output filtering
-- OpenAPI/Swagger spec maintained
+Authentication: OAuth 2.0 required for all endpoints
+RBAC: Parent must own youth account
+Input Validation: All request schemas validated
+Audit Logging: All API actions logged with user and timestamp
