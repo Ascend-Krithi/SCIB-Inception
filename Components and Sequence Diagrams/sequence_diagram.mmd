@@ -1,46 +1,50 @@
-%% Sequence Diagram for Parent Fund Management (Youth Account)
+%% Sequence Diagram for Youth Account Management (Mermaid)
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Banking Web Application
-    participant API as Youth Account API Gateway
-    participant Account as Account Service
+    participant Parent as Parent/Guardian (Web UI)
+    participant UI as Web UI (React)
+    participant API as Youth Account API (Spring Boot)
+    participant Auth as OAuth2 Auth Service
     participant Payment as Payment Service
-    participant Txn as Transaction Service
-    participant DB as Youth Account DB
+    participant Ledger as Transaction Ledger
+    participant DB as Account DB
+    participant Settings as Settings DB
 
-    Parent->>WebApp: Login & Authenticate (OAuth2)
-    WebApp->>API: GET /api/youth-accounts/{id}/dashboard
-    API->>Account: Validate parent owns youth account
-    Account-->>API: Ownership/Balance
-    API->>DB: Fetch dashboard, limits
-    DB-->>API: Dashboard data
-    API->>Txn: Fetch recent transactions
-    Txn-->>API: Recent transactions
-    API-->>WebApp: Dashboard response
-    WebApp-->>Parent: Display dashboard
-    Note over API,Payment: For fund transfer:
-    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
-    API->>Account: Validate source account
-    Account-->>API: Validation OK
-    API->>Payment: Initiate transfer
-    Payment-->>API: Transfer result
-    API->>DB: Update youth account balance
-    DB-->>API: Update OK
-    API->>Txn: Log transaction
-    Txn-->>API: Log OK
-    API-->>WebApp: Transfer result
-    WebApp-->>Parent: Show transfer status
-    Note over API,DB: For spending limit update:
-    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
-    API->>DB: Update spending limit
-    DB-->>API: Update OK
-    API->>Txn: Log limit change
-    Txn-->>API: Log OK
-    API-->>WebApp: Limit update result
-    WebApp-->>Parent: Show limit status
-    Note over API,Txn: For transaction history:
-    WebApp->>API: GET /api/youth-accounts/{id}/transactions
-    API->>Txn: Fetch transactions
-    Txn-->>API: Transaction list
-    API-->>WebApp: Transaction history
-    WebApp-->>Parent: Display history
+    %% Dashboard Retrieval
+    Parent->>UI: Login & view dashboard
+    UI->>Auth: Request OAuth2 token
+    Auth-->>UI: OAuth2 token (JWT)
+    UI->>API: GET /api/youth-accounts/{id}/dashboard (Bearer token)
+    API->>DB: Fetch youth account
+    API->>Settings: Fetch spending limit
+    API->>Ledger: Fetch recent transactions
+    DB-->>API: Account details
+    Settings-->>API: Spending limit
+    Ledger-->>API: Recent transactions
+    API-->>UI: Dashboard data (balance, limit, txns)
+    UI-->>Parent: Render dashboard
+
+    %% Fund Transfer
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{id}/fund-transfer (Bearer token, amount)
+    API->>Payment: Initiate fund transfer
+    Payment-->>API: Transfer status
+    API->>DB: Update account balance
+    DB-->>API: Updated balance
+    API-->>UI: Transfer result
+    UI-->>Parent: Show transfer status
+
+    %% Set Spending Limit
+    Parent->>UI: Set spending limit
+    UI->>API: PUT /api/youth-accounts/{id}/spending-limit (Bearer, limit)
+    API->>Settings: Update spending limit
+    Settings-->>API: Confirmation
+    API-->>UI: Limit updated
+    UI-->>Parent: Show confirmation
+
+    %% View Transaction History
+    Parent->>UI: View transactions
+    UI->>API: GET /api/youth-accounts/{id}/transactions (Bearer, filters)
+    API->>Ledger: Fetch transactions
+    Ledger-->>API: Transaction list
+    API-->>UI: Transactions data
+    UI-->>Parent: Show transaction history
