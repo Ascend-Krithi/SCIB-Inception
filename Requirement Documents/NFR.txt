@@ -1,64 +1,64 @@
-Non-Functional Requirements (NFRs)
+Non-Functional Requirements (NFRs) List
 
-Security
-- OAuth token validation for all endpoints
-- Role-based access control (RBAC)
-- Audit logging of all API calls and fund transfers
+Security:
+- OAuth token validation for all APIs
+- Parent ownership checks for youth accounts
+- Role-based access control (RBAC) enforced at API layer
+- Audit logging for fund transfers, spending limit changes, and account access
 - Data encryption at rest and in transit
-- Input validation and output filtering
 
-Compliance
-- GDPR: Data privacy, parental consent, data subject access
-- PCI-DSS: Secure fund transfer, payment data protection
-- ISO 27001: Information security management
+Compliance:
+- GDPR compliance (data minimization, parental consent, right to erasure)
+- PCI-DSS compliance for fund transfers
+- ISO 27001 for information security management
 
-Performance
-- API response time < 500 ms for 95% of requests
-- Dashboard API returns within 500 ms
-- Fund transfer processed within 1 second
+Performance:
+- All APIs must respond within 500 ms under normal load
+- UI pages must load within 2 seconds for 95% of requests
 
-Scalability
-- Horizontal scaling supported via Kubernetes
-- API Gateway auto-scales based on load
+Scalability:
+- APIs and UI must support horizontal scaling
+- Database must handle up to 10,000 concurrent parent/youth accounts
 
-Availability
-- 99.99% uptime target
-- Automatic failover for critical services
+Availability:
+- 99.99% uptime SLA for APIs and UI
+- Automatic failover for API servers
 
-Reliability
-- Transaction ledger ensures durability
-- Retry logic for payment service failures
+Reliability:
+- Retry logic for service integrations
+- Transactional operations for fund transfers
 
-Maintainability
-- Modular microservice architecture
-- Clear API documentation (Swagger/OpenAPI)
-- Configurable spending limits
+Maintainability:
+- Modular API design with reusable schema definitions
+- Comprehensive documentation (OpenAPI/Swagger)
+- Automated CI/CD pipeline for deployments
 
-Auditability
-- All actions logged with user/account context
-- Transaction history retrievable for compliance
+Auditability:
+- All actions (transfers, limit changes, dashboard access) logged with user ID and timestamp
+- Audit logs retained for 7 years
 
-Disaster Recovery
-- RTO < 4 hours, RPO < 1 hour
-- Backup and restore procedures documented
+Disaster Recovery:
+- Recovery Time Objective (RTO) < 4 hours
+- Recovery Point Objective (RPO) < 1 hour
 
-Backup
-- Daily backups of settings and transaction data
+Backup:
+- Daily backups of database
 - Backups encrypted and stored offsite
 
-Monitoring
-- Real-time metrics for API latency, errors
-- Alerting on abnormal activity
-- Centralized monitoring dashboard
+Monitoring:
+- Real-time API and DB metrics
+- Alerts for failed transactions, unauthorized access
 
-Logging
-- Centralized log aggregation (ELK/Splunk)
-- Error, access, and transaction logs
+Logging:
+- Centralized log aggregation for API, UI, and database
+- Log rotation and archival every 30 days
 
-RBAC
-- Only parents can access/manage youth accounts
-- Admin APIs protected with higher privilege
+RBAC:
+- Only parents/guardians can manage youth accounts
+- Youth access limited to viewing balance and transactions
 
-Traceability
-- All requirements mapped to ADRs (SCIB-25 to SCIB-30)
-- API endpoints and components traceable to business scenarios
+Enterprise Compliance:
+- Input validation for all APIs (type, range, format)
+- Output filtering for sensitive data (PII, account numbers)
+- Audit logging for all critical actions
+- RBAC enforced at API and UI layers
