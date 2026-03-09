@@ -1,33 +1,51 @@
-%% Sequence Diagram: Youth Account Management API - Parent Fund Allocation
+%% Sequence Diagram for Youth Account Management APIs
 sequenceDiagram
-  autonumber
-  participant Parent as Parent/Guardian
-  participant WebApp as Banking Web Application
-  participant API as Youth Account Management Service
-  participant AccountSvc as Account Service
-  participant PaymentSvc as Payment Service
-  participant TransSvc as Transaction Service
-  note over Parent,API: All API calls require OAuth2, RBAC, and are audit-logged.
-  Parent->>WebApp: Login (OAuth2)
-  WebApp->>API: GET /api/youth-accounts/{id}/dashboard (OAuth2 token)
-  API->>AccountSvc: Fetch account details
-  API->>TransSvc: Fetch recent transactions
-  API-->>WebApp: Dashboard (account, limits, transactions)
-  WebApp-->>Parent: Display dashboard
+  participant Parent
+  participant WebApp
+  participant API_Gateway as API Gateway
+  participant Dashboard as Dashboard Service
+  participant FundTransfer as Fund Transfer Service
+  participant SpendingLimit as Spending Limit Service
+  participant TxHistory as Transaction History Service
+  participant AccountService as Account Service
+  participant TxService as Transaction Service
+  participant SettingsDB as Settings DB
+
+  %% Dashboard retrieval
+  Parent->>WebApp: Login & navigate to dashboard
+  WebApp->>API_Gateway: GET /api/youth-accounts/{id}/dashboard (OAuth2)
+  API_Gateway->>Dashboard: Validate RBAC, log access
+  Dashboard->>AccountService: Fetch balance
+  Dashboard->>SettingsDB: Fetch spending limit
+  Dashboard->>TxService: Fetch recent transactions
+  Dashboard->>API_Gateway: Aggregate and return data
+  API_Gateway-->>WebApp: Dashboard data
+  WebApp-->>Parent: Show dashboard
+
+  %% Fund transfer
   Parent->>WebApp: Initiate fund transfer
-  WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer (body, OAuth2 token)
-  API->>PaymentSvc: Initiate fund transfer
-  API->>AccountSvc: Update balance
-  API-->>WebApp: Transfer result (status, updated balance)
-  WebApp-->>Parent: Show transfer result
-  Parent->>WebApp: Set spending limit
-  WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit (body, OAuth2 token)
-  API->>API: Update spending limit in DB
-  API-->>WebApp: Limit update result
-  WebApp-->>Parent: Show limit update status
-  Parent->>WebApp: View transactions
-  WebApp->>API: GET /api/youth-accounts/{id}/transactions (params, OAuth2 token)
-  API->>TransSvc: Fetch transactions
-  API-->>WebApp: Transaction list
-  WebApp-->>Parent: Show transaction history
-  note over API: All actions are RBAC-enforced and audit-logged (per NFR).
+  WebApp->>API_Gateway: POST /api/youth-accounts/{id}/fund-transfer (OAuth2)
+  API_Gateway->>FundTransfer: Validate RBAC, log transfer
+  FundTransfer->>AccountService: Transfer funds
+  FundTransfer->>TxService: Log transaction
+  FundTransfer->>API_Gateway: Return result
+  API_Gateway-->>WebApp: Transfer status
+  WebApp-->>Parent: Show result
+
+  %% Spending limit update
+  Parent->>WebApp: Update spending limit
+  WebApp->>API_Gateway: PUT /api/youth-accounts/{id}/spending-limit (OAuth2)
+  API_Gateway->>SpendingLimit: Validate RBAC, log change
+  SpendingLimit->>SettingsDB: Update limit
+  SpendingLimit->>API_Gateway: Return result
+  API_Gateway-->>WebApp: Update status
+  WebApp-->>Parent: Show result
+
+  %% Transaction history
+  Parent->>WebApp: View transaction history
+  WebApp->>API_Gateway: GET /api/youth-accounts/{id}/transactions (OAuth2)
+  API_Gateway->>TxHistory: Validate RBAC, log access
+  TxHistory->>TxService: Fetch transactions (with pagination)
+  TxHistory->>API_Gateway: Return history
+  API_Gateway-->>WebApp: Transaction list
+  WebApp-->>Parent: Show transactions
