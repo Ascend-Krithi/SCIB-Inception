@@ -1,1 +1,56 @@
-<svg xmlns='http://www.w3.org/2000/svg' width='960' height='540'><style>.txt{font:14px sans-serif;} .box{fill:#f8f9fa;stroke:#222;stroke-width:1.5;} .db{fill:#f3e5ab;stroke:#222;stroke-width:1.5;} .ext{fill:#d1e7dd;stroke:#222;stroke-width:1.5;} .api{fill:#cfe2ff;stroke:#222;stroke-width:1.5;}</style><rect x='20' y='60' width='180' height='60' class='ext'/><text x='30' y='90' class='txt'>Parent/Guardian</text><rect x='220' y='60' width='180' height='60' class='ext'/><text x='230' y='90' class='txt'>Banking Web App</text><rect x='420' y='60' width='180' height='60' class='api'/><text x='430' y='90' class='txt'>API Gateway</text><rect x='620' y='40' width='140' height='40' class='box'/><text x='625' y='65' class='txt'>Dashboard Service</text><rect x='620' y='90' width='140' height='40' class='box'/><text x='625' y='115' class='txt'>Fund Transfer Service</text><rect x='620' y='140' width='140' height='40' class='box'/><text x='625' y='165' class='txt'>Spending Limit Service</text><rect x='620' y='190' width='140' height='40' class='box'/><text x='625' y='215' class='txt'>Transaction History Service</text><rect x='800' y='60' width='120' height='40' class='db'/><text x='805' y='85' class='txt'>Settings DB</text><rect x='800' y='120' width='120' height='40' class='ext'/><text x='805' y='145' class='txt'>Account Service</text><rect x='800' y='180' width='120' height='40' class='ext'/><text x='805' y='205' class='txt'>Transaction Service</text><line x1='200' y1='90' x2='220' y2='90' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><line x1='400' y1='90' x2='420' y2='90' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><line x1='600' y1='60' x2='620' y2='60' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><line x1='760' y1='60' x2='800' y2='80' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><line x1='760' y1='100' x2='800' y2='140' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><line x1='760' y1='180' x2='800' y2='200' stroke='#222' stroke-width='2' marker-end='url(#arrow)'/><defs><marker id='arrow' markerWidth='10' markerHeight='10' refX='10' refY='5' orient='auto' markerUnits='strokeWidth'><path d='M0,0 L10,5 L0,10 z' fill='#222'/></marker></defs><text x='50' y='50' class='txt'>External Actors</text><text x='430' y='30' class='txt'>API Gateway & Core Microservices</text><text x='820' y='40' class='txt'>Databases & External Services</text></svg>
+%% Component Diagram: Youth Account Management System (C4-style, Mermaid)
+%% Render as SVG with Mermaid
+%% To view: https://mermaid-js.github.io/mermaid-live-editor/
+%%
+%% C4 Component Diagram
+---
+flowchart TD
+    subgraph Web
+        A[Parent/Guardian]
+        B[Banking Web Application]
+    end
+    subgraph Cloud Platform
+        G[API Gateway]
+        H[Youth Account API]
+        I[Account Service]
+        J[Transaction Service]
+        K[Settings Service]
+        L[(Database)]
+    end
+    A-->|OAuth, HTTPS|B
+    B-->|REST|G
+    G-->|Routes, OAuth|H
+    H-->|REST: balance|I
+    H-->|REST: transactions|J
+    H-->|REST: limits|K
+    K-->|SQL|L
+    H-.->|Audit Logging|L
+    G-.->|RBAC, Audit|L
+    %% Components inside Youth Account API
+    subgraph "Youth Account API"
+        H1[Dashboard Handler]
+        H2[Fund Transfer Handler]
+        H3[Spending Limit Handler]
+        H4[Transaction History Handler]
+    end
+    H1---H
+    H2---H
+    H3---H
+    H4---H
+    H1-->|Aggregates|I
+    H1-->|Aggregates|K
+    H1-->|Aggregates|J
+    H2-->|Transfers|I
+    H2-->|Logs|J
+    H3-->|Updates|K
+    H4-->|Fetches|J
+    style H1 fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style H2 fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style H3 fill:#e6f7ff,stroke:#333,stroke-width:1px
+    style H4 fill:#e6f7ff,stroke:#333,stroke-width:1px
+    %% Compliance notes
+    classDef compliance fill:#fffbe6,stroke:#333,stroke-dasharray: 5 5;
+    G:::compliance
+    H:::compliance
+    K:::compliance
+    L:::compliance

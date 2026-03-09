@@ -1,53 +1,48 @@
-%% Youth Account Management - Main User Sequence (Parent transfers funds and sets limits)
+%% Sequence Diagram: Youth Account Management Feature
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Banking Web Application
     participant APIGW as API Gateway
-    participant Dashboard as Dashboard Service
-    participant FundTransfer as Fund Transfer Service
-    participant SpendingLimit as Spending Limit Service
-    participant TxHistory as Transaction History Service
-    participant AccountSvc as Account Service
-    participant TxSvc as Transaction Service
-    participant SettingsDB as Settings DB
+    participant API as Youth Account API
+    participant Account as Account Service
+    participant Transaction as Transaction Service
+    participant Settings as Settings Service
 
-    Note over Parent,WebApp: OAuth2 login, RBAC enforced
-    Parent->>WebApp: Login & access youth dashboard
-    WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth2)
-    APIGW->>Dashboard: Route request, RBAC check
-    Dashboard->>AccountSvc: Fetch account data
-    Dashboard->>SettingsDB: Fetch spending limit
-    Dashboard->>TxHistory: Fetch recent transactions
-    TxHistory->>TxSvc: Fetch transactions
-    Dashboard-->>APIGW: Aggregated dashboard data
+    %% Dashboard View
+    Parent->>WebApp: Login (OAuth)
+    WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth)
+    APIGW->>API: Forward request
+    API->>Account: Fetch account balance
+    API->>Settings: Fetch spending limit
+    API->>Transaction: Fetch recent transactions
+    API-->>APIGW: Aggregate dashboard data
     APIGW-->>WebApp: Dashboard JSON
     WebApp-->>Parent: Render dashboard
 
-    Note over Parent,WebApp: Initiate fund transfer
-    Parent->>WebApp: Transfer funds
-    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-    APIGW->>FundTransfer: Route request, RBAC check
-    FundTransfer->>AccountSvc: Internal transfer
-    FundTransfer-->>APIGW: Transfer result
-    APIGW-->>WebApp: Transfer response
-    WebApp-->>Parent: Show transfer confirmation
+    %% Fund Transfer
+    Parent->>WebApp: Initiate fund transfer
+    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer (OAuth)
+    APIGW->>API: Forward transfer request
+    API->>Account: Validate & process transfer
+    API->>Transaction: Log transaction
+    API-->>APIGW: Transfer result
+    APIGW-->>WebApp: Transfer status
+    WebApp-->>Parent: Show result
 
-    Note over Parent,WebApp: Set spending limit
+    %% Set Spending Limit
     Parent->>WebApp: Set weekly limit
-    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-    APIGW->>SpendingLimit: Route request, RBAC check
-    SpendingLimit->>SettingsDB: Store limit
-    SpendingLimit-->>APIGW: Limit updated
-    APIGW-->>WebApp: Limit response
+    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit (OAuth)
+    APIGW->>API: Forward limit update
+    API->>Settings: Update limit
+    API-->>APIGW: Limit updated
+    APIGW-->>WebApp: Update confirmation
     WebApp-->>Parent: Show confirmation
 
-    Note over Parent,WebApp: View transactions
+    %% Transaction History
     Parent->>WebApp: View transaction history
-    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions
-    APIGW->>TxHistory: Route request, RBAC check
-    TxHistory->>TxSvc: Fetch history
-    TxHistory-->>APIGW: History data
-    APIGW-->>WebApp: Transactions JSON
-    WebApp-->>Parent: Show transaction history
-
-    Note over APIGW,FundTransfer,SpendingLimit: All critical actions logged for audit (NFR)
+    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions?params (OAuth)
+    APIGW->>API: Forward request
+    API->>Transaction: Fetch paginated history
+    API-->>APIGW: Transaction history
+    APIGW-->>WebApp: History JSON
+    WebApp-->>Parent: Render history
