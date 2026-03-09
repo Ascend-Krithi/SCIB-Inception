@@ -1,0 +1,40 @@
+%% Sequence Diagram for 'Parent can allocate and manage funds for a youth account'
+%% Traceability: ADRs SCIB-25 to SCIB-30, OpenAPI endpoints
+sequenceDiagram
+    participant Parent as Parent/Guardian (UI)
+    participant WebApp as Web Application
+    participant API as Youth Account Service (API Gateway)
+    participant Account as Account Service
+    participant Tx as Transaction Service
+    participant Payment as Payment Service
+    participant Settings as Settings DB
+    Note over Parent,Settings: All endpoints secured by OAuth, RBAC, audit logging
+    Parent->>WebApp: Log in (OAuth)
+    WebApp->>API: GET /api/youth-accounts/{id}/dashboard
+    API->>Account: Fetch account info
+    API->>Settings: Fetch spending limit
+    API->>Tx: Fetch recent transactions
+    API-->>WebApp: Consolidated dashboard data
+    WebApp-->>Parent: Show dashboard
+    Parent->>WebApp: Initiate fund transfer
+    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
+    API->>Account: Validate source/ownership
+    API->>Payment: Transfer funds
+    Payment-->>API: Transfer result
+    API->>Tx: Record transaction
+    API->>Account: Update balances
+    API-->>WebApp: Transfer response
+    WebApp-->>Parent: Show updated balance
+    Parent->>WebApp: Set spending limit
+    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
+    API->>Settings: Update weekly limit
+    Settings-->>API: Confirm update
+    API-->>WebApp: Status UPDATED
+    WebApp-->>Parent: Show confirmation
+    Parent->>WebApp: View transaction history
+    WebApp->>API: GET /api/youth-accounts/{id}/transactions
+    API->>Tx: Retrieve transactions (with pagination)
+    Tx-->>API: Transaction list
+    API-->>WebApp: Transaction history
+    WebApp-->>Parent: Display transactions
+    Note over API,Tx: All API calls logged for audit, compliance (GDPR, PCI-DSS, ISO 27001)
