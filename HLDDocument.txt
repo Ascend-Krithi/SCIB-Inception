@@ -1,0 +1,169 @@
+High-Level Design Document
+
+1. Introduction
+This High-Level Design (HLD) document addresses the requirements for the 'Parent can allocate and manage funds for a youth account' capability, as per ADR SCIB-25 and linked tasks SCIB-26 to SCIB-30. The solution enables parents/guardians to manage youth accounts via web APIs, supporting fund allocation, spending limits, and transaction visibility with compliance, security, and performance overlays.
+
+2. System Overview
+The system comprises a set of RESTful APIs for youth account management, integrating with account, payment, and transaction services. It enforces RBAC, audit logging, and enterprise compliance standards (GDPR, PCI-DSS, ISO 27001).
+
+3. Architecture Overview
+
+---
+C4 Context Diagram (Mermaid):
+```
+flowchart LR
+    ParentUser((Parent/Guardian))
+    WebApp((Banking Web Application))
+    API[Youth Account API Gateway]
+    AccountService[Account Service]
+    PaymentService[Payment Service]
+    TransactionService[Transaction Ledger Service]
+    DB[(Youth Account DB)]
+    ParentUser --> WebApp
+    WebApp --> API
+    API --> AccountService
+    API --> PaymentService
+    API --> TransactionService
+    API --> DB
+```
+
+C4 Container Diagram (Mermaid):
+```
+flowchart TD
+    A[Web Application]
+    B[Youth Account API]
+    C[Account Service]
+    D[Payment Service]
+    E[Transaction Service]
+    F[Youth Account DB]
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    B --> F
+```
+
+C4 Deployment Diagram (Mermaid):
+```
+flowchart LR
+    cluster Cloud {
+      WebApp
+      API
+      AccountService
+      PaymentService
+      TransactionService
+      DB
+    }
+    WebApp --> API
+    API --> AccountService
+    API --> PaymentService
+    API --> TransactionService
+    API --> DB
+```
+
+C4 Data Model Diagram (Mermaid):
+```
+classDiagram
+    class YouthAccount {
+      youthAccountId: string
+      accountBalance: decimal
+      spendingLimit: decimal
+      currency: string
+    }
+    class Transaction {
+      transactionId: string
+      date: datetime
+      description: string
+      amount: decimal
+      merchant: string
+      transactionType: debit|credit
+    }
+    class ParentAccount {
+      parentAccountId: string
+      balance: decimal
+      currency: string
+    }
+    YouthAccount "1" -- "*" Transaction
+    ParentAccount "1" -- "*" YouthAccount
+```
+---
+
+4. Component Design
+- Youth Account API Gateway: Exposes endpoints for dashboard, fund transfer, spending limit configuration, transaction history. Maps to ADR SCIB-26, SCIB-27, SCIB-28, SCIB-29.
+- Account Service: Provides account balance and ownership validation (SCIB-26, SCIB-27).
+- Payment Service: Handles fund transfer operations (SCIB-27).
+- Transaction Service: Supplies transaction history, logs transfers (SCIB-26, SCIB-29).
+- Youth Account DB: Stores youth account settings and limits (SCIB-28).
+
+Traceability: Each component is mapped to ADRs and acceptance criteria. See Appendices for detailed mapping.
+
+5. Data Design
+- Youth Account DB stores youth_account_id, weekly_spending_limit, updated_timestamp.
+- Transaction ledger records all transfers and spending activity.
+- Data schemas enforce input validation and output filtering.
+
+6. Interface Design
+- RESTful APIs with OpenAPI 3.0-compliant specifications.
+- OAuth-based authentication, RBAC enforcement.
+- Input validation for all endpoints.
+- Error handling: descriptive errors, HTTP codes.
+
+7. Non-Functional Aspects
+- Security: OAuth, RBAC, audit logging, input/output filtering, data encryption (at rest/in transit).
+- Compliance: GDPR, PCI-DSS, ISO 27001.
+- Performance: API response < 500ms under normal load.
+- Scalability: Horizontal scaling supported for API and services.
+- Availability: 99.99% uptime, automatic failover.
+- Reliability: Transactional integrity, retry logic.
+- Maintainability: Modular APIs, reusable schemas.
+- Auditability: All fund transfers and limit changes logged.
+- Disaster Recovery: RTO < 4 hours, RPO < 1 hour.
+- Backup: Daily encrypted backups.
+- Monitoring: Real-time metrics, alerting.
+- Logging: Centralized aggregation.
+- RBAC: Role-based access enforced.
+
+8. Integration
+- Account, Payment, and Transaction services integrated via internal APIs.
+- Parent authorization validated for all operations.
+- Dashboard refresh triggered on updates.
+
+9. Deployment
+- Cloud-native deployment (e.g., Kubernetes, AWS/Azure/GCP).
+- Infrastructure as code for repeatable environments.
+- Secure CI/CD pipeline.
+
+10. Test Strategy
+- Unit, integration, and security testing for APIs.
+- Compliance and performance tests.
+- Automated regression suite.
+
+11. Cross-Cutting Concerns
+- Enterprise logging, monitoring, RBAC, audit logging, input/output filtering.
+- API versioning and backward compatibility.
+
+12. Implementation Strategy
+- Phase 1: Dashboard & transaction APIs (SCIB-26, SCIB-29).
+- Phase 2: Fund transfer & spending limit APIs (SCIB-27, SCIB-28).
+- Phase 3: OpenAPI/Swagger documentation (SCIB-30).
+
+13. Technical Risks
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Unauthorized access | High | Medium | Strict OAuth/RBAC validation, audit logs |
+| Data inconsistency | Medium | Low | Transactional integrity, retry logic |
+| Compliance breach | High | Low | Automated compliance checks, regular audits |
+| API performance | Medium | Medium | Load testing, horizontal scaling |
+
+14. Technical Debt
+- Potential legacy integration for account/payment services.
+- Refactoring required for future enhancements.
+
+15. Appendices
+- ADR mappings:
+  - Dashboard API: SCIB-26
+  - Fund Transfer API: SCIB-27
+  - Spending Limit API: SCIB-28
+  - Transaction History API: SCIB-29
+  - OpenAPI Spec: SCIB-30
+- Traceability matrix mapping scenarios to APIs/components.
