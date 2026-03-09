@@ -1,44 +1,46 @@
-%% Sequence Diagram for Youth Account Management (Mermaid)
+%% Sequence Diagram for Parent Fund Management (Youth Account)
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Banking Web Application
-    participant APIGW as API Gateway
-    participant YAS as Youth Account Service
-    participant PaySvc as Payment Service
-    participant TxnSvc as Transaction Service
+    participant API as Youth Account API Gateway
+    participant Account as Account Service
+    participant Payment as Payment Service
+    participant Txn as Transaction Service
+    participant DB as Youth Account DB
 
-    %% Dashboard Retrieval
-    Parent->>WebApp: Login & select youth dashboard
-    WebApp->>APIGW: GET /api/youth-accounts/{youthAccountId}/dashboard (OAuth/JWT)
-    APIGW->>YAS: Forward request (RBAC enforced)
-    YAS-->>APIGW: Dashboard data (balance, limit, recent txns)
-    APIGW-->>WebApp: Dashboard data
+    Parent->>WebApp: Login & Authenticate (OAuth2)
+    WebApp->>API: GET /api/youth-accounts/{id}/dashboard
+    API->>Account: Validate parent owns youth account
+    Account-->>API: Ownership/Balance
+    API->>DB: Fetch dashboard, limits
+    DB-->>API: Dashboard data
+    API->>Txn: Fetch recent transactions
+    Txn-->>API: Recent transactions
+    API-->>WebApp: Dashboard response
     WebApp-->>Parent: Display dashboard
-
-    %% Fund Transfer
-    Parent->>WebApp: Initiate fund transfer
-    WebApp->>APIGW: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-    APIGW->>YAS: Forward request (validate)
-    YAS->>PaySvc: Initiate fund transfer
-    PaySvc-->>YAS: Transfer status
-    YAS-->>APIGW: Transfer response (updated balance)
-    APIGW-->>WebApp: Transfer response
-    WebApp-->>Parent: Display result
-
-    %% Set Spending Limit
-    Parent->>WebApp: Set weekly spending limit
-    WebApp->>APIGW: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-    APIGW->>YAS: Forward request (RBAC enforced)
-    YAS-->>APIGW: Limit update confirmation
-    APIGW-->>WebApp: Confirmation
-    WebApp-->>Parent: Display confirmation
-
-    %% Transaction History
-    Parent->>WebApp: View transactions
-    WebApp->>APIGW: GET /api/youth-accounts/{youthAccountId}/transactions
-    APIGW->>YAS: Forward request
-    YAS->>TxnSvc: Retrieve transactions
-    TxnSvc-->>YAS: Transaction list
-    YAS-->>APIGW: Transaction history
-    APIGW-->>WebApp: Transaction history
-    WebApp-->>Parent: Display transactions
+    Note over API,Payment: For fund transfer:
+    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
+    API->>Account: Validate source account
+    Account-->>API: Validation OK
+    API->>Payment: Initiate transfer
+    Payment-->>API: Transfer result
+    API->>DB: Update youth account balance
+    DB-->>API: Update OK
+    API->>Txn: Log transaction
+    Txn-->>API: Log OK
+    API-->>WebApp: Transfer result
+    WebApp-->>Parent: Show transfer status
+    Note over API,DB: For spending limit update:
+    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
+    API->>DB: Update spending limit
+    DB-->>API: Update OK
+    API->>Txn: Log limit change
+    Txn-->>API: Log OK
+    API-->>WebApp: Limit update result
+    WebApp-->>Parent: Show limit status
+    Note over API,Txn: For transaction history:
+    WebApp->>API: GET /api/youth-accounts/{id}/transactions
+    API->>Txn: Fetch transactions
+    Txn-->>API: Transaction list
+    API-->>WebApp: Transaction history
+    WebApp-->>Parent: Display history
