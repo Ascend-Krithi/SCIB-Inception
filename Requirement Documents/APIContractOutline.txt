@@ -1,86 +1,91 @@
-
 API Contract Outline
 
-1. GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve dashboard info for youth account (balance, spending limit, recent transactions)
-- Request: Path param youthAccountId
+1. Dashboard API
+- Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+- Request Params: youthAccountId (path)
 - Response:
-{
-  "youthAccountId": "string",
-  "accountBalance": "decimal",
-  "spendingLimit": "decimal",
-  "currency": "string",
-  "recentTransactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime",
-      "description": "string",
-      "amount": "decimal"
-    }
-  ]
-}
-- Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
-
-2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds from parent to youth account
-- Request:
-{
-  "sourceAccountId": "string",
-  "transferAmount": "decimal",
-  "currency": "string"
-}
-- Response:
-{
-  "transferId": "string",
-  "status": "SUCCESS",
-  "updatedBalance": "decimal"
-}
-- Errors: 400 Insufficient Funds, 403 Unauthorized, 409 Conflict, 500 Internal Error
-
-3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit for youth account
-- Request:
-{
-  "weeklyLimit": "decimal"
-}
-- Response:
-{
-  "youthAccountId": "string",
-  "weeklyLimit": "decimal",
-  "status": "UPDATED"
-}
-- Errors: 400 Validation Error, 403 Unauthorized, 500 Internal Error
-
-4. GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve youth account transaction history
-- Request: Query params startDate, endDate, page, pageSize
-- Response:
-{
-  "transactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime",
-      "merchant": "string",
-      "amount": "decimal",
-      "transactionType": "debit | credit"
-    }
-  ],
-  "pagination": {
-    "page": "number",
-    "pageSize": "number",
-    "totalRecords": "number"
+  {
+    "youthAccountId": "string",
+    "accountBalance": "decimal",
+    "spendingLimit": "decimal",
+    "currency": "string",
+    "recentTransactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "description": "string",
+        "amount": "decimal"
+      }
+    ]
   }
-}
-- Errors: 403 Unauthorized, 400 Invalid Params, 500 Internal Error
+- Error Handling:
+  - 403 Unauthorized
+  - 404 Not Found
+  - 500 Internal Server Error
 
-Authentication: OAuth 2.0 Bearer token required for all endpoints
-Authorization: Parent must own youth account (RBAC enforced)
+2. Fund Transfer API
+- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Request Body:
+  {
+    "sourceAccountId": "string",
+    "transferAmount": "decimal",
+    "currency": "string"
+  }
+- Response:
+  {
+    "transferId": "string",
+    "status": "SUCCESS|FAILURE",
+    "updatedBalance": "decimal"
+  }
+- Error Handling:
+  - 400 Insufficient funds
+  - 403 Unauthorized
+  - 409 Invalid account mapping
+  - 500 Transfer service failure
 
-Error Handling:
-- 400: Validation/Insufficient funds/Invalid parameters
-- 403: Unauthorized/Forbidden
-- 404: Not Found
-- 409: Conflict
-- 500: Internal server error
+3. Spending Limit API
+- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Request Body:
+  {
+    "weeklyLimit": "decimal"
+  }
+- Response:
+  {
+    "youthAccountId": "string",
+    "weeklyLimit": "decimal",
+    "status": "UPDATED"
+  }
+- Error Handling:
+  - 400 Validation error
+  - 403 Unauthorized
+  - 500 Internal Server Error
 
-OpenAPI/Swagger: All endpoints conform to OpenAPI 3.0, schemas reused across APIs
+4. Transaction History API
+- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+- Query Params: startDate, endDate, page, pageSize
+- Response:
+  {
+    "transactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "merchant": "string",
+        "amount": "decimal",
+        "transactionType": "debit|credit"
+      }
+    ],
+    "pagination": {
+      "page": "number",
+      "pageSize": "number",
+      "totalRecords": "number"
+    }
+  }
+- Error Handling:
+  - 403 Unauthorized
+  - 404 Not Found
+  - 500 Internal Server Error
+
+Authentication: OAuth token required for all endpoints
+Authorization: Parent must be owner of youth account (RBAC enforced)
+Validation: Input validation, output filtering, audit logging
+Compliance: All endpoints designed for GDPR, PCI-DSS, ISO 27001

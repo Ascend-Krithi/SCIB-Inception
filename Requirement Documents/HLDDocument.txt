@@ -1,199 +1,149 @@
-
 High-Level Design Document
 
 1. Introduction
-This document describes the high-level architecture and design for the Youth Account Management solution, enabling parents/guardians to allocate, monitor, and manage funds for their child’s youth account. It synthesizes requirements and architectural decisions from ADRs SCIB-25 through SCIB-30, ensuring traceability, compliance, and actionable guidance for implementation.
+This document provides the High-Level Design (HLD) for the Youth Account Management capability, enabling parents/guardians to allocate and manage funds for a child’s youth account. The design ensures traceability to architectural decisions, compliance, security, and performance requirements as per organizational standards and SDLC overlays.
 
 2. System Overview
 The system allows parents to:
-- Access youth account dashboard (balance, activity)
-- Allocate funds to youth account
-- Set weekly spending limits
-- View youth account transaction history
-- Ensure secure, compliant access and operations
+- Access youth account dashboards
+- Allocate funds
+- Set spending limits
+- View youth spending activity
+- Handle errors (e.g., insufficient balance)
 
 3. Architecture Overview
 
-System Context Diagram (C4 - Context)
+3.1 Context Diagram (Mermaid C4)
 ```mermaid
 C4Context
-    Person(parent, "Parent/Guardian", "Uses web/mobile banking application to manage youth account")
-    Person(youth, "Youth", "Has youth account, spends allocated funds")
-    System_Boundary("YouthAccountMgmt") {
-        System(webApp, "Banking Web Application", "Interface for account management")
-        System(youthAccountService, "Youth Account Service", "Core logic for youth account operations")
-        System(paymentService, "Payment Service", "Handles fund transfers")
-        System(transactionService, "Transaction Ledger Service", "Stores transaction history")
-    }
-    parent -> webApp : Manages youth account
-    webApp -> youthAccountService : API calls (dashboard, transfer, limit, transactions)
-    youthAccountService -> paymentService : Fund transfer
-    youthAccountService -> transactionService : Transaction data
-    youth -> webApp : Views account
+Person(parent, "Parent/Guardian", "Manages child’s finances.")
+Person(child, "Youth", "Learns financial responsibility.")
+System(bankingApp, "Banking Web Application", "Provides youth account management features.")
+System_Ext(accountService, "Account Service", "Holds account balances.")
+System_Ext(transactionService, "Transaction Service", "Processes transactions.")
+Person(parent) -> System(bankingApp)
+System(bankingApp) -> System_Ext(accountService)
+System(bankingApp) -> System_Ext(transactionService)
 ```
 
-Container Diagram (C4 - Container)
+3.2 Container Diagram (Mermaid C4)
 ```mermaid
 C4Container
-    System_Boundary("YouthAccountMgmt") {
-        Container(webApp, "Web/Mobile App", "React/Angular/Flutter", "UI for parents/youth")
-        Container(apiGateway, "API Gateway", "Spring Cloud Gateway", "Routing, auth, logging")
-        Container(youthAccountService, "Youth Account Service", "Java/Spring Boot", "Business logic, API endpoints")
-        Container(paymentService, "Payment Service", "Java/Spring Boot", "Funds transfer")
-        Container(transactionService, "Transaction Service", "Java/Spring Boot", "Transaction ledger")
-        Container(db, "Database", "PostgreSQL", "Youth account, settings, transactions")
-    }
-    webApp -> apiGateway : HTTPS (OAuth token)
-    apiGateway -> youthAccountService : REST API
-    youthAccountService -> paymentService : Internal REST
-    youthAccountService -> transactionService : Internal REST
-    youthAccountService -> db : JDBC
-    paymentService -> db : JDBC
-    transactionService -> db : JDBC
+System(bankingApp, "Banking Web Application") {
+  Container(webUI, "Web UI", "Angular/React", "Parent interaction")
+  Container(apiGateway, "API Gateway", "Spring Boot/Express", "Routes requests, RBAC, Auth")
+  Container(youthAccountService, "Youth Account Service", "Java/.NET", "Business logic")
+  Container(settingsDB, "Youth Account Settings DB", "Postgres", "Stores limits, configs")
+  Container(ledgerDB, "Transaction Ledger DB", "Postgres", "Stores transactions")
+}
+Person(parent) -> Container(webUI)
+Container(webUI) -> Container(apiGateway)
+Container(apiGateway) -> Container(youthAccountService)
+Container(youthAccountService) -> Container(settingsDB)
+Container(youthAccountService) -> Container(ledgerDB)
+Container(youthAccountService) -> System_Ext(accountService)
+Container(youthAccountService) -> System_Ext(transactionService)
 ```
 
-Deployment Diagram (C4 - Deployment)
+3.3 Deployment Diagram (Mermaid C4)
 ```mermaid
 C4Deployment
-    Node(cloud, "Cloud Platform (AWS/Azure/GCP)")
-    Node(webCluster, "Web App Cluster") {
-        Container(webApp)
-    }
-    Node(apiCluster, "API Gateway Cluster") {
-        Container(apiGateway)
-    }
-    Node(serviceCluster, "Youth Account Service Cluster") {
-        Container(youthAccountService)
-    }
-    Node(paymentCluster, "Payment Service Cluster") {
-        Container(paymentService)
-    }
-    Node(transactionCluster, "Transaction Service Cluster") {
-        Container(transactionService)
-    }
-    Node(dbCluster, "DB Cluster") {
-        Container(db)
-    }
-    webApp -> apiGateway
-    apiGateway -> youthAccountService
-    youthAccountService -> paymentService
-    youthAccountService -> transactionService
-    youthAccountService -> db
-    paymentService -> db
-    transactionService -> db
+Node(cloud, "Azure Cloud") {
+  Node(webCluster, "Web App Cluster") {
+    Container(webUI)
+    Container(apiGateway)
+    Container(youthAccountService)
+  }
+  Node(dbCluster, "Database Cluster") {
+    Container(settingsDB)
+    Container(ledgerDB)
+  }
+}
 ```
 
-Data Model Diagram
+3.4 Data Model Diagram (Mermaid C4)
 ```mermaid
-erDiagram
-    YOUTH_ACCOUNT {
-        string youthAccountId PK
-        string parentId FK
-        decimal accountBalance
-        decimal spendingLimit
-        string currency
-    }
-    TRANSACTION {
-        string transactionId PK
-        string youthAccountId FK
-        datetime date
-        string description
-        decimal amount
-        string merchant
-        string transactionType
-    }
-    YOUTH_ACCOUNT_SETTINGS {
-        string youthAccountId PK
-        decimal weeklySpendingLimit
-        datetime updatedTimestamp
-    }
-    YOUTH_ACCOUNT ||--|{ TRANSACTION : has
-    YOUTH_ACCOUNT ||--|{ YOUTH_ACCOUNT_SETTINGS : configures
+C4Container
+Container(settingsDB, "Youth Account Settings DB") {
+  DbTable(youth_account_settings, "Youth Account Settings Table")
+}
+DbTable(youth_account_settings) --> youthAccountService
 ```
 
 4. Component Design
-- Web/Mobile App: UI for parents/youth, integrates with API Gateway
-- API Gateway: Routing, authentication, logging, RBAC enforcement
-- Youth Account Service: Implements dashboard, fund allocation, spending limit, transaction history APIs; business logic; compliance controls
-- Payment Service: Fund transfer, balance checks
-- Transaction Service: Ledger, transaction retrieval, audit logging
-- Database: Youth account, settings, transaction tables
+- Web UI: Implements dashboard and management screens.
+- API Gateway: Handles routing, authentication (OAuth), RBAC, audit logging.
+- Youth Account Service: Implements business logic for fund allocation, spending limits, transaction retrieval.
+- Settings DB: Persists spending limits and configurations.
+- Ledger DB: Stores transaction history.
 
 Mapping to ADRs:
-- SCIB-25: Parent dashboard, fund allocation, spending limit, transaction viewing, error handling
-- SCIB-26: Dashboard API details
-- SCIB-27: Fund transfer API details
-- SCIB-28: Spending limit API details
-- SCIB-29: Transaction history API details
-- SCIB-30: OpenAPI/Swagger specification
+- SCIB-25: Parent fund allocation, dashboard, spending limit, transaction viewing.
+- SCIB-26: Dashboard API design.
+- SCIB-27: Fund transfer API.
+- SCIB-28: Spending limit API.
+- SCIB-29: Transaction history API.
+- SCIB-30: API documentation and schema.
 
 5. Data Design
-- Youth Account: youthAccountId, parentId, balance, spendingLimit, currency
-- Transaction: transactionId, youthAccountId, date, description, amount, merchant, transactionType
-- Youth Account Settings: youthAccountId, weeklySpendingLimit, updatedTimestamp
+- youth_account_settings table: youth_account_id, weekly_spending_limit, updated_timestamp
+- transaction ledger: transaction_id, date, merchant, amount, transaction_type
 
 6. Interface Design
-- RESTful APIs (see API Contract Outline)
-- OAuth 2.0 authentication
-- RBAC enforced at API Gateway and service layers
+- REST APIs for dashboard, fund transfer, spending limit, transaction history.
+- API Gateway enforces OAuth, RBAC, input validation.
 
 7. Non-Functional Aspects
-- Security: OAuth token validation, parent ownership checks, RBAC, audit logging, encryption at rest and in transit
+- Security: OAuth, RBAC, audit logging, data encryption at rest/in transit
 - Compliance: GDPR, PCI-DSS, ISO 27001
-- Performance: API response < 500ms under normal load
-- Scalability: Horizontal scaling (container clusters)
-- Availability: 99.99% uptime, HA clusters
-- Reliability: Automatic failover, retry logic
-- Maintainability: Modular microservices, reusable schemas
-- Auditability: All transfers and settings changes logged
+- Performance: API < 500ms under normal load
+- Scalability: Horizontal scaling via web/app clusters
+- Availability: 99.99% uptime
+- Reliability: Failover mechanisms, error handling
+- Maintainability: Modular services, clear documentation
+- Auditability: All fund transfers and limit changes logged
 - Disaster Recovery: RTO < 4h, RPO < 1h, daily backups
-- Backup: Encrypted daily backups, tested restore procedures
-- Monitoring: Real-time metrics, alerting (Prometheus/Grafana)
-- Logging: Centralized log aggregation (ELK/Splunk)
-- RBAC: Role-based access enforced at all layers
+- Backup: Encrypted backups, retention policy
+- Monitoring: Real-time API metrics, alerting
+- Logging: Centralized aggregation, access logs
+- RBAC: Role-based controls for parent/guardian
 
 8. Integration
-- Payment Service: Internal fund transfer, balance validation
-- Transaction Service: Transaction history retrieval, ledger updates
-- Account Service: Youth account details
-- Third-party monitoring/logging tools
+- Account Service: Balance checks, fund transfers
+- Transaction Service: Transaction retrieval
 
 9. Deployment
-- Cloud-native deployment (AWS/Azure/GCP)
-- Kubernetes clusters for API, service, DB
-- CI/CD pipelines (GitHub Actions/Jenkins)
-- Infrastructure as Code (Terraform/CloudFormation)
+- Azure Cloud clusters for web/app/database
+- CI/CD pipeline, automated tests, blue-green deployment
 
 10. Test Strategy
-- Unit tests for business logic
-- Integration tests for APIs and services
-- Load tests for performance validation
-- Security tests (OWASP, penetration testing)
-- Compliance validation (GDPR, PCI-DSS)
+- Unit tests for service logic
+- Integration tests for APIs
+- Security tests: OAuth, RBAC, input validation
+- Performance/load tests
 
 11. Cross-Cutting Concerns
-- Input validation, output filtering, audit logging, RBAC, error handling, compliance, monitoring
+- Input validation, output filtering
+- Audit logging
+- RBAC
+- Compliance checks
 
 12. Implementation Strategy
-- Phase 1: Dashboard and fund allocation APIs
-- Phase 2: Spending limit and transaction history APIs
-- Phase 3: Integration, monitoring, compliance hardening
-- Technical dependencies: Payment service, transaction service, account service, cloud platform
+- Phase 1: Dashboard & fund allocation APIs
+- Phase 2: Spending limit & transaction APIs
+- Phase 3: Monitoring, logging, compliance
 
 13. Technical Risks
-| Risk | Impact | Likelihood | Mitigation |
-|-----------------------|--------|-----------|------------|
-| Unauthorized access | High | Medium | RBAC, OAuth validation, audit logs |
-| API performance bottlenecks | Medium | Medium | Load testing, horizontal scaling |
-| Data inconsistency | High | Low | Transactional updates, DB ACID compliance |
-| Compliance violations | High | Low | Automated compliance checks, regular audits |
-| Service downtime | High | Low | HA, failover, DR plans |
+- Risk: Unauthorized fund access; Impact: High; Likelihood: Medium; Mitigation: OAuth, RBAC, audit logs
+- Risk: API latency; Impact: Medium; Likelihood: Medium; Mitigation: Performance tuning, caching
+- Risk: Data loss; Impact: High; Likelihood: Low; Mitigation: Daily backups, disaster recovery
 
 14. Technical Debt
-- Legacy integration complexity
-- Manual compliance checks (to be automated)
-- Limited automated testing for edge cases
+- Legacy account service integration
+- Refactoring for modularity
 
 15. Appendices
-- ADR mappings: All APIs and features traceable to SCIB-25 to SCIB-30
-- Traceability matrix: Requirements mapped to components, APIs, and compliance controls
+- ADR Mappings: See section 4
+- Traceability Matrix: Functional scenarios mapped to APIs and components
+
+
