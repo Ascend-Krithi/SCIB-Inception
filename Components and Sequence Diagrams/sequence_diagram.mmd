@@ -1,46 +1,55 @@
-%% Sequence Diagram: Youth Account API (OAuth, RBAC, Audit Logging)
+%% Sequence Diagram for Youth Account Management (Mermaid)
 sequenceDiagram
     participant Parent as Parent/Guardian
-    participant UI as Parent Portal UI
-    participant API as Youth Account API
-    participant Account as Account Service
-    participant Payment as Payment Service
-    participant Transaction as Transaction Service
-    participant DB as Youth Account DB
-    note over Parent,UI: Parent logs in (OAuth2)
-    Parent->>UI: Authenticate (OAuth2)
-    UI->>API: OAuth2 token in Authorization header
-    note over API: RBAC enforced per request
-    rect rgb(230,230,250)
-      Parent->>UI: View Dashboard
-      UI->>API: GET /api/youth-accounts/{id}/dashboard
-      API->>Account: Fetch account info
-      API->>Transaction: Fetch recent transactions
-      API->>DB: Fetch spending limit
-      API-->>UI: Dashboard data
-      UI-->>Parent: Render dashboard
-    end
-    rect rgb(220,255,220)
-      Parent->>UI: Transfer Funds
-      UI->>API: POST /api/youth-accounts/{id}/fund-transfer
-      API->>Payment: Initiate fund transfer
-      API->>Account: Update balances
-      API->>DB: Update account record
-      API-->>UI: Transfer result
-      UI-->>Parent: Show transfer confirmation
-    end
-    rect rgb(255,255,220)
-      Parent->>UI: Set Spending Limit
-      UI->>API: PUT /api/youth-accounts/{id}/spending-limit
-      API->>DB: Update spending limit
-      API-->>UI: Limit updated
-      UI-->>Parent: Show confirmation
-    end
-    rect rgb(255,220,220)
-      Parent->>UI: View Transactions
-      UI->>API: GET /api/youth-accounts/{id}/transactions
-      API->>Transaction: Fetch transactions
-      API-->>UI: Transactions list
-      UI-->>Parent: Show transactions
-    end
-    note over API: Audit log every action
+    participant Web as Web Frontend
+    participant APIGW as API Gateway
+    participant Auth as Auth Service
+    participant YAS as Youth Account Service
+    participant AccS as Account Service
+    participant TxS as Transaction Service
+    participant PayS as Payment Service
+
+    Parent->>Web: Login & access dashboard
+    Web->>APIGW: GET /api/youth-accounts/{id}/dashboard (Bearer token)
+    APIGW->>Auth: Validate OAuth2 token (RBAC: parent)
+    Auth-->>APIGW: Token valid
+    APIGW->>YAS: getYouthAccountDashboard(youthAccountId)
+    YAS->>AccS: Fetch youth account data
+    YAS->>TxS: Fetch recent transactions
+    YAS-->>APIGW: Dashboard data
+    APIGW-->>Web: Dashboard JSON
+    Web-->>Parent: Render dashboard
+    Note over Parent,Web: All actions logged for audit
+
+    Parent->>Web: Initiate fund transfer
+    Web->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
+    APIGW->>Auth: Validate OAuth2 token
+    Auth-->>APIGW: Token valid
+    APIGW->>YAS: transferFundsToYouthAccount
+    YAS->>PayS: Initiate fund transfer
+    PayS-->>YAS: Transfer result
+    YAS-->>APIGW: Fund transfer response
+    APIGW-->>Web: Response
+    Web-->>Parent: Show result
+    Note over Parent,YAS: Fund transfer audit logged
+
+    Parent->>Web: Update spending limit
+    Web->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
+    APIGW->>Auth: Validate OAuth2 token
+    Auth-->>APIGW: Token valid
+    APIGW->>YAS: configureSpendingLimit
+    YAS-->>APIGW: Updated
+    APIGW-->>Web: Response
+    Web-->>Parent: Show confirmation
+    Note over Parent,YAS: Spending limit change audit logged
+
+    Parent->>Web: View transactions
+    Web->>APIGW: GET /api/youth-accounts/{id}/transactions?...
+    APIGW->>Auth: Validate OAuth2 token
+    Auth-->>APIGW: Token valid
+    APIGW->>YAS: getYouthAccountTransactions
+    YAS->>TxS: Fetch transactions
+    YAS-->>APIGW: Transaction history
+    APIGW-->>Web: Response
+    Web-->>Parent: Show history
+    Note over Parent,Web: Access logged for audit
