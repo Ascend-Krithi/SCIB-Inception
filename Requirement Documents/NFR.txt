@@ -1,50 +1,58 @@
-Non-Functional Requirements (NFRs)
+Non-Functional Requirements (NFRs) List
 
-Security:
-- OAuth2 authentication for all APIs
-- RBAC enforced (parent, youth, admin roles)
-- Input validation and output filtering
-- Audit logging of all parent actions
+Security
+- OAuth 2.0 authentication
+- RBAC enforced for parent/youth roles
+- Input validation, output filtering
+- Audit logging for all actions
 - Data encryption at rest and in transit
 
-Compliance:
-- GDPR: Data minimization, subject access, right to erasure
-- PCI-DSS: Secure payment processing, restricted access
+Compliance
+- GDPR: Data minimization, subject access, erasure
+- PCI-DSS: Secure fund transfer, transaction logging
 - ISO 27001: Information security controls
 
-Performance:
-- API response time <500ms for 95% of requests
-- Dashboard API must respond within 500ms under normal load
+Performance
+- API response time < 500ms (normal load)
+- Fund transfer updates within 1s
 
-Scalability:
-- Horizontal scaling supported for API and UI containers
+Scalability
+- Horizontal scaling via Azure App Service
+- API supports >1000 concurrent users
 
-Availability:
-- 99.99% uptime, automatic failover
+Availability
+- 99.99% uptime
+- HA, automatic failover
 
-Reliability:
-- Retry logic for service calls, transactional consistency
+Reliability
+- Transaction logging
+- Automatic failover for APIs
 
-Maintainability:
-- Modular codebase, clear documentation, OpenAPI spec
+Maintainability
+- Modular REST API
+- Well-documented OpenAPI schemas
+- Automated CI/CD pipeline
 
-Auditability:
-- Centralized logging, audit trail for all critical actions
+Auditability
+- All user actions logged with timestamp and user ID
+- Traceability matrix (acceptance criteria to design components)
 
-Disaster Recovery:
-- RTO < 4 hours, RPO < 1 hour
+Disaster Recovery
+- RTO < 4 hours
+- RPO < 1 hour
 
-Backup:
-- Daily backups, encrypted, tested restore procedures
+Backup
+- Daily encrypted backups
+- Automated restore testing
 
-Monitoring:
-- Real-time monitoring, alerting for failures, performance degradation
+Monitoring
+- Real-time metrics via Azure Monitor
+- Alerting for failures, latency, errors
 
-Logging:
-- Centralized log aggregation, error and access logs
+Logging
+- Centralized log aggregation
+- Structured logs for all APIs
 
-RBAC:
-- Role-based access control enforced for all APIs and UI actions
-
-Traceability:
-- All requirements mapped to ADRs and implementation components
+RBAC
+- Role-based access enforced for all endpoints
+- Parent can only access/manage their youth accounts
