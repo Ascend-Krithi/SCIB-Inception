@@ -3,21 +3,24 @@ info:
   title: Youth Account Management API
   version: 1.0.0
   description: |
-    API for managing youth accounts, including dashboard, fund transfer, spending limits, and transaction history. 
-    Security: OAuth2, RBAC, audit logging. 
-    Compliance: GDPR, PCI-DSS, ISO 27001.
+    Parent-Youth Account Management APIs enabling parents to allocate and manage funds for youth accounts securely. All endpoints enforce OAuth2, RBAC, audit logging, and compliance with GDPR, PCI-DSS, and ISO 27001.
+  contact:
+    name: API Integration Architect
+    email: api.architect@ascendkrithi.com
 servers:
-  - url: https://api.bankapp.com
-    description: Production server
-  - url: https://sandbox.api.bankapp.com
-    description: Sandbox server
+  - url: https://api.ascendkrithi.com
+    description: Production
+  - url: https://sandbox.api.ascendkrithi.com
+    description: Sandbox
 security:
   - OAuth2: []
 paths:
   /api/youth-accounts/{youthAccountId}/dashboard:
     get:
-      summary: Retrieve youth account dashboard
-      description: Get youth account details, spending limits, and recent transactions
+      summary: Get youth account dashboard
+      operationId: getYouthAccountDashboard
+      tags:
+        - Dashboard
       parameters:
         - name: youthAccountId
           in: path
@@ -26,29 +29,37 @@ paths:
             type: string
       responses:
         '200':
-          description: Successful dashboard retrieval
+          description: Dashboard data for youth account
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/YouthAccountDashboard'
+                $ref: '#/components/schemas/DashboardResponse'
+              examples:
+                dashboard:
+                  value:
+                    youthAccountId: 'Y12345'
+                    accountBalance: 150.00
+                    spendingLimit: 50.00
+                    currency: 'USD'
+                    recentTransactions:
+                      - transactionId: 'T001'
+                        date: '2024-06-01T10:00:00Z'
+                        description: 'Starbucks'
+                        amount: 4.50
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized (invalid parent ownership)
+        '404':
+          description: Not Found (invalid youth account)
         '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
       security:
         - OAuth2: []
   /api/youth-accounts/{youthAccountId}/fund-transfer:
     post:
-      summary: Parent transfers funds to youth account
-      description: Initiate a fund transfer from parent to youth account
+      summary: Fund transfer to youth account
+      operationId: transferFundsToYouthAccount
+      tags:
+        - Fund Transfer
       parameters:
         - name: youthAccountId
           in: path
@@ -61,31 +72,37 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/FundTransferRequest'
+            examples:
+              fundTransfer:
+                value:
+                  sourceAccountId: 'P12345'
+                  transferAmount: 25.00
+                  currency: 'USD'
       responses:
         '200':
-          description: Successful fund transfer
+          description: Fund transfer response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FundTransferResponse'
+              examples:
+                transfer:
+                  value:
+                    transferId: 'FT001'
+                    status: 'SUCCESS'
+                    updatedBalance: 175.00
         '400':
-          description: Insufficient balance or invalid account
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request (insufficient balance or invalid account mapping)
         '500':
-          description: Service failure
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Transfer service failure
       security:
         - OAuth2: []
   /api/youth-accounts/{youthAccountId}/spending-limit:
     put:
-      summary: Set weekly spending limit
-      description: Parent sets weekly spending limit for youth account
+      summary: Update weekly spending limit for youth account
+      operationId: updateYouthAccountSpendingLimit
+      tags:
+        - Spending Limit
       parameters:
         - name: youthAccountId
           in: path
@@ -98,6 +115,10 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SpendingLimitRequest'
+            examples:
+              spendingLimit:
+                value:
+                  weeklyLimit: 75.00
       responses:
         '200':
           description: Spending limit updated
@@ -105,24 +126,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpendingLimitResponse'
+              examples:
+                updated:
+                  value:
+                    youthAccountId: 'Y12345'
+                    weeklyLimit: 75.00
+                    status: 'UPDATED'
         '400':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request (invalid value)
         '403':
           description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
       security:
         - OAuth2: []
   /api/youth-accounts/{youthAccountId}/transactions:
     get:
-      summary: Retrieve transaction history
-      description: Get youth account transaction history
+      summary: Get transaction history for youth account
+      operationId: getYouthAccountTransactions
+      tags:
+        - Transactions
       parameters:
         - name: youthAccountId
           in: path
@@ -147,6 +170,7 @@ paths:
           schema:
             type: integer
             minimum: 1
+            default: 1
         - name: pageSize
           in: query
           required: false
@@ -154,40 +178,44 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
+            default: 20
       responses:
         '200':
-          description: Transaction history retrieved
+          description: Transaction history
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionHistoryResponse'
-        '400':
-          description: Invalid parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                transactions:
+                  value:
+                    transactions:
+                      - transactionId: 'T002'
+                        date: '2024-06-02T15:00:00Z'
+                        merchant: 'Amazon'
+                        amount: 20.00
+                        transactionType: 'debit'
+                    pagination:
+                      page: 1
+                      pageSize: 20
+                      totalRecords: 35
         '403':
           description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
       security:
         - OAuth2: []
 components:
   securitySchemes:
     OAuth2:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://bankapp.com/oauth/authorize
-          tokenUrl: https://bankapp.com/oauth/token
-          scopes:
-            parent: Manage youth accounts
-            youth: Access own account
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth2 Bearer Token required for all endpoints.
   schemas:
-    YouthAccountDashboard:
+    DashboardResponse:
       type: object
       properties:
         youthAccountId:
@@ -203,8 +231,8 @@ components:
         recentTransactions:
           type: array
           items:
-            $ref: '#/components/schemas/RecentTransaction'
-    RecentTransaction:
+            $ref: '#/components/schemas/DashboardTransaction'
+    DashboardTransaction:
       type: object
       properties:
         transactionId:
@@ -267,10 +295,10 @@ components:
         transactions:
           type: array
           items:
-            $ref: '#/components/schemas/Transaction'
+            $ref: '#/components/schemas/TransactionRecord'
         pagination:
           $ref: '#/components/schemas/Pagination'
-    Transaction:
+    TransactionRecord:
       type: object
       properties:
         transactionId:
@@ -295,33 +323,3 @@ components:
           type: integer
         totalRecords:
           type: integer
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-      required:
-        - code
-        - message
-x-audit:
-  generatedBy: Lead API Integration Architect
-  generatedAt: "2024-06-10T10:22:00Z"
-  compliance:
-    - SOC2
-    - ISO27001
-    - GDPR
-    - PCI-DSS
-  traceability:
-    HLDDocument: Requirement Documents/HLDDocument.txt
-    APIContractOutline: Requirement Documents/APIContractOutline.txt
-    NFR: Requirement Documents/NFR.txt
-  validation:
-    openapi-compliant: true
-    security-reviewed: true
-    completeness: true
-    errorHandling: true
-    inputValidation: true
-    outputFiltering: true
-    auditLogging: true
