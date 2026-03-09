@@ -1,0 +1,75 @@
+API Contract Outline
+
+1. GET /api/youth-accounts/{youthAccountId}/dashboard
+- Retrieves consolidated youth account info: balance, spending limit, recent transactions
+- Request: Path param youthAccountId
+- Response:
+  {
+    "youthAccountId": "string",
+    "accountBalance": "decimal",
+    "spendingLimit": "decimal",
+    "currency": "string",
+    "recentTransactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "description": "string",
+        "amount": "decimal"
+      }
+    ]
+  }
+- Error Handling: 403 Unauthorized, 404 Not Found
+
+2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Transfers funds from parent to youth account
+- Request:
+  {
+    "sourceAccountId": "string",
+    "transferAmount": "decimal",
+    "currency": "string"
+  }
+- Response:
+  {
+    "transferId": "string",
+    "status": "SUCCESS",
+    "updatedBalance": "decimal"
+  }
+- Error Handling: 400 Insufficient funds, 400 Invalid mapping, 500 Transfer failure
+
+3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Configures weekly spending limit
+- Request:
+  {
+    "weeklyLimit": "decimal"
+  }
+- Response:
+  {
+    "youthAccountId": "string",
+    "weeklyLimit": "decimal",
+    "status": "UPDATED"
+  }
+- Error Handling: 400 Invalid value, 403 Unauthorized
+
+4. GET /api/youth-accounts/{youthAccountId}/transactions
+- Retrieves transaction history
+- Request: Path param youthAccountId, Query params: startDate, endDate, page, pageSize
+- Response:
+  {
+    "transactions": [
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "merchant": "string",
+        "amount": "decimal",
+        "transactionType": "debit | credit"
+      }
+    ],
+    "pagination": {
+      "page": "number",
+      "pageSize": "number",
+      "totalRecords": "number"
+    }
+  }
+- Error Handling: 403 Unauthorized, 404 Not Found
+
+Security: OAuth token validation, parent ownership validation, RBAC, audit logging
