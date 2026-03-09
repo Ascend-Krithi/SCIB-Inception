@@ -1,41 +1,48 @@
-%% Sequence Diagram for Youth Account Management APIs
+%% Sequence Diagram: Youth Account Management - API Flows
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant UI as Parent Portal UI (React SPA)
-    participant API as Youth Account API (Spring Boot REST API)
-    participant DB as Youth Account DB (PostgreSQL)
-    participant AccountService as Account Service
-    participant TransactionService as Transaction Service
-    participant PaymentService as Payment Service
+  participant Parent as Parent/Guardian
+  participant UI as Parent UI (React)
+  participant API as Youth Account API (Node.js)
+  participant GW as API Gateway
+  participant ACC as Account Service
+  participant PAY as Payment Service
+  participant LEDGER as Transaction Ledger Service
+  participant DB as PostgreSQL DB
+  Note over Parent,UI: Parent uses web app to manage youth accounts
 
-    %% Dashboard API
-    Parent->>UI: Login & request dashboard (OAuth2)
-    UI->>API: GET /api/youth-accounts/{youthAccountId}/dashboard
-    API->>AccountService: Retrieve account details
-    API->>TransactionService: Retrieve recent transactions
-    API->>DB: Fetch spending limit
-    API-->>UI: Dashboard data (balance, limit, recent transactions)
-    UI-->>Parent: Display dashboard
+  Parent->>UI: Login (OAuth)
+  UI->>GW: Authenticated API call (/dashboard)
+  GW->>API: Forward request (validate RBAC)
+  API->>DB: Get account settings/limits
+  API->>ACC: Get account details
+  API->>LEDGER: Get recent transactions
+  API-->>GW: Dashboard data
+  GW-->>UI: Dashboard data
+  UI-->>Parent: Show dashboard
+  Note over API: All actions logged for audit (GDPR/PCI/ISO)
 
-    %% Fund Transfer API
-    Parent->>UI: Initiate fund transfer
-    UI->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-    API->>AccountService: Validate source account
-    API->>PaymentService: Initiate transfer
-    API->>DB: Update youth account balance
-    API-->>UI: Transfer result
-    UI-->>Parent: Show transfer status
+  Parent->>UI: Initiate fund transfer
+  UI->>GW: POST /fund-transfer
+  GW->>API: Forward request (validate RBAC)
+  API->>PAY: Transfer funds
+  API->>DB: Update balance
+  API-->>GW: Transfer result
+  GW-->>UI: Transfer result
+  UI-->>Parent: Show transfer status
+  Note over API: Audit log, compliance enforced
 
-    %% Spending Limit Configuration API
-    Parent->>UI: Set weekly spending limit
-    UI->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-    API->>DB: Update spending limit
-    API-->>UI: Limit update confirmation
-    UI-->>Parent: Show confirmation
+  Parent->>UI: Set spending limit
+  UI->>GW: PUT /spending-limit
+  GW->>API: Forward request (validate RBAC)
+  API->>DB: Update limit
+  API-->>GW: Limit update result
+  GW-->>UI: Limit update result
+  UI-->>Parent: Show update confirmation
 
-    %% Transaction History API
-    Parent->>UI: View transaction history
-    UI->>API: GET /api/youth-accounts/{youthAccountId}/transactions
-    API->>TransactionService: Fetch transactions
-    API-->>UI: Transaction list with pagination
-    UI-->>Parent: Display transactions
+  Parent->>UI: View transactions
+  UI->>GW: GET /transactions
+  GW->>API: Forward request (validate RBAC)
+  API->>LEDGER: Fetch transaction history
+  API-->>GW: Transaction history
+  GW-->>UI: Transaction history
+  UI-->>Parent: Show transactions

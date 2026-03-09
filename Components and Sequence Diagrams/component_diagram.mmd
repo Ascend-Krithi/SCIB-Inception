@@ -1,25 +1,35 @@
-%% Component Diagram for Youth Account Management Solution
-%% C4 style Mermaid diagram
+%% Component Diagram: Youth Account Management Solution (C4 Style)
 flowchart TD
-    subgraph WebApp [Banking Web Application]
-        UI[Parent Portal UI (React SPA)]
-        API[Youth Account API (Spring Boot REST API)]
-        DB[Youth Account DB (PostgreSQL)]
-    end
-    AccountService[(Account Service)]
-    TransactionService[(Transaction Service)]
-    PaymentService[(Payment Service)]
+  subgraph Web_Application[Banking Web Application]
+    UI[Parent UI (React)]
+    API[Youth Account API (Node.js)]
+    DB[(PostgreSQL DB)]
+  end
 
-    UI -- REST --> API
-    API -- JDBC --> DB
-    API -- HTTPS --> AccountService
-    API -- HTTPS --> TransactionService
-    API -- HTTPS --> PaymentService
+  GW[API Gateway]
+  ACC[Account Service]
+  PAY[Payment Service]
+  LEDGER[Transaction Ledger Service]
 
-    classDef external fill:#f9f,stroke:#333,stroke-width:2;
-    AccountService,TransactionService,PaymentService:::external
+  Parent[Parent/Guardian]
+  Youth[Youth]
 
-    %% Notes:
-    %% - API handles OAuth2, RBAC, Audit Logging
-    %% - All integrations via secure REST
-    %% - Compliance: GDPR, PCI-DSS, ISO27001
+  Parent-->|Uses|UI
+  Youth-->|Uses|UI
+  UI-->|API Calls (OAuth, RBAC)|GW
+  GW-->|Routes|API
+  API-->|Read/Write|DB
+  API-->|Account Details|ACC
+  API-->|Fund Transfer|PAY
+  API-->|Transaction History|LEDGER
+
+  %% Compliance and Auditability
+  classDef compliance fill:#F3F6FB,stroke:#2B7A78,stroke-width:2px;
+  API:::compliance
+  GW:::compliance
+  DB:::compliance
+
+  %% Notes
+  note right of API: OAuth2, RBAC, Audit Logging, GDPR, PCI-DSS, ISO 27001
+  note right of GW: Auth, Routing, RBAC
+  note right of DB: Encrypted, Audit trail
