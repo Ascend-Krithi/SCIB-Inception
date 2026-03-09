@@ -1,56 +1,52 @@
-%% Component Diagram: Youth Account Management System (C4-style, Mermaid)
-%% Render as SVG with Mermaid
-%% To view: https://mermaid-js.github.io/mermaid-live-editor/
-%%
-%% C4 Component Diagram
----
-flowchart TD
-    subgraph Web
-        A[Parent/Guardian]
-        B[Banking Web Application]
-    end
-    subgraph Cloud Platform
-        G[API Gateway]
-        H[Youth Account API]
-        I[Account Service]
-        J[Transaction Service]
-        K[Settings Service]
-        L[(Database)]
-    end
-    A-->|OAuth, HTTPS|B
-    B-->|REST|G
-    G-->|Routes, OAuth|H
-    H-->|REST: balance|I
-    H-->|REST: transactions|J
-    H-->|REST: limits|K
-    K-->|SQL|L
-    H-.->|Audit Logging|L
-    G-.->|RBAC, Audit|L
-    %% Components inside Youth Account API
-    subgraph "Youth Account API"
-        H1[Dashboard Handler]
-        H2[Fund Transfer Handler]
-        H3[Spending Limit Handler]
-        H4[Transaction History Handler]
-    end
-    H1---H
-    H2---H
-    H3---H
-    H4---H
-    H1-->|Aggregates|I
-    H1-->|Aggregates|K
-    H1-->|Aggregates|J
-    H2-->|Transfers|I
-    H2-->|Logs|J
-    H3-->|Updates|K
-    H4-->|Fetches|J
-    style H1 fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style H2 fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style H3 fill:#e6f7ff,stroke:#333,stroke-width:1px
-    style H4 fill:#e6f7ff,stroke:#333,stroke-width:1px
-    %% Compliance notes
-    classDef compliance fill:#fffbe6,stroke:#333,stroke-dasharray: 5 5;
-    G:::compliance
-    H:::compliance
-    K:::compliance
-    L:::compliance
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mermaid C4-Style Component Diagram for Youth Account Management (SVG export) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="700" font-family="Arial, sans-serif">
+  <rect x="10" y="10" width="1080" height="680" fill="#f6f9fc" stroke="#bbb" stroke-width="2" rx="20"/>
+  <text x="550" y="40" font-size="28" text-anchor="middle" font-weight="bold">Youth Account Management System - Component Diagram</text>
+  <!-- Web Application -->
+  <rect x="80" y="100" width="220" height="70" fill="#cce5ff" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="190" y="140" font-size="18" text-anchor="middle">Banking Web Application</text>
+  <!-- API Gateway -->
+  <rect x="380" y="100" width="320" height="70" fill="#d4edda" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="540" y="140" font-size="18" text-anchor="middle">Youth Account API Gateway</text>
+  <!-- Account Service -->
+  <rect x="100" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="210" y="340" font-size="16" text-anchor="middle">Account Service</text>
+  <!-- Transaction Service -->
+  <rect x="410" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="520" y="340" font-size="16" text-anchor="middle">Transaction Service</text>
+  <!-- Payment Service -->
+  <rect x="720" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="830" y="340" font-size="16" text-anchor="middle">Payment Service</text>
+  <!-- Database -->
+  <rect x="410" y="520" width="220" height="70" fill="#f8d7da" stroke="#666" stroke-width="2" rx="10"/>
+  <text x="520" y="560" font-size="16" text-anchor="middle">Database (PostgreSQL)</text>
+  <!-- Arrows -->
+  <!-- WebApp -> API Gateway -->
+  <line x1="300" y1="135" x2="380" y2="135" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- API Gateway -> Account Service -->
+  <line x1="540" y1="170" x2="210" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- API Gateway -> Transaction Service -->
+  <line x1="540" y1="170" x2="520" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- API Gateway -> Payment Service -->
+  <line x1="700" y1="170" x2="830" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- API Gateway -> Database -->
+  <line x1="540" y1="170" x2="520" y2="520" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- SVG Arrowhead marker definition -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    </marker>
+  </defs>
+  <!-- Legend -->
+  <rect x="900" y="600" width="180" height="80" fill="#fff" stroke="#bbb" stroke-width="1" rx="10"/>
+  <text x="990" y="625" font-size="14" text-anchor="middle" font-weight="bold">Legend</text>
+  <rect x="910" y="640" width="20" height="20" fill="#cce5ff" stroke="#666"/>
+  <text x="940" y="655" font-size="12">Web UI</text>
+  <rect x="910" y="665" width="20" height="20" fill="#d4edda" stroke="#666"/>
+  <text x="940" y="680" font-size="12">API Gateway</text>
+  <rect x="1040" y="640" width="20" height="20" fill="#ffeeba" stroke="#666"/>
+  <text x="1070" y="655" font-size="12">Service</text>
+  <rect x="1040" y="665" width="20" height="20" fill="#f8d7da" stroke="#666"/>
+  <text x="1070" y="680" font-size="12">Database</text>
+</svg>

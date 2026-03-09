@@ -1,48 +1,48 @@
-%% Sequence Diagram: Youth Account Management Feature
+%% Sequence Diagram for Youth Account Management APIs (Mermaid)
 sequenceDiagram
+    autonumber
     participant Parent as Parent/Guardian
     participant WebApp as Banking Web Application
-    participant APIGW as API Gateway
-    participant API as Youth Account API
-    participant Account as Account Service
-    participant Transaction as Transaction Service
-    participant Settings as Settings Service
+    participant APIGW as Youth Account API Gateway
+    participant AccountSvc as Account Service
+    participant TransSvc as Transaction Service
+    participant PaymentSvc as Payment Service
+    participant DB as Database
 
-    %% Dashboard View
-    Parent->>WebApp: Login (OAuth)
+    %% Dashboard API
+    Parent->>WebApp: Login & select Youth Account
     WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth)
-    APIGW->>API: Forward request
-    API->>Account: Fetch account balance
-    API->>Settings: Fetch spending limit
-    API->>Transaction: Fetch recent transactions
-    API-->>APIGW: Aggregate dashboard data
-    APIGW-->>WebApp: Dashboard JSON
+    APIGW->>AccountSvc: Get account details
+    AccountSvc-->>APIGW: Account details
+    APIGW->>TransSvc: Get recent transactions
+    TransSvc-->>APIGW: Transactions
+    APIGW->>DB: Fetch spending limit
+    DB-->>APIGW: Spending limit
+    APIGW-->>WebApp: Dashboard data (balance, limit, recent txns)
     WebApp-->>Parent: Render dashboard
 
-    %% Fund Transfer
+    %% Fund Transfer API
     Parent->>WebApp: Initiate fund transfer
-    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer (OAuth)
-    APIGW->>API: Forward transfer request
-    API->>Account: Validate & process transfer
-    API->>Transaction: Log transaction
-    API-->>APIGW: Transfer result
+    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
+    APIGW->>PaymentSvc: Initiate transfer
+    PaymentSvc-->>APIGW: Transfer result
+    APIGW->>AccountSvc: Update balance
+    AccountSvc-->>APIGW: Updated balance
     APIGW-->>WebApp: Transfer status
-    WebApp-->>Parent: Show result
-
-    %% Set Spending Limit
-    Parent->>WebApp: Set weekly limit
-    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit (OAuth)
-    APIGW->>API: Forward limit update
-    API->>Settings: Update limit
-    API-->>APIGW: Limit updated
-    APIGW-->>WebApp: Update confirmation
     WebApp-->>Parent: Show confirmation
 
-    %% Transaction History
+    %% Spending Limit API
+    Parent->>WebApp: Update spending limit
+    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
+    APIGW->>DB: Update limit
+    DB-->>APIGW: Update result
+    APIGW-->>WebApp: Limit updated
+    WebApp-->>Parent: Show confirmation
+
+    %% Transaction History API
     Parent->>WebApp: View transaction history
-    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions?params (OAuth)
-    APIGW->>API: Forward request
-    API->>Transaction: Fetch paginated history
-    API-->>APIGW: Transaction history
-    APIGW-->>WebApp: History JSON
-    WebApp-->>Parent: Render history
+    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions
+    APIGW->>TransSvc: Fetch transactions
+    TransSvc-->>APIGW: Transactions
+    APIGW-->>WebApp: Transaction list
+    WebApp-->>Parent: Show transactions
