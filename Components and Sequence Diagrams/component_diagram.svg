@@ -1,43 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mermaid SVG Export: Youth Account Management Component Diagram (C4) -->
-<svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
-  <g font-family="Arial, sans-serif" font-size="16">
-    <!-- Banking Web Application -->
-    <rect x="50" y="70" width="180" height="60" fill="#E3F2FD" stroke="#1976D2" stroke-width="2" rx="10"/>
-    <text x="65" y="100">Banking Web Application</text>
-    <!-- API Gateway -->
-    <rect x="280" y="70" width="150" height="60" fill="#FFF3E0" stroke="#F57C00" stroke-width="2" rx="10"/>
-    <text x="295" y="100">API Gateway</text>
-    <!-- Youth Account API Service -->
-    <rect x="480" y="70" width="220" height="60" fill="#E8F5E9" stroke="#388E3C" stroke-width="2" rx="10"/>
-    <text x="495" y="100">Youth Account API Service</text>
-    <!-- Settings DB -->
-    <rect x="480" y="180" width="120" height="50" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" rx="8"/>
-    <text x="495" y="210">Settings DB</text>
-    <!-- Transaction DB -->
-    <rect x="620" y="180" width="130" height="50" fill="#E1F5FE" stroke="#0288D1" stroke-width="2" rx="8"/>
-    <text x="635" y="210">Transaction DB</text>
-    <!-- Account Service (External) -->
-    <rect x="50" y="300" width="170" height="50" fill="#F3E5F5" stroke="#8E24AA" stroke-width="2" rx="8"/>
-    <text x="65" y="330">Account Service</text>
-    <!-- Payment Service (External) -->
-    <rect x="280" y="300" width="170" height="50" fill="#FFEBEE" stroke="#C62828" stroke-width="2" rx="8"/>
-    <text x="295" y="330">Payment Service</text>
-    <!-- Transaction Ledger Service (External) -->
-    <rect x="530" y="300" width="200" height="50" fill="#E0F2F1" stroke="#00897B" stroke-width="2" rx="8"/>
-    <text x="545" y="330">Transaction Ledger Service</text>
-    <!-- Connections -->
-    <line x1="230" y1="100" x2="280" y2="100" stroke="#1976D2" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="430" y1="100" x2="480" y2="100" stroke="#F57C00" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="590" y1="130" x2="540" y2="180" stroke="#388E3C" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="650" y1="130" x2="700" y2="180" stroke="#388E3C" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="480" y1="100" x2="135" y2="300" stroke="#8E24AA" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="480" y1="100" x2="365" y2="300" stroke="#C62828" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="700" y1="130" x2="630" y2="300" stroke="#00897B" stroke-width="2" marker-end="url(#arrow)"/>
-  </g>
+<!-- Component Diagram SVG (Mermaid-style, C4 inspired) -->
+<svg width="900" height="600" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+  <!-- Banking Web Application -->
+  <rect x="60" y="80" width="180" height="60" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="10"/>
+  <text x="150" y="110" font-size="16" text-anchor="middle" fill="#1976d2">Banking Web App</text>
+  <!-- Youth Account API -->
+  <rect x="320" y="80" width="220" height="60" fill="#fff3e0" stroke="#ef6c00" stroke-width="2" rx="10"/>
+  <text x="430" y="110" font-size="16" text-anchor="middle" fill="#ef6c00">Youth Account API</text>
+  <!-- Account Service -->
+  <rect x="320" y="180" width="140" height="50" fill="#e8f5e9" stroke="#388e3c" stroke-width="2" rx="8"/>
+  <text x="390" y="210" font-size="13" text-anchor="middle" fill="#388e3c">Account Service</text>
+  <!-- Payment Service -->
+  <rect x="480" y="180" width="140" height="50" fill="#fffde7" stroke="#fbc02d" stroke-width="2" rx="8"/>
+  <text x="550" y="210" font-size="13" text-anchor="middle" fill="#fbc02d">Payment Service</text>
+  <!-- Transaction Ledger -->
+  <rect x="320" y="260" width="140" height="50" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2" rx="8"/>
+  <text x="390" y="290" font-size="13" text-anchor="middle" fill="#8e24aa">Transaction Ledger</text>
+  <!-- Youth Account DB -->
+  <rect x="480" y="260" width="140" height="50" fill="#e0f7fa" stroke="#00838f" stroke-width="2" rx="8"/>
+  <text x="550" y="290" font-size="13" text-anchor="middle" fill="#00838f">Youth Account DB</text>
+  <!-- External Entities -->
+  <ellipse cx="25" cy="110" rx="20" ry="20" fill="#ffcdd2" stroke="#b71c1c" stroke-width="2"/>
+  <text x="25" y="115" font-size="12" text-anchor="middle" fill="#b71c1c">Parent</text>
+  <ellipse cx="25" cy="160" rx="20" ry="20" fill="#bbdefb" stroke="#0d47a1" stroke-width="2"/>
+  <text x="25" y="165" font-size="12" text-anchor="middle" fill="#0d47a1">Youth</text>
+  <!-- Arrows -->
+  <!-- Parent to WebApp -->
+  <line x1="45" y1="110" x2="60" y2="110" stroke="#1976d2" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Youth to WebApp (view only) -->
+  <line x1="45" y1="160" x2="80" y2="110" stroke="#1976d2" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,2"/>
+  <!-- WebApp to Youth Account API -->
+  <line x1="240" y1="110" x2="320" y2="110" stroke="#ef6c00" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Youth Account API to Services -->
+  <line x1="430" y1="140" x2="390" y2="180" stroke="#388e3c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="430" y1="140" x2="550" y2="180" stroke="#fbc02d" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="430" y1="140" x2="390" y2="260" stroke="#8e24aa" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="430" y1="140" x2="550" y2="260" stroke="#00838f" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- DB to API (bidirectional) -->
+  <line x1="550" y1="310" x2="430" y2="140" stroke="#00838f" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,2"/>
+  <!-- Markers -->
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 L4,5 Z" fill="#333" />
     </marker>
   </defs>
+  <!-- Legend -->
+  <rect x="700" y="60" width="180" height="110" fill="#fff" stroke="#aaa" rx="8"/>
+  <text x="790" y="80" font-size="12" text-anchor="middle" fill="#333">Legend</text>
+  <rect x="710" y="90" width="12" height="12" fill="#e3f2fd" stroke="#1976d2"/>
+  <text x="730" y="100" font-size="11" fill="#1976d2">Web App</text>
+  <rect x="710" y="110" width="12" height="12" fill="#fff3e0" stroke="#ef6c00"/>
+  <text x="730" y="120" font-size="11" fill="#ef6c00">API</text>
+  <rect x="710" y="130" width="12" height="12" fill="#e8f5e9" stroke="#388e3c"/>
+  <text x="730" y="140" font-size="11" fill="#388e3c">Service</text>
+  <rect x="710" y="150" width="12" height="12" fill="#e0f7fa" stroke="#00838f"/>
+  <text x="730" y="160" font-size="11" fill="#00838f">DB</text>
 </svg>
