@@ -1,67 +1,62 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth token validation for all APIs
-- RBAC: Parent access only to owned youth accounts
-- Audit logging for all actions
+- OAuth2 authentication for all endpoints
+- RBAC for parent/youth roles
+- Audit logging for fund transfers, limit changes, dashboard access
 - Data encryption at rest and in transit
+- Input validation and output filtering
 
 Compliance
-- GDPR, PCI-DSS, ISO 27001
-- Data minimization and retention policies
+- GDPR: User data privacy and consent
+- PCI-DSS: Secure handling of payment data
+- ISO 27001: Information security controls
 
 Performance
-- API response time < 500ms for 95% requests
-- Efficient DB queries and caching
+- API response time < 500ms under normal load
+- Throughput: 1000 requests/sec with < 1% error rate
 
 Scalability
-- Stateless APIs, horizontal scaling
-- Elastic load balancing
+- Horizontal scaling via Kubernetes
+- Stateless APIs
 
 Availability
 - 99.99% uptime
-- Automatic failover
+- Automatic failover for service pods
 
 Reliability
-- Transactional integrity for fund transfers
-- Retry logic for payment service
+- Retry logic for external service calls
+- Circuit breaker for service failures
 
 Maintainability
-- Modular architecture
-- OpenAPI/Swagger documentation
-- Automated CI/CD deployment
+- Modular microservices
+- Clear documentation
+- Automated CI/CD
 
 Auditability
-- All fund transfers, limit changes, and dashboard accesses logged
-- Traceable actions via unique IDs
+- All actions logged with user/session info
+- Logs retained for 1 year
 
 Disaster Recovery
-- RTO < 4 hours, RPO < 1 hour
-- Regular DR drills
+- RTO < 4 hours
+- RPO < 1 hour
+- Daily backups (encrypted)
 
 Backup
-- Daily encrypted backups
-- Backup retention for 30 days
+- Daily encrypted database backups
+- Backup verification jobs
 
 Monitoring
-- CloudWatch metrics, alerting for failures and latency
-- Real-time health checks
+- Real-time metrics (Prometheus/Grafana)
+- Alerting for error rates, latency, downtime
 
 Logging
-- Centralized log aggregation
-- Structured logs for API and DB
+- Centralized log aggregation (ELK stack)
+- Error and access logs
 
 RBAC
-- Role-based access enforced in API and DB
-- Parent authorization validated per request
+- Roles: Parent, Youth, Admin
+- Permissions enforced at API Gateway and Auth Service
 
-Input Validation
-- All API requests validated for schema and business rules
-
-Output Filtering
-- Sensitive data masked in responses
-
-Technical Risk Mitigation
-- API latency: DB optimization, caching
-- Unauthorized access: OAuth, RBAC, audit
-- Service failure: Retry, alerting, fallback
+Mapping to Design Decisions
+- All NFRs referenced in HLD section 7, mapped to ADRs SCIB-25 to SCIB-30
