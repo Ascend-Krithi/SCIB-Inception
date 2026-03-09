@@ -1,42 +1,46 @@
-%% Sequence Diagram for Youth Account Management API (Mermaid)
+%% Sequence Diagram: Youth Account API (OAuth, RBAC, Audit Logging)
 sequenceDiagram
-  participant Parent as Parent/Guardian
-  participant UI as Web UI (React)
-  participant API as Youth Account API (Spring Boot)
-  participant Account as Account Service
-  participant Payment as Payment Service
-  participant Transaction as Transaction Service
-  participant DB as Youth Account DB
-
-  %% Dashboard Retrieval
-  Parent->>UI: Open Dashboard
-  UI->>API: GET /api/youth-accounts/{id}/dashboard
-  API->>Account: Get Account Details
-  API->>DB: Get Spending Limit
-  API->>Transaction: Get Recent Transactions
-  API-->>UI: Dashboard JSON
-  UI-->>Parent: Render Dashboard
-
-  %% Fund Transfer
-  Parent->>UI: Initiate Fund Transfer
-  UI->>API: POST /api/youth-accounts/{id}/fund-transfer
-  API->>Payment: Transfer Funds
-  Payment-->>API: Transfer Result
-  API->>DB: Update Account Balance
-  API-->>UI: Transfer Response
-  UI-->>Parent: Show Transfer Status
-
-  %% Set Spending Limit
-  Parent->>UI: Set Spending Limit
-  UI->>API: PUT /api/youth-accounts/{id}/spending-limit
-  API->>DB: Update Limit
-  API-->>UI: Limit Updated
-  UI-->>Parent: Show Limit
-
-  %% Transaction History
-  Parent->>UI: View Transactions
-  UI->>API: GET /api/youth-accounts/{id}/transactions
-  API->>Transaction: Get Transactions
-  Transaction-->>API: Transactions Data
-  API-->>UI: Transactions Response
-  UI-->>Parent: Show Transactions
+    participant Parent as Parent/Guardian
+    participant UI as Parent Portal UI
+    participant API as Youth Account API
+    participant Account as Account Service
+    participant Payment as Payment Service
+    participant Transaction as Transaction Service
+    participant DB as Youth Account DB
+    note over Parent,UI: Parent logs in (OAuth2)
+    Parent->>UI: Authenticate (OAuth2)
+    UI->>API: OAuth2 token in Authorization header
+    note over API: RBAC enforced per request
+    rect rgb(230,230,250)
+      Parent->>UI: View Dashboard
+      UI->>API: GET /api/youth-accounts/{id}/dashboard
+      API->>Account: Fetch account info
+      API->>Transaction: Fetch recent transactions
+      API->>DB: Fetch spending limit
+      API-->>UI: Dashboard data
+      UI-->>Parent: Render dashboard
+    end
+    rect rgb(220,255,220)
+      Parent->>UI: Transfer Funds
+      UI->>API: POST /api/youth-accounts/{id}/fund-transfer
+      API->>Payment: Initiate fund transfer
+      API->>Account: Update balances
+      API->>DB: Update account record
+      API-->>UI: Transfer result
+      UI-->>Parent: Show transfer confirmation
+    end
+    rect rgb(255,255,220)
+      Parent->>UI: Set Spending Limit
+      UI->>API: PUT /api/youth-accounts/{id}/spending-limit
+      API->>DB: Update spending limit
+      API-->>UI: Limit updated
+      UI-->>Parent: Show confirmation
+    end
+    rect rgb(255,220,220)
+      Parent->>UI: View Transactions
+      UI->>API: GET /api/youth-accounts/{id}/transactions
+      API->>Transaction: Fetch transactions
+      API-->>UI: Transactions list
+      UI-->>Parent: Show transactions
+    end
+    note over API: Audit log every action

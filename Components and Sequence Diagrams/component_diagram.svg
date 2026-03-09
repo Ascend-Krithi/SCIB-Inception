@@ -1,36 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mermaid C4 Component Diagram for Youth Account Management (SVG export) -->
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
-  <rect x="40" y="40" width="800" height="520" rx="20" ry="20" fill="#f9f9f9" stroke="#444" stroke-width="2"/>
-  <!-- Web Application Boundary -->
-  <rect x="80" y="80" width="340" height="200" rx="10" ry="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
-  <text x="110" y="105" font-size="18" fill="#1976d2">Banking Web Application</text>
-  <!-- UI Component -->
-  <rect x="100" y="130" width="120" height="60" rx="8" ry="8" fill="#fff" stroke="#42a5f5" stroke-width="2"/>
-  <text x="115" y="160" font-size="14" fill="#1976d2">Web UI (React)</text>
-  <!-- API Component -->
-  <rect x="240" y="130" width="160" height="60" rx="8" ry="8" fill="#fff" stroke="#42a5f5" stroke-width="2"/>
-  <text x="255" y="160" font-size="14" fill="#1976d2">Youth Account API (Spring Boot)</text>
-  <!-- Youth Account DB -->
-  <ellipse cx="320" cy="260" rx="60" ry="30" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
-  <text x="270" y="265" font-size="14" fill="#fbc02d">Youth Account DB (RDS)</text>
+<!-- Component Diagram: Youth Account Platform (SVG, C4-inspired) -->
+<svg width="900" height="520" xmlns="http://www.w3.org/2000/svg">
+  <rect x="30" y="20" width="820" height="480" rx="16" fill="#f6faff" stroke="#b2c2d6" stroke-width="2"/>
+  <text x="450" y="50" font-size="22" text-anchor="middle" font-family="Arial">Banking Web Application (System Boundary)</text>
+
+  <!-- UI -->
+  <rect x="70" y="90" width="220" height="100" rx="10" fill="#e6f2ff" stroke="#3778c2" stroke-width="2"/>
+  <text x="180" y="120" font-size="16" text-anchor="middle" font-family="Arial">Parent Portal UI</text>
+  <text x="180" y="140" font-size="12" text-anchor="middle" font-family="Arial">ReactJS</text>
+
+  <!-- API -->
+  <rect x="340" y="90" width="220" height="100" rx="10" fill="#e0ffe6" stroke="#2e8b57" stroke-width="2"/>
+  <text x="450" y="120" font-size="16" text-anchor="middle" font-family="Arial">Youth Account API</text>
+  <text x="450" y="140" font-size="12" text-anchor="middle" font-family="Arial">Spring Boot</text>
+  <text x="450" y="155" font-size="10" text-anchor="middle" font-family="Arial">(OAuth, RBAC, Audit Logging)</text>
+
+  <!-- DB -->
+  <rect x="610" y="90" width="220" height="100" rx="10" fill="#fff0e6" stroke="#c2852e" stroke-width="2"/>
+  <text x="720" y="120" font-size="16" text-anchor="middle" font-family="Arial">Youth Account DB</text>
+  <text x="720" y="140" font-size="12" text-anchor="middle" font-family="Arial">PostgreSQL</text>
+
   <!-- External Services -->
-  <rect x="480" y="100" width="160" height="50" rx="8" ry="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
-  <text x="495" y="130" font-size="14" fill="#388e3c">Account Service</text>
-  <rect x="480" y="170" width="160" height="50" rx="8" ry="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
-  <text x="495" y="200" font-size="14" fill="#388e3c">Payment Service</text>
-  <rect x="480" y="240" width="160" height="50" rx="8" ry="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
-  <text x="495" y="270" font-size="14" fill="#388e3c">Transaction Service</text>
-  <!-- Connections -->
-  <line x1="160" y1="190" x2="240" y2="160" stroke="#1976d2" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="320" y1="190" x2="320" y2="230" stroke="#fbc02d" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="400" y1="160" x2="480" y2="125" stroke="#388e3c" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="400" y1="160" x2="480" y2="195" stroke="#388e3c" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="400" y1="160" x2="480" y2="265" stroke="#388e3c" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- Arrowhead definition -->
+  <rect x="340" y="240" width="150" height="60" rx="10" fill="#f0e6ff" stroke="#8c2ec2" stroke-width="2"/>
+  <text x="415" y="270" font-size="14" text-anchor="middle" font-family="Arial">Account Service</text>
+  <rect x="510" y="240" width="150" height="60" rx="10" fill="#f0e6ff" stroke="#8c2ec2" stroke-width="2"/>
+  <text x="585" y="270" font-size="14" text-anchor="middle" font-family="Arial">Payment Service</text>
+  <rect x="680" y="240" width="150" height="60" rx="10" fill="#f0e6ff" stroke="#8c2ec2" stroke-width="2"/>
+  <text x="755" y="270" font-size="14" text-anchor="middle" font-family="Arial">Transaction Service</text>
+
+  <!-- Relations -->
+  <!-- UI -> API -->
+  <line x1="290" y1="140" x2="340" y2="140" stroke="#3778c2" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="315" y="135" font-size="11" font-family="Arial">HTTP (OAuth2)</text>
+  <!-- API -> DB -->
+  <line x1="560" y1="140" x2="610" y2="140" stroke="#2e8b57" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="585" y="135" font-size="11" font-family="Arial">JDBC</text>
+  <!-- API -> Account Service -->
+  <line x1="450" y1="190" x2="415" y2="240" stroke="#8c2ec2" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="430" y="220" font-size="11" font-family="Arial">REST</text>
+  <!-- API -> Payment Service -->
+  <line x1="450" y1="190" x2="585" y2="240" stroke="#8c2ec2" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="520" y="220" font-size="11" font-family="Arial">REST</text>
+  <!-- API -> Transaction Service -->
+  <line x1="450" y1="190" x2="755" y2="240" stroke="#8c2ec2" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="670" y="220" font-size="11" font-family="Arial">REST</text>
+  
+  <!-- Parent Actor -->
+  <circle cx="80" cy="260" r="25" fill="#fff" stroke="#3778c2" stroke-width="2"/>
+  <text x="80" y="265" font-size="15" text-anchor="middle" font-family="Arial">Parent</text>
+  <!-- Parent -> UI -->
+  <line x1="105" y1="260" x2="180" y2="190" stroke="#3778c2" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="120" y="220" font-size="11" font-family="Arial">Browser</text>
+
+  <!-- Arrow marker definition -->
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L10,5 L0,10 L3,5 Z" fill="#444"/>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 L2,4 Z" fill="#444"/>
     </marker>
   </defs>
 </svg>
