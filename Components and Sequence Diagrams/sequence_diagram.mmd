@@ -1,41 +1,36 @@
-%% Sequence Diagram: Parent-Youth Account Management
+%% Sequence Diagram for Youth Account Management APIs
 sequenceDiagram
-  participant Parent as Parent/Guardian
-  participant WebApp as Banking Web Application (SPA/React)
-  participant API as Youth Account APIs
-  participant AccountSvc as Account Service
-  participant TransSvc as Transaction Service
-  participant PaymentSvc as Payment Service
-  participant SettingsDB as Youth Account Settings DB
+    participant Parent as Parent/Guardian
+    participant WebApp as Banking Web App (SPA/React)
+    participant API as Youth Account API
+    participant AccountSvc as Account Service
+    participant TxnSvc as Transaction Ledger Service
+    participant DB as Youth Account DB
 
-  %% Dashboard Access
-  Parent->>WebApp: Login (OAuth2)
-  WebApp->>API: GET /api/youth-accounts/{youthAccountId}/dashboard (Bearer Token)
-  API->>AccountSvc: Get Account Details
-  API->>SettingsDB: Get Spending Limit
-  API->>TransSvc: Get Recent Transactions
-  API-->>WebApp: Dashboard Response
-  WebApp-->>Parent: Render Dashboard
+    Parent->>WebApp: Login (OAuth2)
+    WebApp->>API: GET /api/youth-accounts/{id}/dashboard (with OAuth2 token)
+    API->>DB: Fetch youth account, settings, recent txns
+    API->>AccountSvc: Fetch parent/youth account info
+    API->>TxnSvc: Fetch recent transactions
+    API-->>WebApp: Dashboard data
+    WebApp-->>Parent: Render dashboard
 
-  %% Fund Transfer
-  Parent->>WebApp: Initiate Fund Transfer
-  WebApp->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-  API->>AccountSvc: Validate Source Account
-  API->>PaymentSvc: Initiate Fund Transfer
-  API->>AccountSvc: Update Account Balance
-  API-->>WebApp: Transfer Response
-  WebApp-->>Parent: Show Transfer Status
+    Parent->>WebApp: Fund Transfer
+    WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
+    API->>AccountSvc: Validate source account, check balance
+    API->>DB: Update youth account balance
+    API->>TxnSvc: Record fund transfer
+    API-->>WebApp: Transfer result
+    WebApp-->>Parent: Show transfer status
 
-  %% Update Spending Limit
-  Parent->>WebApp: Update Spending Limit
-  WebApp->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-  API->>SettingsDB: Update Weekly Limit
-  API-->>WebApp: Limit Update Response
-  WebApp-->>Parent: Show Update Status
+    Parent->>WebApp: Set Spending Limit
+    WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
+    API->>DB: Update weekly limit
+    API-->>WebApp: Limit update result
+    WebApp-->>Parent: Show limit status
 
-  %% Transaction History
-  Parent->>WebApp: View Transaction History
-  WebApp->>API: GET /api/youth-accounts/{youthAccountId}/transactions
-  API->>TransSvc: Fetch Transaction History
-  API-->>WebApp: Transaction History Response
-  WebApp-->>Parent: Show Transactions
+    Parent->>WebApp: View Transactions
+    WebApp->>API: GET /api/youth-accounts/{id}/transactions
+    API->>DB: Fetch transactions
+    API-->>WebApp: List of transactions
+    WebApp-->>Parent: Display transactions
