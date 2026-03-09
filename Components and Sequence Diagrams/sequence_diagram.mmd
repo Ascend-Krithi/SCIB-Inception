@@ -1,56 +1,33 @@
-%% Youth Account Management Sequence Diagram (Mermaid)
+%% Sequence Diagram: Youth Account Management API - Parent Fund Allocation
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant UI as Parent Portal UI
-    participant API as Youth Account API
-    participant Auth as OAuth Auth Service
-    participant AccountSvc as Account Service
-    participant TransSvc as Transaction Service
-    participant PaymentSvc as Payment Service
-    participant SettingsDB as Settings DB
-
-    Parent->>UI: Login & Access Dashboard
-    UI->>Auth: OAuth 2.0 Authorization
-    Auth-->>UI: Access Token
-    UI->>API: GET /api/youth-accounts/{id}/dashboard
-    API->>Auth: Validate Token
-    Auth-->>API: Token Valid
-    API->>AccountSvc: Get Account Info
-    AccountSvc-->>API: Account Info
-    API->>TransSvc: Get Recent Transactions
-    TransSvc-->>API: Transactions
-    API->>SettingsDB: Get Spending Limit
-    SettingsDB-->>API: Spending Limit
-    API-->>UI: Dashboard Data
-    UI-->>Parent: Render Dashboard
-
-    Parent->>UI: Initiate Fund Transfer
-    UI->>API: POST /api/youth-accounts/{id}/fund-transfer
-    API->>Auth: Validate Token
-    Auth-->>API: Token Valid
-    API->>PaymentSvc: Transfer Funds
-    PaymentSvc-->>API: Transfer Status
-    API->>AccountSvc: Update Account Balance
-    AccountSvc-->>API: Updated Balance
-    API->>SettingsDB: Log Transfer (for audit)
-    SettingsDB-->>API: Log Ack
-    API-->>UI: Transfer Result
-    UI-->>Parent: Show Transfer Status
-
-    Parent->>UI: Set Spending Limit
-    UI->>API: PUT /api/youth-accounts/{id}/spending-limit
-    API->>Auth: Validate Token
-    Auth-->>API: Token Valid
-    API->>SettingsDB: Update Limit
-    SettingsDB-->>API: Limit Updated
-    API-->>UI: Limit Config Result
-    UI-->>Parent: Show Limit Update
-
-    Parent->>UI: View Transactions
-    UI->>API: GET /api/youth-accounts/{id}/transactions
-    API->>Auth: Validate Token
-    Auth-->>API: Token Valid
-    API->>TransSvc: Fetch Transaction History
-    TransSvc-->>API: Transaction Data
-    API-->>UI: Transaction History
-    UI-->>Parent: Show Transaction List
+  autonumber
+  participant Parent as Parent/Guardian
+  participant WebApp as Banking Web Application
+  participant API as Youth Account Management Service
+  participant AccountSvc as Account Service
+  participant PaymentSvc as Payment Service
+  participant TransSvc as Transaction Service
+  note over Parent,API: All API calls require OAuth2, RBAC, and are audit-logged.
+  Parent->>WebApp: Login (OAuth2)
+  WebApp->>API: GET /api/youth-accounts/{id}/dashboard (OAuth2 token)
+  API->>AccountSvc: Fetch account details
+  API->>TransSvc: Fetch recent transactions
+  API-->>WebApp: Dashboard (account, limits, transactions)
+  WebApp-->>Parent: Display dashboard
+  Parent->>WebApp: Initiate fund transfer
+  WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer (body, OAuth2 token)
+  API->>PaymentSvc: Initiate fund transfer
+  API->>AccountSvc: Update balance
+  API-->>WebApp: Transfer result (status, updated balance)
+  WebApp-->>Parent: Show transfer result
+  Parent->>WebApp: Set spending limit
+  WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit (body, OAuth2 token)
+  API->>API: Update spending limit in DB
+  API-->>WebApp: Limit update result
+  WebApp-->>Parent: Show limit update status
+  Parent->>WebApp: View transactions
+  WebApp->>API: GET /api/youth-accounts/{id}/transactions (params, OAuth2 token)
+  API->>TransSvc: Fetch transactions
+  API-->>WebApp: Transaction list
+  WebApp-->>Parent: Show transaction history
+  note over API: All actions are RBAC-enforced and audit-logged (per NFR).
