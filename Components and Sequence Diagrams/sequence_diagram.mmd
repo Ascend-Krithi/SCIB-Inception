@@ -1,48 +1,41 @@
-%% Sequence Diagram: Youth Account Management - API Flows
+%% Sequence Diagram for Youth Account Management (Mermaid)
 sequenceDiagram
-  participant Parent as Parent/Guardian
-  participant UI as Parent UI (React)
-  participant API as Youth Account API (Node.js)
-  participant GW as API Gateway
-  participant ACC as Account Service
-  participant PAY as Payment Service
-  participant LEDGER as Transaction Ledger Service
-  participant DB as PostgreSQL DB
-  Note over Parent,UI: Parent uses web app to manage youth accounts
-
-  Parent->>UI: Login (OAuth)
-  UI->>GW: Authenticated API call (/dashboard)
-  GW->>API: Forward request (validate RBAC)
-  API->>DB: Get account settings/limits
-  API->>ACC: Get account details
-  API->>LEDGER: Get recent transactions
-  API-->>GW: Dashboard data
-  GW-->>UI: Dashboard data
-  UI-->>Parent: Show dashboard
-  Note over API: All actions logged for audit (GDPR/PCI/ISO)
-
-  Parent->>UI: Initiate fund transfer
-  UI->>GW: POST /fund-transfer
-  GW->>API: Forward request (validate RBAC)
-  API->>PAY: Transfer funds
-  API->>DB: Update balance
-  API-->>GW: Transfer result
-  GW-->>UI: Transfer result
-  UI-->>Parent: Show transfer status
-  Note over API: Audit log, compliance enforced
-
-  Parent->>UI: Set spending limit
-  UI->>GW: PUT /spending-limit
-  GW->>API: Forward request (validate RBAC)
-  API->>DB: Update limit
-  API-->>GW: Limit update result
-  GW-->>UI: Limit update result
-  UI-->>Parent: Show update confirmation
-
-  Parent->>UI: View transactions
-  UI->>GW: GET /transactions
-  GW->>API: Forward request (validate RBAC)
-  API->>LEDGER: Fetch transaction history
-  API-->>GW: Transaction history
-  GW-->>UI: Transaction history
-  UI-->>Parent: Show transactions
+    participant Parent as Parent/Guardian
+    participant UI as Parent Dashboard UI
+    participant API as Youth Account Management API
+    participant AccountService as Account Service
+    participant TransactionService as Transaction Service
+    participant PaymentService as Payment Service
+    participant DB as Youth Account DB
+    
+    %% Dashboard View
+    Parent->>UI: Login & select youth account
+    UI->>API: GET /api/youth-accounts/{youthAccountId}/dashboard
+    API->>DB: Fetch youth account, settings
+    API->>AccountService: Fetch account details
+    API->>TransactionService: Fetch recent transactions
+    API-->>UI: Dashboard data (account, limit, recent txns)
+    UI-->>Parent: Show dashboard
+    
+    %% Fund Transfer
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+    API->>PaymentService: Initiate transfer
+    PaymentService-->>API: Transfer status
+    API->>DB: Update account balance
+    API-->>UI: Transfer result
+    UI-->>Parent: Show confirmation
+    
+    %% Spending Limit Configuration
+    Parent->>UI: Set/Update spending limit
+    UI->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+    API->>DB: Update spending limit
+    API-->>UI: Limit updated
+    UI-->>Parent: Show update
+    
+    %% Transaction History
+    Parent->>UI: View transaction history
+    UI->>API: GET /api/youth-accounts/{youthAccountId}/transactions
+    API->>TransactionService: Fetch transactions
+    API-->>UI: Paginated transaction list
+    UI-->>Parent: Show history
