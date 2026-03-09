@@ -1,230 +1,65 @@
 openapi: 3.0.3
 info:
   title: Youth Account Management API
-  description: |
-    API for parent/guardian management of youth accounts: dashboard, fund transfer, spending limits, and transaction history.
-    Security: OAuth2, RBAC. Compliant with GDPR, PCI-DSS, ISO 27001. All actions are audited.
+  description: APIs for managing youth accounts, fund transfers, spending limits, and transaction history. Secure, auditable, and compliant with financial regulations.
   version: 1.0.0
   contact:
-    name: Compliance Lead
-    email: compliance@ascend-bank.com
+    name: API Team
+    email: support@bankingapp.com
+  termsOfService: https://bankingapp.com/terms
 servers:
-  - url: https://api.ascend-bank.com
-    description: Production
-  - url: https://sandbox.ascend-bank.com
-    description: Sandbox
-
-tags:
-  - name: Dashboard
-  - name: Fund Transfer
-  - name: Spending Limit
-  - name: Transaction History
-
+  - url: https://api.bankingapp.com
+    description: Production server
+  - url: https://sandbox.api.bankingapp.com
+    description: Sandbox server
 security:
-  - OAuth2: [parent]
-  
-components:
-  securitySchemes:
-    OAuth2:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://auth.ascend-bank.com/oauth2/authorize
-          tokenUrl: https://auth.ascend-bank.com/oauth2/token
-          scopes:
-            parent: Access youth account as parent/guardian
-  schemas:
-    YouthAccount:
-      type: object
-      properties:
-        youthAccountId:
-          type: string
-        accountBalance:
-          type: number
-          format: float
-        spendingLimit:
-          type: number
-          format: float
-        currency:
-          type: string
-      required: [youthAccountId, accountBalance, spendingLimit, currency]
-    Transaction:
-      type: object
-      properties:
-        transactionId:
-          type: string
-        date:
-          type: string
-          format: date-time
-        description:
-          type: string
-        amount:
-          type: number
-          format: float
-        merchant:
-          type: string
-        transactionType:
-          type: string
-          enum: [debit, credit]
-      required: [transactionId, date, description, amount, transactionType]
-    YouthAccountSettings:
-      type: object
-      properties:
-        youthAccountId:
-          type: string
-        weeklySpendingLimit:
-          type: number
-          format: float
-        updatedTimestamp:
-          type: string
-          format: date-time
-      required: [youthAccountId, weeklySpendingLimit]
-    ErrorResponse:
-      type: object
-      properties:
-        errorCode:
-          type: string
-        errorMessage:
-          type: string
-      required: [errorCode, errorMessage]
-    FundTransferRequest:
-      type: object
-      properties:
-        sourceAccountId:
-          type: string
-        transferAmount:
-          type: number
-          format: float
-        currency:
-          type: string
-      required: [sourceAccountId, transferAmount, currency]
-    FundTransferResponse:
-      type: object
-      properties:
-        transferId:
-          type: string
-        status:
-          type: string
-          enum: [SUCCESS]
-        updatedBalance:
-          type: number
-          format: float
-      required: [transferId, status, updatedBalance]
-    SpendingLimitRequest:
-      type: object
-      properties:
-        weeklyLimit:
-          type: number
-          format: float
-      required: [weeklyLimit]
-    SpendingLimitResponse:
-      type: object
-      properties:
-        youthAccountId:
-          type: string
-        weeklyLimit:
-          type: number
-          format: float
-        status:
-          type: string
-          enum: [UPDATED]
-      required: [youthAccountId, weeklyLimit, status]
-    TransactionHistoryResponse:
-      type: object
-      properties:
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-        pagination:
-          type: object
-          properties:
-            page:
-              type: integer
-            pageSize:
-              type: integer
-            totalRecords:
-              type: integer
-          required: [page, pageSize, totalRecords]
-      required: [transactions, pagination]
-
+  - OAuth2: []
+  - BearerAuth: []
 paths:
   /api/youth-accounts/{youthAccountId}/dashboard:
     get:
-      tags: [Dashboard]
-      summary: Get youth account dashboard
-      description: Returns youth account details and recent transactions for parent/guardian.
+      summary: Retrieve youth account dashboard details
+      description: Retrieve dashboard details for a youth account, including balance, spending limit, and recent transactions.
       operationId: getYouthAccountDashboard
+      tags:
+        - Youth Accounts
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
+          description: Unique identifier for the youth account
       responses:
         '200':
-          description: Dashboard data
+          description: Successful retrieval of dashboard
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  youthAccountId:
-                    type: string
-                  accountBalance:
-                    type: number
-                    format: float
-                  spendingLimit:
-                    type: number
-                    format: float
-                  currency:
-                    type: string
-                  recentTransactions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        transactionId:
-                          type: string
-                        date:
-                          type: string
-                          format: date-time
-                        description:
-                          type: string
-                        amount:
-                          type: number
-                          format: float
-                      required: [transactionId, date, description, amount]
-                required: [youthAccountId, accountBalance, spendingLimit, currency, recentTransactions]
+                $ref: '#/components/schemas/YouthAccountDashboardResponse'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/UnauthorizedError'
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
       security:
-        - OAuth2: [parent]
-
+        - OAuth2: []
+        - BearerAuth: []
   /api/youth-accounts/{youthAccountId}/fund-transfer:
     post:
-      tags: [Fund Transfer]
-      summary: Transfer funds to youth account
-      description: Parent/guardian initiates a fund transfer to a youth account.
-      operationId: fundTransfer
+      summary: Transfer funds from parent to youth account
+      description: Initiate a fund transfer from a parent account to a youth account.
+      operationId: transferFundsToYouthAccount
+      tags:
+        - Fund Transfers
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
+          description: Unique identifier for the youth account
       requestBody:
         required: true
         content:
@@ -233,39 +68,36 @@ paths:
               $ref: '#/components/schemas/FundTransferRequest'
       responses:
         '200':
-          description: Transfer successful
+          description: Fund transfer successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FundTransferResponse'
         '400':
-          description: Invalid request or insufficient balance
+          description: Insufficient funds or invalid account
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/BadRequestError'
         '500':
-          description: Transfer service failure
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/InternalServerError'
       security:
-        - OAuth2: [parent]
-
+        - OAuth2: []
+        - BearerAuth: []
   /api/youth-accounts/{youthAccountId}/spending-limit:
     put:
-      tags: [Spending Limit]
       summary: Configure weekly spending limit
-      description: Parent/guardian sets or updates the weekly spending limit for the youth account.
-      operationId: setSpendingLimit
+      description: Set or update the weekly spending limit for a youth account.
+      operationId: updateSpendingLimit
+      tags:
+        - Spending Limits
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
+          description: Unique identifier for the youth account
       requestBody:
         required: true
         content:
@@ -274,7 +106,7 @@ paths:
               $ref: '#/components/schemas/SpendingLimitRequest'
       responses:
         '200':
-          description: Limit updated
+          description: Spending limit updated
           content:
             application/json:
               schema:
@@ -284,43 +116,40 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/BadRequestError'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/UnauthorizedError'
       security:
-        - OAuth2: [parent]
-
+        - OAuth2: []
+        - BearerAuth: []
   /api/youth-accounts/{youthAccountId}/transactions:
     get:
-      tags: [Transaction History]
-      summary: Get youth account transaction history
-      description: Returns a paginated list of transactions for the specified youth account.
-      operationId: getTransactionHistory
+      summary: Retrieve youth account transaction history
+      description: Retrieve paginated transaction history for a youth account.
+      operationId: getYouthAccountTransactions
+      tags:
+        - Transactions
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
+          description: Unique identifier for the youth account
         - name: startDate
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: Start date (inclusive)
+          description: Start date for transaction history (YYYY-MM-DD)
         - name: endDate
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: End date (inclusive)
+          description: End date for transaction history (YYYY-MM-DD)
         - name: page
           in: query
           required: false
@@ -334,32 +163,190 @@ paths:
           schema:
             type: integer
             default: 20
-          description: Number of records per page
+          description: Page size
       responses:
         '200':
-          description: Paginated transaction list
+          description: Successful retrieval of transaction history
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionHistoryResponse'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/UnauthorizedError'
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
       security:
-        - OAuth2: [parent]
-
-x-compliance:
-  GDPR: Data minimization, consent, right to erasure supported.
-  PCI-DSS: Secure fund transfer, no card data stored in this API.
-  ISO27001: Information security management enforced.
-x-audit:
-  All fund transfers, limit changes, and parent actions are logged for compliance.
+        - OAuth2: []
+        - BearerAuth: []
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.bankingapp.com/oauth/authorize
+          tokenUrl: https://auth.bankingapp.com/oauth/token
+          scopes:
+            youth_account: Access youth account APIs
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    YouthAccountDashboardResponse:
+      type: object
+      properties:
+        youthAccountId:
+          type: string
+        accountBalance:
+          type: number
+          format: double
+        spendingLimit:
+          type: number
+          format: double
+        currency:
+          type: string
+        recentTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentTransaction'
+    RecentTransaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        description:
+          type: string
+        amount:
+          type: number
+          format: double
+    FundTransferRequest:
+      type: object
+      required:
+        - sourceAccountId
+        - transferAmount
+        - currency
+      properties:
+        sourceAccountId:
+          type: string
+        transferAmount:
+          type: number
+          format: double
+        currency:
+          type: string
+    FundTransferResponse:
+      type: object
+      properties:
+        transferId:
+          type: string
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE]
+        updatedBalance:
+          type: number
+          format: double
+    SpendingLimitRequest:
+      type: object
+      required:
+        - weeklyLimit
+      properties:
+        weeklyLimit:
+          type: number
+          format: double
+    SpendingLimitResponse:
+      type: object
+      properties:
+        youthAccountId:
+          type: string
+        weeklyLimit:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [UPDATED]
+    TransactionHistoryResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Transaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        merchant:
+          type: string
+        amount:
+          type: number
+          format: double
+        transactionType:
+          type: string
+          enum: [debit, credit]
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalRecords:
+          type: integer
+    BadRequestError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+    UnauthorizedError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+    NotFoundError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+    InternalServerError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+  responses:
+    UnauthorizedError:
+      description: Unauthorized access
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'
