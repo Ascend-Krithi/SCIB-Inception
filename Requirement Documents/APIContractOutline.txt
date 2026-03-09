@@ -1,9 +1,9 @@
 API Contract Outline
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve youth account dashboard details
-- Request: Path param youthAccountId
-- Response:
+1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+- Description: Retrieve dashboard details for youth account
+- Request Params: youthAccountId (path)
+- Response Schema:
   {
     "youthAccountId": "string",
     "accountBalance": "decimal",
@@ -20,29 +20,29 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
   }
 - Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds from parent account to youth account
+2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Description: Transfer funds to youth account
 - Request Body:
   {
     "sourceAccountId": "string",
     "transferAmount": "decimal",
     "currency": "string"
   }
-- Response:
+- Response Schema:
   {
     "transferId": "string",
     "status": "SUCCESS",
     "updatedBalance": "decimal"
   }
-- Error Handling: 400 Insufficient Funds, 400 Invalid Account Mapping, 500 Transfer Service Failure
+- Error Handling: 400 Insufficient Balance, 400 Invalid Mapping, 500 Service Failure
 
-Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit for youth account
+3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Description: Configure weekly spending limit
 - Request Body:
   {
     "weeklyLimit": "decimal"
   }
-- Response:
+- Response Schema:
   {
     "youthAccountId": "string",
     "weeklyLimit": "decimal",
@@ -50,10 +50,10 @@ Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
   }
 - Error Handling: 400 Validation Error, 403 Unauthorized
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
 - Description: Retrieve youth account transaction history
-- Request Query Params: startDate, endDate, page, pageSize
-- Response:
+- Query Params: startDate, endDate, page, pageSize
+- Response Schema:
   {
     "transactions": [
       {
@@ -70,15 +70,10 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
       "totalRecords": "number"
     }
   }
-- Error Handling: 403 Unauthorized, 400 Invalid Params, 500 Internal Error
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Authentication:
-- OAuth2 bearer token required for all endpoints
-- RBAC enforced: Only parents/guardians can access/manage youth accounts
-
-Error Response Structure:
-{
-  "errorCode": "string",
-  "message": "string",
-  "details": "string"
-}
+Security:
+- OAuth 2.0 required
+- RBAC enforced
+- Input validation
+- Audit logging
