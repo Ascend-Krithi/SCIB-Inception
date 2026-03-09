@@ -1,62 +1,62 @@
-Non-Functional Requirements (NFRs) List
+Non-Functional Requirements (NFRs)
 
-Security
-- OAuth 2.0 authentication for all APIs
-- RBAC enforced for parent/youth access
-- Audit logging of all sensitive actions
-- Input validation for all API endpoints
+Security:
+- OAuth2 authentication for all APIs
+- Parent ownership validation for youth account access
+- RBAC enforced at API Gateway
+- Audit logging for fund transfers, spending limit changes, and access events
 - Data encryption at rest and in transit
-- Regular security patching
 
-Compliance
-- GDPR, PCI-DSS, ISO 27001 adherence
-- Data minimization for youth PII
-- Audit trails for regulatory review
+Compliance:
+- GDPR: Data minimization, parental consent, right to erasure
+- PCI-DSS: Secure handling of payment/transfer data
+- ISO 27001: Information security controls
 
-Performance
-- API response time < 500 ms for 95% of requests
-- UI renders dashboard within 1s
+Performance:
+- API response time <500ms for 95% of requests
+- Load tested for 1000 concurrent users
 
-Scalability
-- Horizontal scaling for APIs and web frontend
-- Stateless API design
+Scalability:
+- Horizontal scaling of stateless APIs
+- Containerized microservices
 
-Availability
-- 99.99% uptime target
-- Automatic failover
+Availability:
+- 99.99% uptime
+- Automatic failover for critical services
 
-Reliability
-- Transactional consistency for fund transfers
-- Retry logic for transient failures
+Reliability:
+- Transaction logging with unique IDs
+- Error handling with descriptive messages
 
-Maintainability
-- Modular codebase
-- OpenAPI/Swagger documentation
-- Automated CI/CD
+Maintainability:
+- Modular codebase, clear API contracts
+- Automated deployment and testing
 
-Auditability
-- Complete logging of user actions
+Auditability:
+- All user actions and transfers logged
 - Tamper-proof logs
 
-Disaster Recovery
-- RTO < 4h, RPO < 1h
-- Offsite encrypted backups
+Disaster Recovery:
+- RTO <4 hours, RPO <1 hour
+- Encrypted daily backups
 
-Backup
-- Daily backups of youth account and transaction tables
-- Backup encryption
+Backup:
+- Daily backups, stored securely
+- Backup verification and restore tests
 
-Monitoring
-- Real-time metrics and alerting
-- Automated anomaly detection
+Monitoring:
+- Real-time metrics for API latency, error rates
+- Automated alerting for failures
 
-Logging
-- Centralized log aggregation (ELK/CloudWatch)
-- Log retention policy
+Logging:
+- Centralized log aggregation
+- Error and access logs
 
-RBAC
-- Role-based access control enforced at API and UI
-- Separate parent and youth permissions
+RBAC:
+- Role-based access control enforced for all endpoints
 
-Traceability
-- All NFRs mapped to ADRs and API endpoints
+Enterprise Compliance:
+- Input validation for all API requests
+- Output filtering to prevent data leaks
+- Audit logging for all critical actions
+- RBAC for all APIs
