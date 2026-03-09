@@ -1,51 +1,42 @@
-%% Sequence Diagram for Youth Account Management API
+%% Sequence Diagram for Youth Account Management API (Mermaid)
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant UI as Parent Dashboard UI (React SPA)
-    participant API as Youth Account API (Spring Boot)
-    participant Auth as OAuth Service
-    participant AccSvc as Account Service
-    participant TxnSvc as Transaction Service
-    participant PaySvc as Payment Service
+  participant Parent as Parent/Guardian
+  participant UI as Web UI (React)
+  participant API as Youth Account API (Spring Boot)
+  participant Account as Account Service
+  participant Payment as Payment Service
+  participant Transaction as Transaction Service
+  participant DB as Youth Account DB
 
-    Parent->>UI: Login & access dashboard
-    UI->>Auth: OAuth 2.0 Token Request
-    Auth-->>UI: Access Token
-    UI->>API: GET /api/youth-accounts/{id}/dashboard (access token)
-    API->>Auth: Validate Token & RBAC
-    Auth-->>API: Token valid
-    API->>AccSvc: Fetch account data
-    AccSvc-->>API: Account details
-    API->>TxnSvc: Retrieve recent transactions
-    TxnSvc-->>API: Transactions
-    API-->>UI: Dashboard details
-    UI-->>Parent: Render dashboard
+  %% Dashboard Retrieval
+  Parent->>UI: Open Dashboard
+  UI->>API: GET /api/youth-accounts/{id}/dashboard
+  API->>Account: Get Account Details
+  API->>DB: Get Spending Limit
+  API->>Transaction: Get Recent Transactions
+  API-->>UI: Dashboard JSON
+  UI-->>Parent: Render Dashboard
 
-    Parent->>UI: Initiate fund transfer
-    UI->>API: POST /api/youth-accounts/{id}/fund-transfer
-    API->>Auth: Validate Token & RBAC
-    Auth-->>API: Token valid
-    API->>PaySvc: Initiate transfer
-    PaySvc-->>API: Transfer status
-    API->>AccSvc: Update balance
-    AccSvc-->>API: Updated balance
-    API-->>UI: Transfer response
-    UI-->>Parent: Show transfer result
+  %% Fund Transfer
+  Parent->>UI: Initiate Fund Transfer
+  UI->>API: POST /api/youth-accounts/{id}/fund-transfer
+  API->>Payment: Transfer Funds
+  Payment-->>API: Transfer Result
+  API->>DB: Update Account Balance
+  API-->>UI: Transfer Response
+  UI-->>Parent: Show Transfer Status
 
-    Parent->>UI: Set spending limit
-    UI->>API: PUT /api/youth-accounts/{id}/spending-limit
-    API->>Auth: Validate Token & RBAC
-    Auth-->>API: Token valid
-    API->>AccSvc: Update spending limit
-    AccSvc-->>API: Limit updated
-    API-->>UI: Limit response
-    UI-->>Parent: Show limit update
+  %% Set Spending Limit
+  Parent->>UI: Set Spending Limit
+  UI->>API: PUT /api/youth-accounts/{id}/spending-limit
+  API->>DB: Update Limit
+  API-->>UI: Limit Updated
+  UI-->>Parent: Show Limit
 
-    Parent->>UI: View transaction history
-    UI->>API: GET /api/youth-accounts/{id}/transactions
-    API->>Auth: Validate Token & RBAC
-    Auth-->>API: Token valid
-    API->>TxnSvc: Fetch transactions
-    TxnSvc-->>API: Transactions
-    API-->>UI: Transaction history
-    UI-->>Parent: Render history
+  %% Transaction History
+  Parent->>UI: View Transactions
+  UI->>API: GET /api/youth-accounts/{id}/transactions
+  API->>Transaction: Get Transactions
+  Transaction-->>API: Transactions Data
+  API-->>UI: Transactions Response
+  UI-->>Parent: Show Transactions
