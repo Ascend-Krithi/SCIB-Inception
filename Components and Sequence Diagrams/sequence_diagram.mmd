@@ -1,48 +1,55 @@
-%% Sequence Diagram for Youth Account Management APIs (Mermaid)
+%% Sequence Diagram for Youth Account Management (Mermaid)
 sequenceDiagram
-    autonumber
     participant Parent as Parent/Guardian
-    participant WebApp as Banking Web Application
-    participant APIGW as Youth Account API Gateway
-    participant AccountSvc as Account Service
-    participant TransSvc as Transaction Service
-    participant PaymentSvc as Payment Service
-    participant DB as Database
+    participant UI as Parent Dashboard UI
+    participant API as Youth Account API
+    participant Auth as OAuth Auth Service
+    participant DB as Youth Account DB
+    participant CoreBanking as Core Banking Service
+    participant Payment as Payment Service
+    participant Transaction as Transaction Ledger Service
 
-    %% Dashboard API
-    Parent->>WebApp: Login & select Youth Account
-    WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth)
-    APIGW->>AccountSvc: Get account details
-    AccountSvc-->>APIGW: Account details
-    APIGW->>TransSvc: Get recent transactions
-    TransSvc-->>APIGW: Transactions
-    APIGW->>DB: Fetch spending limit
-    DB-->>APIGW: Spending limit
-    APIGW-->>WebApp: Dashboard data (balance, limit, recent txns)
-    WebApp-->>Parent: Render dashboard
+    %% Dashboard access
+    Parent->>UI: Login & view dashboard
+    UI->>API: GET /api/youth-accounts/{id}/dashboard [OAuth2]
+    API->>Auth: Validate OAuth2 Token & RBAC
+    Auth-->>API: Token Valid / Roles Checked
+    API->>DB: Fetch youth account, settings, limits
+    API->>Transaction: Fetch recent transactions
+    API->>CoreBanking: Get account data
+    API-->>UI: Dashboard data (balance, limits, transactions)
+    UI-->>Parent: Render dashboard
 
-    %% Fund Transfer API
-    Parent->>WebApp: Initiate fund transfer
-    WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-    APIGW->>PaymentSvc: Initiate transfer
-    PaymentSvc-->>APIGW: Transfer result
-    APIGW->>AccountSvc: Update balance
-    AccountSvc-->>APIGW: Updated balance
-    APIGW-->>WebApp: Transfer status
-    WebApp-->>Parent: Show confirmation
+    %% Fund transfer
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{id}/fund-transfer [OAuth2]
+    API->>Auth: Validate OAuth2 Token & RBAC
+    Auth-->>API: Token Valid / Roles Checked
+    API->>Payment: Execute fund transfer
+    Payment-->>API: Transfer result
+    API->>DB: Update balance
+    API-->>UI: Transfer confirmation
+    UI-->>Parent: Show transfer status
 
-    %% Spending Limit API
-    Parent->>WebApp: Update spending limit
-    WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-    APIGW->>DB: Update limit
-    DB-->>APIGW: Update result
-    APIGW-->>WebApp: Limit updated
-    WebApp-->>Parent: Show confirmation
+    %% Set spending limit
+    Parent->>UI: Update spending limit
+    UI->>API: PUT /api/youth-accounts/{id}/spending-limit [OAuth2]
+    API->>Auth: Validate OAuth2 Token & RBAC
+    Auth-->>API: Token Valid / Roles Checked
+    API->>DB: Update weekly limit
+    API-->>UI: Limit update status
+    UI-->>Parent: Show updated limit
 
-    %% Transaction History API
-    Parent->>WebApp: View transaction history
-    WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions
-    APIGW->>TransSvc: Fetch transactions
-    TransSvc-->>APIGW: Transactions
-    APIGW-->>WebApp: Transaction list
-    WebApp-->>Parent: Show transactions
+    %% Transaction history
+    Parent->>UI: View transaction history
+    UI->>API: GET /api/youth-accounts/{id}/transactions [OAuth2]
+    API->>Auth: Validate OAuth2 Token & RBAC
+    Auth-->>API: Token Valid / Roles Checked
+    API->>Transaction: Fetch transactions (with filters)
+    API-->>UI: Transaction list
+    UI-->>Parent: Show history
+
+    %% Admin auditing (optional)
+    Admin->>API: Audit APIs [OAuth2, RBAC]
+    API->>DB: Query logs
+    API-->>Admin: Audit data

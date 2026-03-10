@@ -1,52 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mermaid C4-Style Component Diagram for Youth Account Management (SVG export) -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="700" font-family="Arial, sans-serif">
-  <rect x="10" y="10" width="1080" height="680" fill="#f6f9fc" stroke="#bbb" stroke-width="2" rx="20"/>
-  <text x="550" y="40" font-size="28" text-anchor="middle" font-weight="bold">Youth Account Management System - Component Diagram</text>
-  <!-- Web Application -->
-  <rect x="80" y="100" width="220" height="70" fill="#cce5ff" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="190" y="140" font-size="18" text-anchor="middle">Banking Web Application</text>
-  <!-- API Gateway -->
-  <rect x="380" y="100" width="320" height="70" fill="#d4edda" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="540" y="140" font-size="18" text-anchor="middle">Youth Account API Gateway</text>
-  <!-- Account Service -->
-  <rect x="100" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="210" y="340" font-size="16" text-anchor="middle">Account Service</text>
-  <!-- Transaction Service -->
-  <rect x="410" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="520" y="340" font-size="16" text-anchor="middle">Transaction Service</text>
-  <!-- Payment Service -->
-  <rect x="720" y="300" width="220" height="70" fill="#ffeeba" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="830" y="340" font-size="16" text-anchor="middle">Payment Service</text>
-  <!-- Database -->
-  <rect x="410" y="520" width="220" height="70" fill="#f8d7da" stroke="#666" stroke-width="2" rx="10"/>
-  <text x="520" y="560" font-size="16" text-anchor="middle">Database (PostgreSQL)</text>
+<!-- Mermaid SVG Export: Component Diagram for Youth Account Management -->
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700">
+<!-- Mermaid Component Diagram (C4 Style) -->
+<g>
+  <rect x="40" y="40" width="180" height="70" fill="#E3F2FD" stroke="#1976D2" stroke-width="2" rx="10"/>
+  <text x="55" y="70" font-family="Arial" font-size="16" fill="#1976D2">Parent Dashboard UI</text>
+  <rect x="260" y="40" width="210" height="70" fill="#FFF3E0" stroke="#F57C00" stroke-width="2" rx="10"/>
+  <text x="275" y="70" font-family="Arial" font-size="16" fill="#F57C00">Youth Account API</text>
+  <rect x="520" y="40" width="180" height="70" fill="#E8F5E9" stroke="#388E3C" stroke-width="2" rx="10"/>
+  <text x="535" y="70" font-family="Arial" font-size="16" fill="#388E3C">OAuth Auth Service</text>
+  <rect x="260" y="170" width="210" height="90" fill="#F3E5F5" stroke="#8E24AA" stroke-width="2" rx="10"/>
+  <text x="275" y="200" font-family="Arial" font-size="16" fill="#8E24AA">Youth Account DB</text>
+  <rect x="520" y="170" width="180" height="70" fill="#FFFDE7" stroke="#FBC02D" stroke-width="2" rx="10"/>
+  <text x="535" y="200" font-family="Arial" font-size="16" fill="#FBC02D">Core Banking Service</text>
+  <rect x="40" y="300" width="180" height="70" fill="#E1F5FE" stroke="#0288D1" stroke-width="2" rx="10"/>
+  <text x="55" y="330" font-family="Arial" font-size="16" fill="#0288D1">Payment Service</text>
+  <rect x="260" y="300" width="210" height="70" fill="#F9FBE7" stroke="#AFB42B" stroke-width="2" rx="10"/>
+  <text x="275" y="330" font-family="Arial" font-size="16" fill="#AFB42B">Transaction Ledger Service</text>
+  <rect x="520" y="300" width="180" height="70" fill="#FBE9E7" stroke="#D84315" stroke-width="2" rx="10"/>
+  <text x="535" y="330" font-family="Arial" font-size="16" fill="#D84315">Bank Admin</text>
   <!-- Arrows -->
-  <!-- WebApp -> API Gateway -->
-  <line x1="300" y1="135" x2="380" y2="135" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API Gateway -> Account Service -->
-  <line x1="540" y1="170" x2="210" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API Gateway -> Transaction Service -->
-  <line x1="540" y1="170" x2="520" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API Gateway -> Payment Service -->
-  <line x1="700" y1="170" x2="830" y2="300" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- API Gateway -> Database -->
-  <line x1="540" y1="170" x2="520" y2="520" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- SVG Arrowhead marker definition -->
+  <line x1="120" y1="110" x2="365" y2="110" stroke="#1976D2" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365" y1="110" x2="610" y2="110" stroke="#F57C00" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365" y1="110" x2="365" y2="170" stroke="#8E24AA" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365" y1="260" x2="610" y2="205" stroke="#FBC02D" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="120" y1="370" x2="365" y2="370" stroke="#0288D1" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365" y1="370" x2="610" y2="335" stroke="#D84315" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365" y1="370" x2="365" y2="260" stroke="#AFB42B" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Arrowhead marker definition -->
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
     </marker>
   </defs>
-  <!-- Legend -->
-  <rect x="900" y="600" width="180" height="80" fill="#fff" stroke="#bbb" stroke-width="1" rx="10"/>
-  <text x="990" y="625" font-size="14" text-anchor="middle" font-weight="bold">Legend</text>
-  <rect x="910" y="640" width="20" height="20" fill="#cce5ff" stroke="#666"/>
-  <text x="940" y="655" font-size="12">Web UI</text>
-  <rect x="910" y="665" width="20" height="20" fill="#d4edda" stroke="#666"/>
-  <text x="940" y="680" font-size="12">API Gateway</text>
-  <rect x="1040" y="640" width="20" height="20" fill="#ffeeba" stroke="#666"/>
-  <text x="1070" y="655" font-size="12">Service</text>
-  <rect x="1040" y="665" width="20" height="20" fill="#f8d7da" stroke="#666"/>
-  <text x="1070" y="680" font-size="12">Database</text>
+</g>
 </svg>
