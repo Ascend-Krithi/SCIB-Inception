@@ -1,90 +1,86 @@
 API Contract Outline
 
-1. GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve youth account dashboard details
-- Request Params: youthAccountId (path)
-- Response:
-  {
-    "youthAccountId": "string",
-    "accountBalance": "decimal",
-    "spendingLimit": "decimal",
-    "currency": "string",
-    "recentTransactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "description": "string",
-        "amount": "decimal"
-      }
-    ]
-  }
-- Error Handling: 403 Unauthorized, 404 Not Found
-
-2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds from parent to youth account
-- Request Body:
-  {
-    "sourceAccountId": "string",
-    "transferAmount": "decimal",
-    "currency": "string"
-  }
-- Response:
-  {
-    "transferId": "string",
-    "status": "SUCCESS",
-    "updatedBalance": "decimal"
-  }
-- Error Handling: 400 Insufficient Funds, 400 Invalid Account, 500 Service Failure
-
-3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit
-- Request Body:
-  {
-    "weeklyLimit": "decimal"
-  }
-- Response:
-  {
-    "youthAccountId": "string",
-    "weeklyLimit": "decimal",
-    "status": "UPDATED"
-  }
-- Error Handling: 400 Validation Error, 403 Unauthorized
-
-4. GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve youth account transaction history
-- Query Params: startDate, endDate, page, pageSize
-- Response:
-  {
-    "transactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "merchant": "string",
-        "amount": "decimal",
-        "transactionType": "debit | credit"
-      }
-    ],
-    "pagination": {
-      "page": "number",
-      "pageSize": "number",
-      "totalRecords": "number"
+1. Dashboard API
+Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+Request: Path param youthAccountId
+Response:
+{
+  "youthAccountId": "string",
+  "accountBalance": "decimal",
+  "spendingLimit": "decimal",
+  "currency": "string",
+  "recentTransactions": [
+    {
+      "transactionId": "string",
+      "date": "datetime",
+      "description": "string",
+      "amount": "decimal"
     }
+  ]
+}
+Error Handling:
+- 403 Unauthorized (parent not owner)
+- 500 Internal error
+
+2. Fund Transfer API
+Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+Request Body:
+{
+  "sourceAccountId": "string",
+  "transferAmount": "decimal",
+  "currency": "string"
+}
+Response:
+{
+  "transferId": "string",
+  "status": "SUCCESS",
+  "updatedBalance": "decimal"
+}
+Error Handling:
+- 400 Insufficient balance
+- 400 Invalid account mapping
+- 500 Transfer service failure
+
+3. Spending Limit API
+Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+Request Body:
+{
+  "weeklyLimit": "decimal"
+}
+Response:
+{
+  "youthAccountId": "string",
+  "weeklyLimit": "decimal",
+  "status": "UPDATED"
+}
+Error Handling:
+- 400 Validation error
+- 403 Unauthorized
+
+4. Transaction History API
+Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+Query Params: startDate, endDate, page, pageSize
+Response:
+{
+  "transactions": [
+    {
+      "transactionId": "string",
+      "date": "datetime",
+      "merchant": "string",
+      "amount": "decimal",
+      "transactionType": "debit | credit"
+    }
+  ],
+  "pagination": {
+    "page": "number",
+    "pageSize": "number",
+    "totalRecords": "number"
   }
-- Error Handling: 403 Unauthorized, 404 Not Found
+}
+Error Handling:
+- 403 Unauthorized
+- 400 Invalid parameters
 
-General Error Handling
-- 401 Unauthorized
-- 403 Forbidden
-- 404 Not Found
-- 400 Bad Request (validation)
-- 409 Conflict (duplicate)
-- 500 Internal Server Error
-
-Authentication
-- OAuth2 token required in Authorization header
-- Parent ownership validated for youth account actions
-
-RBAC
-- Parent: Allocate funds, set limits, view activity
-- Youth: View activity
-- Admin: Audit, manage accounts
+Authentication: OAuth token required for all endpoints
+RBAC: Parent role required
+Audit Logging: All fund transfers, limit changes, and dashboard accesses logged
