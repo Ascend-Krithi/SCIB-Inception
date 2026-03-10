@@ -1,48 +1,52 @@
-%% Sequence Diagram: Parent-Youth Account Management
+%% Sequence Diagram for Parent-Managed Youth Account APIs
 sequenceDiagram
     participant Parent as Parent/Guardian
-    participant WebUI as Web UI
-    participant APIGW as API Gateway
-    participant YAS as Youth Account Service
-    participant SettingsDB as Settings DB
-    participant CoreBanking as Core Banking System
-    participant TransactionService as Transaction Ledger Service
-
-    %% Dashboard retrieval
-    Parent->>WebUI: Login & access dashboard
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth2)
-    APIGW->>YAS: Validate token, RBAC, forward request
-    YAS->>CoreBanking: Fetch account balance
-    YAS->>SettingsDB: Fetch spending limit
-    YAS->>TransactionService: Fetch recent transactions
-    YAS-->>APIGW: Dashboard data
-    APIGW-->>WebUI: Dashboard data
-    WebUI-->>Parent: Render dashboard
-
-    %% Fund transfer
-    Parent->>WebUI: Initiate fund transfer
-    WebUI->>APIGW: POST /api/youth-accounts/{id}/fund-transfer (OAuth2)
-    APIGW->>YAS: Validate, forward request
-    YAS->>CoreBanking: Execute transfer
-    YAS->>SettingsDB: Update balance/limit if needed
-    YAS-->>APIGW: Transfer result
-    APIGW-->>WebUI: Transfer result
-    WebUI-->>Parent: Show transfer status
-
-    %% Set spending limit
-    Parent->>WebUI: Set new limit
-    WebUI->>APIGW: PUT /api/youth-accounts/{id}/spending-limit (OAuth2)
-    APIGW->>YAS: Validate, forward request
-    YAS->>SettingsDB: Update weekly limit
-    YAS-->>APIGW: Limit update status
-    APIGW-->>WebUI: Limit update status
-    WebUI-->>Parent: Show confirmation
-
-    %% Transaction history
-    Parent->>WebUI: View transaction history
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/transactions (OAuth2)
-    APIGW->>YAS: Validate, forward request
-    YAS->>TransactionService: Fetch history
-    YAS-->>APIGW: Transaction history
-    APIGW-->>WebUI: Transaction history
-    WebUI-->>Parent: Show transactions
+    participant WebApp as Banking Web Application
+    participant APIGateway as API Gateway
+    participant YouthService as Youth Account Service
+    participant AccountService as Account Service
+    participant PaymentService as Payment Service
+    participant TransactionService as Transaction Service
+    Note over Parent,WebApp: OAuth2, RBAC enforced on all APIs
+    Parent->>WebApp: Login (OAuth2)
+    activate WebApp
+    Note right of WebApp: Parent selects Youth Dashboard
+    WebApp->>APIGateway: GET /api/youth-accounts/{id}/dashboard
+    activate APIGateway
+    APIGateway->>YouthService: GET /dashboard
+    activate YouthService
+    YouthService->>AccountService: Retrieve account data
+    YouthService->>TransactionService: Fetch recent transactions
+    TransactionService-->>YouthService: Transaction data
+    AccountService-->>YouthService: Account data
+    YouthService-->>APIGateway: Dashboard response
+    APIGateway-->>WebApp: Dashboard response
+    WebApp-->>Parent: Display dashboard
+    deactivate YouthService
+    deactivate APIGateway
+    deactivate WebApp
+    Note over Parent,WebApp: Fund Transfer (POST)
+    Parent->>WebApp: Initiate fund transfer
+    WebApp->>APIGateway: POST /api/youth-accounts/{id}/fund-transfer
+    APIGateway->>YouthService: Fund transfer request
+    YouthService->>PaymentService: Initiate transfer
+    PaymentService-->>YouthService: Transfer status
+    YouthService-->>APIGateway: Transfer response
+    APIGateway-->>WebApp: Transfer result
+    WebApp-->>Parent: Show transfer status
+    Note over Parent,WebApp: Set Spending Limit (PUT)
+    Parent->>WebApp: Set weekly spending limit
+    WebApp->>APIGateway: PUT /api/youth-accounts/{id}/spending-limit
+    APIGateway->>YouthService: Update spending limit
+    YouthService-->>APIGateway: Limit updated
+    APIGateway-->>WebApp: Limit update result
+    WebApp-->>Parent: Show confirmation
+    Note over Parent,WebApp: View Transactions (GET)
+    Parent->>WebApp: View transactions
+    WebApp->>APIGateway: GET /api/youth-accounts/{id}/transactions
+    APIGateway->>YouthService: Fetch transactions
+    YouthService->>TransactionService: Query transaction history
+    TransactionService-->>YouthService: Transaction list
+    YouthService-->>APIGateway: Transactions response
+    APIGateway-->>WebApp: Transactions data
+    WebApp-->>Parent: Display transactions
