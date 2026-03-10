@@ -1,59 +1,60 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth2 authentication for all APIs
-- RBAC: Only parents can manage youth accounts
-- Audit logging for all fund transfers, limit changes, access attempts
-- Input validation, output filtering
+- OAuth token validation for all APIs
+- RBAC enforced at API and UI levels
+- Audit logging of all actions
+- Input validation and output filtering
 - Data encryption at rest and in transit
 
 Compliance
-- GDPR: Data subject rights, consent, erasure
-- PCI-DSS: Secure payment processing, cardholder data protection
-- ISO 27001: Security controls, audit trails
+- GDPR: User data privacy, consent, data minimization
+- PCI-DSS: Secure handling of payment data
+- ISO 27001: Information security controls
 
 Performance
-- API response time < 500ms under normal load
-- Dashboard loads within 2 seconds for parent users
+- API response time <500ms (95% of requests)
+- UI load time <2s
 
 Scalability
-- Horizontal scaling of API gateway, microservices
-- Stateless REST APIs
+- Horizontal scaling for API servers
+- DB partitioning for large datasets
 
 Availability
-- 99.99% uptime (HA deployment)
-- Automatic failover, redundancy
+- 99.99% uptime target
+- Automatic failover mechanisms
 
 Reliability
-- Retry logic for fund transfers, transaction fetch
-- Consistency checks across services
+- ACID-compliant DB for transactions
+- Consistent state during fund transfers
 
 Maintainability
-- Modular microservices
-- OpenAPI/Swagger documentation
-- Reusable schemas
+- Modular service design
+- Comprehensive API and system documentation
 
 Auditability
-- All financial actions logged, immutable logs
-- Access logs, error logs
+- Centralized log aggregation
+- Traceability of all actions
 
 Disaster Recovery
-- RTO < 4 hours
-- RPO < 1 hour
-- Backup/restore procedures tested quarterly
+- RTO <4 hours
+- RPO <1 hour
 
 Backup
 - Daily encrypted backups
-- Backup retention for 30 days
+- Offsite backup storage
 
 Monitoring
-- Real-time metrics (API latency, error rates)
-- Alerting (Prometheus, ELK stack)
+- Real-time metrics collection
+- Alerting for anomalies
 
 Logging
 - Centralized log aggregation
-- Error logging for all API endpoints
+- Structured logs for easy search
 
 RBAC
-- Role-based access enforced at API layer
-- Parent must own youth account for any operation
+- Role-based access control enforced
+
+Traceability
+- NFRs mapped to ADRs: SCIB-25, SCIB-26-30, SCIB-40-44
+
