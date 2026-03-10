@@ -1,61 +1,59 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth token validation for all APIs
-- RBAC enforced (parent role only)
-- Input validation and output filtering
-- Audit logging for all fund allocations, limit changes, and dashboard accesses
+- OAuth2 authentication for all APIs
+- RBAC: Only parents can manage youth accounts
+- Audit logging for all fund transfers, limit changes, access attempts
+- Input validation, output filtering
 - Data encryption at rest and in transit
 
 Compliance
-- GDPR: Data subject rights, consent, data minimization
-- PCI-DSS: Secure handling of payment data
-- ISO 27001: Information security controls
+- GDPR: Data subject rights, consent, erasure
+- PCI-DSS: Secure payment processing, cardholder data protection
+- ISO 27001: Security controls, audit trails
 
 Performance
-- Dashboard API response <500ms under normal load
-- Fund transfer API response <700ms
-- Transaction history API supports pagination for large datasets
+- API response time < 500ms under normal load
+- Dashboard loads within 2 seconds for parent users
 
 Scalability
-- APIs stateless, horizontally scalable
-- DB supports partitioning and replication
+- Horizontal scaling of API gateway, microservices
+- Stateless REST APIs
 
 Availability
-- 99.99% uptime for API services
-- Redundant infrastructure
+- 99.99% uptime (HA deployment)
+- Automatic failover, redundancy
 
 Reliability
-- Transactional integrity for fund transfers
-- Automatic failover for critical services
+- Retry logic for fund transfers, transaction fetch
+- Consistency checks across services
 
 Maintainability
-- Modular API design
+- Modular microservices
 - OpenAPI/Swagger documentation
-- Automated tests
+- Reusable schemas
 
 Auditability
-- All user actions logged with timestamp and user ID
-- Tamper-proof logs
+- All financial actions logged, immutable logs
+- Access logs, error logs
 
 Disaster Recovery
-- Daily encrypted backups
-- RTO <4h, RPO <1h
+- RTO < 4 hours
+- RPO < 1 hour
+- Backup/restore procedures tested quarterly
 
 Backup
-- Daily backups for settings DB
-- Encryption and offsite storage
+- Daily encrypted backups
+- Backup retention for 30 days
 
 Monitoring
-- Real-time API metrics
-- Alerting for errors and latency
+- Real-time metrics (API latency, error rates)
+- Alerting (Prometheus, ELK stack)
 
 Logging
 - Centralized log aggregation
-- Structured logs for audit
+- Error logging for all API endpoints
 
 RBAC
-- Role-based access control enforced for all APIs
-
-Traceability
-- All requirements mapped to ADRs and API endpoints
+- Role-based access enforced at API layer
+- Parent must own youth account for any operation
