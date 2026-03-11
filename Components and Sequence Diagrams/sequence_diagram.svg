@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="520" xmlns="http://www.w3.org/2000/svg">
+  <desc>Sequence Diagram for Parent Fund Allocation & Youth Account Management</desc>
+  <g font-family="Arial" font-size="14">
+    <!-- Lifelines -->
+    <text x="60" y="40">Parent/Guardian</text>
+    <line x1="100" y1="60" x2="100" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <text x="210" y="40">Web UI</text>
+    <line x1="250" y1="60" x2="250" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <text x="370" y="40">Youth Account API</text>
+    <line x1="410" y1="60" x2="410" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <text x="570" y="40">Account Service</text>
+    <line x1="610" y1="60" x2="610" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <text x="730" y="40">Transaction Service</text>
+    <line x1="770" y1="60" x2="770" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <text x="830" y="40">Payment Service</text>
+    <line x1="870" y1="60" x2="870" y2="480" stroke="#888" stroke-dasharray="6,6"/>
+    <!-- Messages -->
+    <!-- Dashboard Flow -->
+    <text x="120" y="80">1. View Dashboard</text>
+    <line x1="100" y1="90" x2="250" y2="90" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="260" y="110">2. GET /dashboard</text>
+    <line x1="250" y1="120" x2="410" y2="120" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="420" y="140">3. Validate OAuth2/RBAC</text>
+    <line x1="410" y1="150" x2="610" y2="150" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="620" y="170">4. Fetch Account Data</text>
+    <line x1="610" y1="180" x2="410" y2="180" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="190" x2="770" y2="190" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="780" y="200">5. Fetch Transactions</text>
+    <line x1="770" y1="210" x2="410" y2="210" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="220" x2="250" y2="220" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="250" y1="230" x2="100" y2="230" stroke="#000" marker-end="url(#arrow)"/>
+    <!-- Fund Transfer Flow -->
+    <text x="120" y="260">6. Fund Transfer</text>
+    <line x1="100" y1="270" x2="250" y2="270" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="260" y="290">7. POST /fund-transfer</text>
+    <line x1="250" y1="300" x2="410" y2="300" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="310" x2="610" y2="310" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="620" y="320">8. Validate Parent Account</text>
+    <line x1="610" y1="330" x2="410" y2="330" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="340" x2="870" y2="340" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="880" y="350">9. Initiate Transfer</text>
+    <line x1="870" y1="360" x2="410" y2="360" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="370" x2="250" y2="370" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="250" y1="380" x2="100" y2="380" stroke="#000" marker-end="url(#arrow)"/>
+    <!-- Spending Limit Flow -->
+    <text x="120" y="410">10. Set Spending Limit</text>
+    <line x1="100" y1="420" x2="250" y2="420" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="260" y="440">11. PUT /spending-limit</text>
+    <line x1="250" y1="450" x2="410" y2="450" stroke="#000" marker-end="url(#arrow)"/>
+    <line x1="410" y1="460" x2="610" y2="460" stroke="#000" marker-end="url(#arrow)"/>
+    <text x="620" y="470">12. Update Limit</text>
+    <line x1="610" y1="480" x2="410" y2="480" stroke="#000" marker-end="url(#arrow)"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 L2,3 z" fill="#000"/>
+    </marker>
+  </defs>
+</svg>
