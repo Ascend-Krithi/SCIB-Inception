@@ -1,63 +1,48 @@
-%% Sequence Diagram for Youth Account Management APIs
+%% Sequence Diagram for Parent-Managed Youth Account APIs
 sequenceDiagram
-    participant Parent
-    participant WebUI as Web/Mobile UI
-    participant APIGW as API Gateway
-    participant YouthAPI as Youth Service
-    participant Settings as Settings Service
-    participant TxnProxy as Transaction Service Proxy
-    participant CoreBank as Core Banking
-    participant Auth as OAuth Service
+  participant Parent as Parent/Guardian (Web/Mobile UI)
+  participant APIGW as API Gateway
+  participant YouthS as Youth Service
+  participant SettingsS as Settings Service
+  participant TxnS as Transaction Service Proxy
+  participant DB as Youth DB
+  participant CoreBank as Core Banking
+  participant Auth as OAuth Service
+  participant Notification as Notification Service
 
-    Parent->>WebUI: Login & Access Dashboard
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth2)
-    APIGW->>Auth: Validate OAuth2 Token
-    Auth-->>APIGW: Token Valid
-    APIGW->>YouthAPI: getDashboard(youthAccountId)
-    YouthAPI->>CoreBank: Get Account Balance
-    YouthAPI->>Settings: Get Spending Limit
-    YouthAPI->>TxnProxy: Get Recent Transactions
-    TxnProxy->>CoreBank: Fetch Transactions
-    CoreBank-->>TxnProxy: Transaction List
-    TxnProxy-->>YouthAPI: Transaction Data
-    CoreBank-->>YouthAPI: Account Balance
-    Settings-->>YouthAPI: Spending Limit
-    YouthAPI-->>APIGW: Dashboard Payload
-    APIGW-->>WebUI: Dashboard JSON
-    WebUI-->>Parent: Render Dashboard
+  Note over Parent,APIGW: All API calls secured by OAuth2/JWT, RBAC enforced
 
-    Parent->>WebUI: Initiate Fund Transfer
-    WebUI->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-    APIGW->>Auth: Validate OAuth2 Token
-    Auth-->>APIGW: Token Valid
-    APIGW->>YouthAPI: transferFunds(request)
-    YouthAPI->>CoreBank: Transfer Funds
-    CoreBank-->>YouthAPI: Transfer Result
-    YouthAPI->>Settings: Log Transfer (for audit)
-    YouthAPI-->>APIGW: Transfer Response
-    APIGW-->>WebUI: Transfer Result
-    WebUI-->>Parent: Show Transfer Status
+  Parent->>APIGW: GET /api/youth-accounts/{id}/dashboard (JWT)
+  APIGW->>Auth: Validate JWT/OAuth2
+  APIGW->>YouthS: Forward request
+  YouthS->>DB: Fetch youth account, limits
+  YouthS->>TxnS: GET transaction summary
+  TxnS->>CoreBank: GET transactions
+  YouthS->>APIGW: Aggregate dashboard response
+  APIGW->>Parent: Return dashboard JSON
 
-    Parent->>WebUI: Update Spending Limit
-    WebUI->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-    APIGW->>Auth: Validate OAuth2 Token
-    Auth-->>APIGW: Token Valid
-    APIGW->>YouthAPI: setSpendingLimit(request)
-    YouthAPI->>Settings: Update Limit
-    Settings-->>YouthAPI: Confirm Update
-    YouthAPI-->>APIGW: Limit Response
-    APIGW-->>WebUI: Limit Update Status
-    WebUI-->>Parent: Show Confirmation
+  Parent->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
+  APIGW->>Auth: Validate JWT/OAuth2
+  APIGW->>YouthS: Forward transfer request
+  YouthS->>CoreBank: POST fund transfer
+  YouthS->>DB: Update balance
+  YouthS->>Notification: Send alert
+  YouthS->>APIGW: Return transfer result
+  APIGW->>Parent: Transfer status
 
-    Parent->>WebUI: View Transactions
-    WebUI->>APIGW: GET /api/youth-accounts/{id}/transactions
-    APIGW->>Auth: Validate OAuth2 Token
-    Auth-->>APIGW: Token Valid
-    APIGW->>YouthAPI: getTransactions(params)
-    YouthAPI->>TxnProxy: Fetch Transactions
-    TxnProxy->>CoreBank: Get Transactions
-    CoreBank-->>TxnProxy: Transaction Data
-    TxnProxy-->>YouthAPI: Transaction List
-    YouthAPI-->>APIGW: Transactions Response
-    APIGW-->>WebUI: Transactions JSON
-    WebUI-->>Parent: Render Transaction History
+  Parent->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
+  APIGW->>Auth: Validate JWT/OAuth2
+  APIGW->>YouthS: Forward limit update
+  YouthS->>SettingsS: Update spending limit
+  SettingsS->>DB: Persist new limit
+  SettingsS->>YouthS: Confirm update
+  YouthS->>APIGW: Return status
+  APIGW->>Parent: Limit update confirmation
+
+  Parent->>APIGW: GET /api/youth-accounts/{id}/transactions
+  APIGW->>Auth: Validate JWT/OAuth2
+  APIGW->>YouthS: Forward request
+  YouthS->>TxnS: Fetch transactions
+  TxnS->>CoreBank: Proxy transaction query
+  YouthS->>APIGW: Return transaction list
+  APIGW->>Parent: Return transactions
