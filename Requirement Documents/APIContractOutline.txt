@@ -1,7 +1,8 @@
 API Contract Outline
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve dashboard with balance, spending limit, and recent transactions
+1. GET /api/youth-accounts/{youthAccountId}/dashboard
+- Description: Retrieve consolidated youth account dashboard
+- Auth: OAuth2, parent ownership validation
 - Response:
   {
     "youthAccountId": "string",
@@ -17,10 +18,11 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
       }
     ]
   }
-- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
+- Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
 - Description: Transfer funds from parent to youth account
+- Auth: OAuth2, parent ownership validation
 - Request:
   {
     "sourceAccountId": "string",
@@ -33,10 +35,11 @@ Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
     "status": "SUCCESS",
     "updatedBalance": "decimal"
   }
-- Error Handling: 400 Insufficient Funds, 400 Invalid Account, 500 Service Failure
+- Errors: 400 Insufficient funds, 400 Validation error, 500 Transfer failure
 
-Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Configure weekly spending limit
+3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Description: Set or update weekly spending limit
+- Auth: OAuth2, parent ownership validation
 - Request:
   {
     "weeklyLimit": "decimal"
@@ -47,10 +50,11 @@ Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Error Handling: 400 Validation Error, 403 Unauthorized, 500 Internal Error
+- Errors: 400 Validation error, 403 Unauthorized, 500 Internal Error
 
-Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve paginated transaction history
+4. GET /api/youth-accounts/{youthAccountId}/transactions
+- Description: Retrieve youth account transaction history
+- Auth: OAuth2, parent ownership validation
 - Query Params: startDate, endDate, page, pageSize
 - Response:
   {
@@ -69,7 +73,11 @@ Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
       "totalRecords": "number"
     }
   }
-- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Error
+- Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Security: All endpoints require OAuth2 token, RBAC for parent/guardian roles
-Error Handling: All errors return JSON with code and message per OpenAPI spec
+Common Error Handling:
+- 400: Validation errors with descriptive message
+- 401/403: Unauthorized/Forbidden
+- 404: Resource not found
+- 409: Conflict
+- 500: Internal server error
