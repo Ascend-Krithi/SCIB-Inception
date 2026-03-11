@@ -1,44 +1,58 @@
-%% Sequence Diagram: Youth Account Parental Fund Management
+%% Youth Account Management - Sequence Diagram (Mermaid)
 sequenceDiagram
   participant Parent as Parent/Guardian
-  participant WebApp as Web Application
-  participant API as Youth Account API
+  participant WebApp as Web Frontend
+  participant APIGW as API Gateway
+  participant YthSvc as Youth Account Service
   participant AccSvc as Account Service
   participant TxnSvc as Transaction Service
   participant PaySvc as Payment Service
-  participant NotifSvc as Notification Service
-  participant YDB as Youth Account DB
+  participant SettingsDB as Settings DB
 
-  %% Dashboard Retrieval
-  Parent->>WebApp: Login, view dashboard
-  WebApp->>API: GET /api/youth-accounts/{id}/dashboard (OAuth2)
-  API->>AccSvc: Validate ownership, fetch balance
-  API->>YDB: Get spending limit
-  API->>TxnSvc: Get recent transactions
-  API-->>WebApp: Dashboard data
+  %% Dashboard retrieval
+  Parent->>WebApp: Login & select youth account
+  WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard
+  APIGW->>YthSvc: GET /dashboard
+  YthSvc->>AccSvc: Get account balance
+  AccSvc-->>YthSvc: Account balance
+  YthSvc->>SettingsDB: Get spending limit
+  SettingsDB-->>YthSvc: Spending limit
+  YthSvc->>TxnSvc: Get recent transactions
+  TxnSvc-->>YthSvc: Transactions
+  YthSvc-->>APIGW: Dashboard data
+  APIGW-->>WebApp: Dashboard data
   WebApp-->>Parent: Render dashboard
 
-  %% Fund Transfer
+  %% Fund transfer
   Parent->>WebApp: Initiate fund transfer
-  WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
-  API->>AccSvc: Validate source, check balance
-  API->>PaySvc: Execute transfer
-  API->>YDB: Update balance
-  API->>NotifSvc: Send notification
-  API-->>WebApp: Transfer result
+  WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
+  APIGW->>YthSvc: Fund transfer request
+  YthSvc->>AccSvc: Validate ownership & balance
+  AccSvc-->>YthSvc: Validation OK
+  YthSvc->>PaySvc: Transfer funds
+  PaySvc-->>YthSvc: Transfer result
+  YthSvc->>SettingsDB: Update balance
+  SettingsDB-->>YthSvc: OK
+  YthSvc-->>APIGW: Transfer response
+  APIGW-->>WebApp: Transfer response
   WebApp-->>Parent: Show transfer status
 
-  %% Set Spending Limit
-  Parent->>WebApp: Set/Update spending limit
-  WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
-  API->>YDB: Update weekly limit
-  API->>NotifSvc: Notify update
-  API-->>WebApp: Limit updated
+  %% Set spending limit
+  Parent->>WebApp: Set spending limit
+  WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
+  APIGW->>YthSvc: Set limit request
+  YthSvc->>SettingsDB: Update spending limit
+  SettingsDB-->>YthSvc: OK
+  YthSvc-->>APIGW: Limit updated
+  APIGW-->>WebApp: Limit updated
   WebApp-->>Parent: Show confirmation
 
-  %% Transaction History
-  Parent->>WebApp: View transaction history
-  WebApp->>API: GET /api/youth-accounts/{id}/transactions
-  API->>TxnSvc: Fetch transactions
-  API-->>WebApp: Transaction list
-  WebApp-->>Parent: Display transactions
+  %% Transaction history
+  Parent->>WebApp: View transactions
+  WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions
+  APIGW->>YthSvc: Get transactions
+  YthSvc->>TxnSvc: Query transactions
+  TxnSvc-->>YthSvc: Transaction list
+  YthSvc-->>APIGW: Transactions
+  APIGW-->>WebApp: Transactions
+  WebApp-->>Parent: Display history
