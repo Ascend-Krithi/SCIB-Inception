@@ -1,64 +1,55 @@
-%% Sequence Diagram for Youth Account Management (Mermaid)
+%% Sequence Diagram: Parent Allocates Funds, Sets Limit, Views Dashboard & Transactions
 sequenceDiagram
+  autonumber
   participant Parent as Parent/Guardian
-  participant UI as Dashboard UI (React/Angular)
-  participant API as Youth Account API (Node.js/Java)
-  participant Auth as Auth Service (OAuth2)
-  participant AccountSvc as Account Service
-  participant PaymentSvc as Payment Service
-  participant TransactionSvc as Transaction Service
-  participant DB as Database (PostgreSQL)
+  participant UI as Parent Dashboard UI
+  participant API as Youth Account API
+  participant Auth as OAuth2 Service
+  participant Account as Account Service
+  participant Payment as Payment Service
+  participant Transaction as Transaction Service
+  participant DB as Database
 
-  %% Dashboard access
-  Parent->>UI: Login & access youth dashboard
-  UI->>Auth: OAuth2 token request
-  Auth-->>UI: Access token (RBAC: parent)
-  UI->>API: GET /api/youth-accounts/{id}/dashboard (token)
-  API->>Auth: Validate token & RBAC
-  Auth-->>API: Valid (parent)
-  API->>AccountSvc: Fetch account info
-  AccountSvc-->>API: Account details
-  API->>DB: Fetch spending limit, settings
-  DB-->>API: Limit, settings
-  API->>TransactionSvc: Recent transactions
-  TransactionSvc-->>API: Transaction list
-  API-->>UI: Dashboard data (balance, limit, txns)
+  %% Dashboard Access
+  Parent->>UI: Login & select youth account
+  UI->>Auth: Validate OAuth2 token
+  Auth-->>UI: Token valid (RBAC: Parent)
+  UI->>API: GET /api/youth-accounts/{id}/dashboard
+  API->>Account: Fetch youth account details
+  API->>Transaction: Fetch recent transactions
+  Account-->>API: Account details
+  Transaction-->>API: Recent transactions
+  API-->>UI: Dashboard data
   UI-->>Parent: Render dashboard
 
-  %% Fund allocation
+  %% Fund Transfer
   Parent->>UI: Initiate fund transfer
-  UI->>API: POST /api/youth-accounts/{id}/fund-transfer (token, payload)
-  API->>Auth: Validate token & RBAC
-  Auth-->>API: Valid
-  API->>AccountSvc: Validate source, check balance
-  AccountSvc-->>API: OK/insufficient funds
-  API->>PaymentSvc: Initiate transfer
-  PaymentSvc-->>API: Transfer result
-  API->>DB: Update balance
-  DB-->>API: Updated balance
-  API-->>UI: Transfer result
-  UI-->>Parent: Show transfer status
+  UI->>API: POST /api/youth-accounts/{id}/fund-transfer
+  API->>Auth: Validate RBAC/ownership
+  Auth-->>API: Authorized
+  API->>Account: Check parent balance
+  Account-->>API: Balance OK
+  API->>Payment: Execute fund transfer
+  Payment-->>API: TransferId, status
+  API->>DB: Update youth account balance
+  API-->>UI: Transfer confirmation
+  UI-->>Parent: Show updated balance/status
 
-  %% Set spending limit
-  Parent->>UI: Set/update weekly limit
-  UI->>API: PUT /api/youth-accounts/{id}/spending-limit (token, payload)
-  API->>Auth: Validate token & RBAC
-  Auth-->>API: Valid
-  API->>DB: Update limit
-  DB-->>API: Confirmation
+  %% Set Spending Limit
+  Parent->>UI: Set weekly spending limit
+  UI->>API: PUT /api/youth-accounts/{id}/spending-limit
+  API->>Auth: Validate RBAC/ownership
+  Auth-->>API: Authorized
+  API->>DB: Update weekly_spending_limit
   API-->>UI: Limit updated
   UI-->>Parent: Show confirmation
 
-  %% View transaction history
-  Parent->>UI: View transactions
-  UI->>API: GET /api/youth-accounts/{id}/transactions?startDate=&endDate=&page=&pageSize= (token)
-  API->>Auth: Validate token & RBAC
-  Auth-->>API: Valid
-  API->>TransactionSvc: Fetch transactions
-  TransactionSvc-->>API: Transaction list
-  API-->>UI: Transaction data
-  UI-->>Parent: Render transactions
-
-  %% Error handling (example)
-  API-->>UI: 403 Forbidden / 400 Bad Request / 500 Error (structured error)
-  UI-->>Parent: Show error message
+  %% View Transactions
+  Parent->>UI: View transaction history
+  UI->>API: GET /api/youth-accounts/{id}/transactions
+  API->>Auth: Validate RBAC/ownership
+  Auth-->>API: Authorized
+  API->>Transaction: Query transactions
+  Transaction-->>API: Transaction list
+  API-->>UI: Paginated transactions
+  UI-->>Parent: Display transaction list
