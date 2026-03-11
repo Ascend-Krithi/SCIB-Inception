@@ -1,63 +1,63 @@
 openapi: 3.0.3
 info:
-  title: Youth Account Management API
-  version: 1.0.0
+  title: Parent-Managed Youth Account API
+  version: '1.0.0'
   description: |
-    RESTful API for Youth Account Management, enabling parents/guardians to allocate funds, set spending limits, view dashboard, and retrieve transaction history for youth accounts. All APIs are secured via OAuth2 and RBAC for parent/guardian roles.
+    APIs for Parent-Managed Youth Account feature, enabling parents/guardians to allocate, manage, and monitor funds for a child’s youth account. Secured by OAuth2, PCI-DSS, GDPR, and ISO 27001 compliant.
+  termsOfService: 'https://ascend-krithi.github.io/terms'
   contact:
-    name: API Architect
-    email: compliance@ascend-krithi.com
-  termsOfService: https://ascend-krithi.com/terms
+    name: API Support
+    email: support@ascend-krithi.com
+    url: 'https://ascend-krithi.github.io/support'
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
 servers:
-  - url: https://api.ascend-krithi.com
+  - url: 'https://api.ascend-krithi.com/youth'
     description: Production server
-  - url: https://staging-api.ascend-krithi.com
-    description: Staging server
+  - url: 'https://sandbox.api.ascend-krithi.com/youth'
+    description: Sandbox server
 security:
-  - OAuth2:
-      - parent
+  - OAuth2: []
+tags:
+  - name: Dashboard
+    description: Youth account dashboard APIs
+  - name: FundTransfer
+    description: Fund transfer APIs
+  - name: SpendingLimit
+    description: Spending limit management APIs
+  - name: Transactions
+    description: Transaction history APIs
 paths:
   /api/youth-accounts/{youthAccountId}/dashboard:
     get:
-      summary: Retrieve dashboard with balance, spending limit, and recent transactions
-      operationId: getYouthAccountDashboard
-      tags:
-        - Dashboard
+      summary: Retrieve consolidated youth account dashboard
+      tags: [Dashboard]
+      security:
+        - OAuth2: []
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the youth account
+        - $ref: '#/components/parameters/YouthAccountId'
       responses:
         '200':
-          description: Dashboard data
+          description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/YouthAccountDashboard'
+                $ref: '#/components/schemas/YouthDashboardResponse'
         '403':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
-      security:
-        - OAuth2: [parent]
   /api/youth-accounts/{youthAccountId}/fund-transfer:
     post:
       summary: Transfer funds from parent to youth account
-      operationId: transferFundsToYouthAccount
-      tags:
-        - Fund Transfer
+      tags: [FundTransfer]
+      security:
+        - OAuth2: []
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the youth account
+        - $ref: '#/components/parameters/YouthAccountId'
       requestBody:
         required: true
         content:
@@ -66,32 +66,25 @@ paths:
               $ref: '#/components/schemas/FundTransferRequest'
       responses:
         '200':
-          description: Fund transfer result
+          description: Fund transfer successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FundTransferResponse'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/BadRequest'
         '403':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
-      security:
-        - OAuth2: [parent]
   /api/youth-accounts/{youthAccountId}/spending-limit:
     put:
-      summary: Configure weekly spending limit
-      operationId: setWeeklySpendingLimit
-      tags:
-        - Spending Limit
+      summary: Set or update weekly spending limit
+      tags: [SpendingLimit]
+      security:
+        - OAuth2: []
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the youth account
+        - $ref: '#/components/parameters/YouthAccountId'
       requestBody:
         required: true
         content:
@@ -100,61 +93,56 @@ paths:
               $ref: '#/components/schemas/SpendingLimitRequest'
       responses:
         '200':
-          description: Spending limit updated
+          description: Limit updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpendingLimitResponse'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/BadRequest'
         '403':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
-      security:
-        - OAuth2: [parent]
   /api/youth-accounts/{youthAccountId}/transactions:
     get:
-      summary: Retrieve paginated transaction history
-      operationId: getYouthAccountTransactions
-      tags:
-        - Transactions
+      summary: Retrieve youth account transaction history
+      tags: [Transactions]
+      security:
+        - OAuth2: []
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the youth account
-        - name: startDate
-          in: query
+        - $ref: '#/components/parameters/YouthAccountId'
+        - in: query
+          name: startDate
           required: false
           schema:
             type: string
             format: date
-          description: Filter transactions from this date (inclusive)
-        - name: endDate
-          in: query
+          description: Start date filter (YYYY-MM-DD)
+        - in: query
+          name: endDate
           required: false
           schema:
             type: string
             format: date
-          description: Filter transactions up to this date (inclusive)
-        - name: page
-          in: query
+          description: End date filter (YYYY-MM-DD)
+        - in: query
+          name: page
           required: false
           schema:
             type: integer
+            default: 1
             minimum: 1
           description: Page number for pagination
-        - name: pageSize
-          in: query
+        - in: query
+          name: pageSize
           required: false
           schema:
             type: integer
+            default: 20
             minimum: 1
             maximum: 100
-          description: Number of records per page
+          description: Page size for pagination
       responses:
         '200':
           description: Transaction history
@@ -163,42 +151,77 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionHistoryResponse'
         '403':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
-      security:
-        - OAuth2: [parent]
 components:
   securitySchemes:
     OAuth2:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth.ascend-krithi.com/oauth2/authorize
-          tokenUrl: https://auth.ascend-krithi.com/oauth2/token
+          authorizationUrl: 'https://auth.ascend-krithi.com/oauth2/authorize'
+          tokenUrl: 'https://auth.ascend-krithi.com/oauth2/token'
           scopes:
-            parent: Access to youth account APIs as parent/guardian
+            openid: OpenID Connect scope
+            profile: Basic profile info
+            youth.read: Read youth account info
+            youth.write: Write youth account info
+  parameters:
+    YouthAccountId:
+      name: youthAccountId
+      in: path
+      required: true
+      description: Youth account unique identifier
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Bad request (validation error, insufficient funds, etc.)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden (authentication/authorization failed)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
-    YouthAccountDashboard:
+    YouthDashboardResponse:
       type: object
       properties:
         youthAccountId:
           type: string
         accountBalance:
           type: number
-          format: decimal
+          format: double
         spendingLimit:
           type: number
-          format: decimal
+          format: double
         currency:
           type: string
         recentTransactions:
           type: array
           items:
-            $ref: '#/components/schemas/DashboardTransaction'
-    DashboardTransaction:
+            $ref: '#/components/schemas/RecentTransaction'
+      required: [youthAccountId, accountBalance, spendingLimit, currency, recentTransactions]
+    RecentTransaction:
       type: object
       properties:
         transactionId:
@@ -210,21 +233,19 @@ components:
           type: string
         amount:
           type: number
-          format: decimal
+          format: double
+      required: [transactionId, date, description, amount]
     FundTransferRequest:
       type: object
-      required:
-        - sourceAccountId
-        - transferAmount
-        - currency
       properties:
         sourceAccountId:
           type: string
         transferAmount:
           type: number
-          format: decimal
+          format: double
         currency:
           type: string
+      required: [sourceAccountId, transferAmount, currency]
     FundTransferResponse:
       type: object
       properties:
@@ -232,20 +253,18 @@ components:
           type: string
         status:
           type: string
-          enum:
-            - SUCCESS
-            - FAILURE
+          enum: [SUCCESS, FAILURE]
         updatedBalance:
           type: number
-          format: decimal
+          format: double
+      required: [transferId, status, updatedBalance]
     SpendingLimitRequest:
       type: object
-      required:
-        - weeklyLimit
       properties:
         weeklyLimit:
           type: number
-          format: decimal
+          format: double
+      required: [weeklyLimit]
     SpendingLimitResponse:
       type: object
       properties:
@@ -253,21 +272,22 @@ components:
           type: string
         weeklyLimit:
           type: number
-          format: decimal
+          format: double
         status:
           type: string
-          enum:
-            - UPDATED
+          enum: [UPDATED]
+      required: [youthAccountId, weeklyLimit, status]
     TransactionHistoryResponse:
       type: object
       properties:
         transactions:
           type: array
           items:
-            $ref: '#/components/schemas/TransactionRecord'
+            $ref: '#/components/schemas/Transaction'
         pagination:
-          $ref: '#/components/schemas/PaginationInfo'
-    TransactionRecord:
+          $ref: '#/components/schemas/Pagination'
+      required: [transactions, pagination]
+    Transaction:
       type: object
       properties:
         transactionId:
@@ -279,13 +299,12 @@ components:
           type: string
         amount:
           type: number
-          format: decimal
+          format: double
         transactionType:
           type: string
-          enum:
-            - debit
-            - credit
-    PaginationInfo:
+          enum: [debit, credit]
+      required: [transactionId, date, merchant, amount, transactionType]
+    Pagination:
       type: object
       properties:
         page:
@@ -294,48 +313,17 @@ components:
           type: integer
         totalRecords:
           type: integer
-  responses:
-    UnauthorizedError:
-      description: Unauthorized, OAuth2 token missing or invalid, or RBAC denied
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFoundError:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    BadRequestError:
-      description: Bad request (validation error, insufficient funds, invalid account)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-  schemas:
-    ErrorResponse:
+      required: [page, pageSize, totalRecords]
+    Error:
       type: object
       properties:
         code:
-          type: string
+          type: integer
         message:
           type: string
-      required:
-        - code
-        - message
-x-compliance:
-  GDPR: true
-  PCI-DSS: true
-  ISO27001: true
-x-audit:
-  logging: true
-  retention: 7 years
-  encrypted_backups: true
-  rbac: parent/guardian enforced
+        details:
+          type: string
+      required: [code, message]
+externalDocs:
+  description: Additional ADRs, HLD, and compliance documentation
+  url: 'https://github.com/Ascend-Krithi/SCIB-Inception/tree/main/Requirement%20Documents/'
