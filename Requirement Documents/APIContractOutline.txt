@@ -1,7 +1,7 @@
 API Contract Outline
 
 1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-   - Description: Retrieve dashboard details (balance, spending limit, recent transactions)
+   - Description: Retrieve youth account dashboard (balance, limit, recent transactions)
    - Request: Path param youthAccountId
    - Response:
      {
@@ -18,8 +18,7 @@ API Contract Outline
          }
        ]
      }
-   - Security: OAuth2, RBAC (parent must own youth account)
-   - Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
+   - Errors: 403 Unauthorized, 404 Not Found, 500 Internal Server Error
 
 2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
    - Description: Transfer funds from parent to youth account
@@ -32,13 +31,13 @@ API Contract Outline
    - Response:
      {
        "transferId": "string",
-       "status": "SUCCESS",
+       "status": "SUCCESS|FAILED",
        "updatedBalance": "decimal"
      }
-   - Errors: 400 Insufficient balance, 400 Invalid account, 500 Service error
+   - Errors: 400 Bad Request (insufficient funds/invalid mapping), 403 Unauthorized, 500 Internal Server Error
 
 3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-   - Description: Set or update weekly spending limit
+   - Description: Set weekly spending limit
    - Request:
      {
        "weeklyLimit": "decimal"
@@ -49,11 +48,11 @@ API Contract Outline
        "weeklyLimit": "decimal",
        "status": "UPDATED"
      }
-   - Errors: 400 Validation error, 403 Unauthorized
+   - Errors: 400 Bad Request (invalid value), 403 Unauthorized, 500 Internal Server Error
 
 4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-   - Description: Retrieve transaction history
-   - Query Params: startDate, endDate, page, pageSize
+   - Description: Retrieve youth account transaction history
+   - Query params: startDate, endDate, page, pageSize
    - Response:
      {
        "transactions": [
@@ -62,7 +61,7 @@ API Contract Outline
            "date": "datetime",
            "merchant": "string",
            "amount": "decimal",
-           "transactionType": "debit | credit"
+           "transactionType": "debit|credit"
          }
        ],
        "pagination": {
@@ -71,13 +70,9 @@ API Contract Outline
          "totalRecords": "number"
        }
      }
-   - Errors: 403 Unauthorized, 404 Not Found
+   - Errors: 403 Unauthorized, 404 Not Found, 500 Internal Server Error
 
-Error Handling (all APIs):
-- 400: Validation errors, insufficient funds, invalid parameters
-- 403: Unauthorized (RBAC, parent ownership)
-- 404: Not found (account, transaction)
-- 409: Conflict (concurrent modification)
-- 500: Internal server error
-
-All endpoints require OAuth2 token, RBAC enforced for parent access.
+Security & Compliance:
+- All endpoints require OAuth 2.0 Bearer token
+- RBAC: Only parent/guardian can manage youth accounts
+- Input validation, output filtering, audit logging enforced
