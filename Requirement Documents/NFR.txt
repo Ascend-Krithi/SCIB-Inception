@@ -1,64 +1,63 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth 2.0 authentication for all APIs
-- RBAC: Only parents/guardians can access/manage youth accounts
-- Input validation, output filtering, audit logging
-- All access and fund transfers logged for auditability
-- Data encryption at rest and in transit (TLS 1.2+)
+- OAuth token validation for all API endpoints
+- Role-based access control (RBAC): parent/youth separation
+- Data encryption at rest and in transit
+- Input validation, output filtering
+- Audit logging for all fund transfer and limit changes
+- Regular security penetration testing
 
 Compliance
-- Adherence to GDPR, PCI-DSS, ISO 27001
-- Data subject rights, consent management
-- Secure handling of PII, financial data
+- GDPR: Data privacy, parental consent, right to erasure
+- PCI-DSS: Secure fund transfers, audit logs
+- ISO 27001: Information security management
 
 Performance
-- 95% of API responses <500ms
-- Fund transfer latency <1s under normal load
+- API response time < 500ms for 95% of requests
+- Fund transfer and dashboard APIs optimized for low latency
 
 Scalability
-- Stateless APIs, horizontal scaling
-- Database partitioning/sharding for high volume
+- Horizontal scaling for APIs and database
+- Support for increasing number of youth accounts
 
 Availability
-- 99.99% uptime
-- HA deployment, auto-scaling
+- 99.99% uptime SLA
+- Automatic failover for core services
 
 Reliability
-- Automatic failover, retry logic for critical operations
 - Transactional integrity for fund transfers
+- Retry logic for payment service failures
 
 Maintainability
-- Modular microservices, automated CI/CD
-- API contracts documented (OpenAPI/Swagger)
+- Modular, documented APIs
+- Automated tests and CI/CD
+- Clear separation of business logic and UI
 
 Auditability
-- All actions, changes, and access logged centrally
-- Tamper-evident logs (WORM storage)
+- All user actions logged with timestamp and actor
+- Audit logs retained for minimum 7 years
 
 Disaster Recovery
-- RTO <4h, RPO <1h
-- Geo-redundant daily backups, tested restores
+- Recovery Time Objective (RTO) < 4 hours
+- Recovery Point Objective (RPO) < 1 hour
+- Daily encrypted backups
 
 Backup
-- Daily encrypted backups, 30-day retention
+- Daily backups of all transactional and account data
+- Encrypted at rest
 
 Monitoring
-- Real-time metrics (API, infra), alerting (PagerDuty)
-- SLA/SLO dashboards
+- Real-time metrics for API health, fund transfers, dashboard usage
+- Automated alerting for failures, slow responses
 
 Logging
-- Centralized log aggregation (ELK stack)
-- Trace IDs for distributed requests
+- Centralized log aggregation
+- Logs accessible for compliance and troubleshooting
 
 RBAC
-- Role-based access (parent, guardian, youth)
-- Policy-driven access checks
-
-Other
-- API versioning for backward compatibility
-- Accessibility (WCAG 2.1 AA compliance)
-- Internationalization (multi-currency, multi-locale support)
+- Strict enforcement of parent/youth account separation
+- Fine-grained permissions for dashboard, fund transfer, limit configuration
 
 Mappings
-- Each NFR mapped to design decision, component, or ADR (see HLD Appendix)
+- Each NFR mapped to design decisions, APIs, and compliance overlays (see HLDDocument.txt Appendices)
