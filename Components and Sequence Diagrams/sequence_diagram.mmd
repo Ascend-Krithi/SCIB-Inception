@@ -1,58 +1,64 @@
-%% Youth Account Management - Sequence Diagram (Mermaid)
+%% Sequence Diagram for Youth Account Management (Mermaid)
 sequenceDiagram
   participant Parent as Parent/Guardian
-  participant WebApp as Web Frontend
-  participant APIGW as API Gateway
-  participant YthSvc as Youth Account Service
-  participant AccSvc as Account Service
-  participant TxnSvc as Transaction Service
-  participant PaySvc as Payment Service
-  participant SettingsDB as Settings DB
+  participant UI as Dashboard UI (React/Angular)
+  participant API as Youth Account API (Node.js/Java)
+  participant Auth as Auth Service (OAuth2)
+  participant AccountSvc as Account Service
+  participant PaymentSvc as Payment Service
+  participant TransactionSvc as Transaction Service
+  participant DB as Database (PostgreSQL)
 
-  %% Dashboard retrieval
-  Parent->>WebApp: Login & select youth account
-  WebApp->>APIGW: GET /api/youth-accounts/{id}/dashboard
-  APIGW->>YthSvc: GET /dashboard
-  YthSvc->>AccSvc: Get account balance
-  AccSvc-->>YthSvc: Account balance
-  YthSvc->>SettingsDB: Get spending limit
-  SettingsDB-->>YthSvc: Spending limit
-  YthSvc->>TxnSvc: Get recent transactions
-  TxnSvc-->>YthSvc: Transactions
-  YthSvc-->>APIGW: Dashboard data
-  APIGW-->>WebApp: Dashboard data
-  WebApp-->>Parent: Render dashboard
+  %% Dashboard access
+  Parent->>UI: Login & access youth dashboard
+  UI->>Auth: OAuth2 token request
+  Auth-->>UI: Access token (RBAC: parent)
+  UI->>API: GET /api/youth-accounts/{id}/dashboard (token)
+  API->>Auth: Validate token & RBAC
+  Auth-->>API: Valid (parent)
+  API->>AccountSvc: Fetch account info
+  AccountSvc-->>API: Account details
+  API->>DB: Fetch spending limit, settings
+  DB-->>API: Limit, settings
+  API->>TransactionSvc: Recent transactions
+  TransactionSvc-->>API: Transaction list
+  API-->>UI: Dashboard data (balance, limit, txns)
+  UI-->>Parent: Render dashboard
 
-  %% Fund transfer
-  Parent->>WebApp: Initiate fund transfer
-  WebApp->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-  APIGW->>YthSvc: Fund transfer request
-  YthSvc->>AccSvc: Validate ownership & balance
-  AccSvc-->>YthSvc: Validation OK
-  YthSvc->>PaySvc: Transfer funds
-  PaySvc-->>YthSvc: Transfer result
-  YthSvc->>SettingsDB: Update balance
-  SettingsDB-->>YthSvc: OK
-  YthSvc-->>APIGW: Transfer response
-  APIGW-->>WebApp: Transfer response
-  WebApp-->>Parent: Show transfer status
+  %% Fund allocation
+  Parent->>UI: Initiate fund transfer
+  UI->>API: POST /api/youth-accounts/{id}/fund-transfer (token, payload)
+  API->>Auth: Validate token & RBAC
+  Auth-->>API: Valid
+  API->>AccountSvc: Validate source, check balance
+  AccountSvc-->>API: OK/insufficient funds
+  API->>PaymentSvc: Initiate transfer
+  PaymentSvc-->>API: Transfer result
+  API->>DB: Update balance
+  DB-->>API: Updated balance
+  API-->>UI: Transfer result
+  UI-->>Parent: Show transfer status
 
   %% Set spending limit
-  Parent->>WebApp: Set spending limit
-  WebApp->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-  APIGW->>YthSvc: Set limit request
-  YthSvc->>SettingsDB: Update spending limit
-  SettingsDB-->>YthSvc: OK
-  YthSvc-->>APIGW: Limit updated
-  APIGW-->>WebApp: Limit updated
-  WebApp-->>Parent: Show confirmation
+  Parent->>UI: Set/update weekly limit
+  UI->>API: PUT /api/youth-accounts/{id}/spending-limit (token, payload)
+  API->>Auth: Validate token & RBAC
+  Auth-->>API: Valid
+  API->>DB: Update limit
+  DB-->>API: Confirmation
+  API-->>UI: Limit updated
+  UI-->>Parent: Show confirmation
 
-  %% Transaction history
-  Parent->>WebApp: View transactions
-  WebApp->>APIGW: GET /api/youth-accounts/{id}/transactions
-  APIGW->>YthSvc: Get transactions
-  YthSvc->>TxnSvc: Query transactions
-  TxnSvc-->>YthSvc: Transaction list
-  YthSvc-->>APIGW: Transactions
-  APIGW-->>WebApp: Transactions
-  WebApp-->>Parent: Display history
+  %% View transaction history
+  Parent->>UI: View transactions
+  UI->>API: GET /api/youth-accounts/{id}/transactions?startDate=&endDate=&page=&pageSize= (token)
+  API->>Auth: Validate token & RBAC
+  Auth-->>API: Valid
+  API->>TransactionSvc: Fetch transactions
+  TransactionSvc-->>API: Transaction list
+  API-->>UI: Transaction data
+  UI-->>Parent: Render transactions
+
+  %% Error handling (example)
+  API-->>UI: 403 Forbidden / 400 Bad Request / 500 Error (structured error)
+  UI-->>Parent: Show error message
