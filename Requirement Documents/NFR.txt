@@ -1,67 +1,64 @@
 Non-Functional Requirements (NFRs)
 
 Security
-- OAuth2-based authentication for all APIs
-- RBAC enforced at API Gateway and service level
-- Input validation, output filtering for all APIs
-- Audit logging of all fund transfers, limit changes, and sensitive actions
-- All data in transit encrypted (TLS 1.2+)
-- Sensitive data at rest encrypted (AES-256)
-- Regular security vulnerability scans
+- OAuth2 authentication for all APIs
+- Role-Based Access Control (RBAC): Only parents/guardians can manage youth accounts
+- Input validation and output filtering
+- Audit logging for all fund movements, limit changes, and access events
+- Data encryption at rest and in transit
 
 Compliance
-- GDPR: Data subject rights, consent, data minimization
-- PCI-DSS: Secure handling of payment data
-- ISO 27001: Information security controls and policies
-- All access and changes logged for audit
+- GDPR: Data subject rights, data minimization, retention
+- PCI-DSS: Payment data protection
+- ISO 27001: Information security controls
 
 Performance
-- 95% of API responses <500ms
-- Maximum dashboard load time <2s
-- Fund transfer processed within 2s in 99% of cases
+- 95% of API requests complete in <500ms
+- Fund transfer and dashboard APIs highly responsive under normal load
 
 Scalability
-- Microservices support horizontal scaling
-- Database partitioning for large datasets
+- Horizontal scaling supported for stateless APIs
+- Database partitioning for large user base
 
 Availability
-- 99.99% uptime (SLA)
-- HA deployment (multi-AZ clusters)
+- 99.99% uptime (measured monthly)
+- Multi-zone deployment for resilience
 
 Reliability
-- Automatic failover for stateless services
-- Retry logic for transient failures
+- Idempotent APIs for fund transfer
+- Retry logic for service integrations
+- Automatic failover for critical services
 
 Maintainability
-- Modular microservice architecture
-- Well-documented APIs (OpenAPI/Swagger)
-- Automated CI/CD pipeline
+- Modular microservice design
+- OpenAPI/Swagger documentation
+- Automated CI/CD pipelines
 
 Auditability
-- All transfers, limit changes, and user actions logged
-- Logs retained for 7 years (configurable)
+- Centralized audit logs for all critical actions
+- Tamper-evident logging
 
 Disaster Recovery
 - RTO < 4 hours, RPO < 1 hour
-- Geo-redundant backups
+- Regular disaster recovery paid tests
 
 Backup
-- Daily encrypted database backups
-- Backup integrity checks
+- Daily encrypted backups of youth account DB
+- Backup retention per policy (e.g., 30 days)
 
 Monitoring
-- Real-time metrics (API latency, error rates)
-- Automated alerts for SLA breaches
+- Real-time metrics via Prometheus/Grafana
+- Automated alerting for error rates, latency, and resource usage
 
 Logging
-- Centralized log aggregation (ELK/Splunk)
-- Log masking of sensitive fields
+- Centralized, structured logging (e.g., ELK stack)
+- Log retention per compliance
 
 RBAC
-- Role-based access enforced for all endpoints
-- Only parent/guardian with proper entitlement can access/manage youth accounts
+- All APIs and UI actions enforce RBAC
+- Fine-grained roles for parent/guardian, youth
 
 Other
-- API versioning for backward compatibility
-- Accessibility (WCAG 2.1 AA)
-- Test automation coverage >90%
+- Input validation on all external interfaces
+- Output filtering to prevent data leakage
+- All APIs covered by automated security and functional tests
