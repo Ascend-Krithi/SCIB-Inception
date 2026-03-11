@@ -1,52 +1,63 @@
-%% Sequence Diagram for Parent-Managed Youth Account APIs
+%% Sequence Diagram for Youth Account Management APIs
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Banking Web Application
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
-    participant AccountService as Account Service
-    participant PaymentService as Payment Service
-    participant TransactionService as Transaction Service
-    Note over Parent,WebApp: OAuth2, RBAC enforced on all APIs
-    Parent->>WebApp: Login (OAuth2)
-    activate WebApp
-    Note right of WebApp: Parent selects Youth Dashboard
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/dashboard
-    activate APIGateway
-    APIGateway->>YouthService: GET /dashboard
-    activate YouthService
-    YouthService->>AccountService: Retrieve account data
-    YouthService->>TransactionService: Fetch recent transactions
-    TransactionService-->>YouthService: Transaction data
-    AccountService-->>YouthService: Account data
-    YouthService-->>APIGateway: Dashboard response
-    APIGateway-->>WebApp: Dashboard response
-    WebApp-->>Parent: Display dashboard
-    deactivate YouthService
-    deactivate APIGateway
-    deactivate WebApp
-    Note over Parent,WebApp: Fund Transfer (POST)
-    Parent->>WebApp: Initiate fund transfer
-    WebApp->>APIGateway: POST /api/youth-accounts/{id}/fund-transfer
-    APIGateway->>YouthService: Fund transfer request
-    YouthService->>PaymentService: Initiate transfer
-    PaymentService-->>YouthService: Transfer status
-    YouthService-->>APIGateway: Transfer response
-    APIGateway-->>WebApp: Transfer result
-    WebApp-->>Parent: Show transfer status
-    Note over Parent,WebApp: Set Spending Limit (PUT)
-    Parent->>WebApp: Set weekly spending limit
-    WebApp->>APIGateway: PUT /api/youth-accounts/{id}/spending-limit
-    APIGateway->>YouthService: Update spending limit
-    YouthService-->>APIGateway: Limit updated
-    APIGateway-->>WebApp: Limit update result
-    WebApp-->>Parent: Show confirmation
-    Note over Parent,WebApp: View Transactions (GET)
-    Parent->>WebApp: View transactions
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/transactions
-    APIGateway->>YouthService: Fetch transactions
-    YouthService->>TransactionService: Query transaction history
-    TransactionService-->>YouthService: Transaction list
-    YouthService-->>APIGateway: Transactions response
-    APIGateway-->>WebApp: Transactions data
-    WebApp-->>Parent: Display transactions
+    participant Parent
+    participant WebUI as Web/Mobile UI
+    participant APIGW as API Gateway
+    participant YouthAPI as Youth Service
+    participant Settings as Settings Service
+    participant TxnProxy as Transaction Service Proxy
+    participant CoreBank as Core Banking
+    participant Auth as OAuth Service
+
+    Parent->>WebUI: Login & Access Dashboard
+    WebUI->>APIGW: GET /api/youth-accounts/{id}/dashboard (OAuth2)
+    APIGW->>Auth: Validate OAuth2 Token
+    Auth-->>APIGW: Token Valid
+    APIGW->>YouthAPI: getDashboard(youthAccountId)
+    YouthAPI->>CoreBank: Get Account Balance
+    YouthAPI->>Settings: Get Spending Limit
+    YouthAPI->>TxnProxy: Get Recent Transactions
+    TxnProxy->>CoreBank: Fetch Transactions
+    CoreBank-->>TxnProxy: Transaction List
+    TxnProxy-->>YouthAPI: Transaction Data
+    CoreBank-->>YouthAPI: Account Balance
+    Settings-->>YouthAPI: Spending Limit
+    YouthAPI-->>APIGW: Dashboard Payload
+    APIGW-->>WebUI: Dashboard JSON
+    WebUI-->>Parent: Render Dashboard
+
+    Parent->>WebUI: Initiate Fund Transfer
+    WebUI->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
+    APIGW->>Auth: Validate OAuth2 Token
+    Auth-->>APIGW: Token Valid
+    APIGW->>YouthAPI: transferFunds(request)
+    YouthAPI->>CoreBank: Transfer Funds
+    CoreBank-->>YouthAPI: Transfer Result
+    YouthAPI->>Settings: Log Transfer (for audit)
+    YouthAPI-->>APIGW: Transfer Response
+    APIGW-->>WebUI: Transfer Result
+    WebUI-->>Parent: Show Transfer Status
+
+    Parent->>WebUI: Update Spending Limit
+    WebUI->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
+    APIGW->>Auth: Validate OAuth2 Token
+    Auth-->>APIGW: Token Valid
+    APIGW->>YouthAPI: setSpendingLimit(request)
+    YouthAPI->>Settings: Update Limit
+    Settings-->>YouthAPI: Confirm Update
+    YouthAPI-->>APIGW: Limit Response
+    APIGW-->>WebUI: Limit Update Status
+    WebUI-->>Parent: Show Confirmation
+
+    Parent->>WebUI: View Transactions
+    WebUI->>APIGW: GET /api/youth-accounts/{id}/transactions
+    APIGW->>Auth: Validate OAuth2 Token
+    Auth-->>APIGW: Token Valid
+    APIGW->>YouthAPI: getTransactions(params)
+    YouthAPI->>TxnProxy: Fetch Transactions
+    TxnProxy->>CoreBank: Get Transactions
+    CoreBank-->>TxnProxy: Transaction Data
+    TxnProxy-->>YouthAPI: Transaction List
+    YouthAPI-->>APIGW: Transactions Response
+    APIGW-->>WebUI: Transactions JSON
+    WebUI-->>Parent: Render Transaction History
