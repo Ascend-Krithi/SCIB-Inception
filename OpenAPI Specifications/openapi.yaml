@@ -1,52 +1,186 @@
-# OpenAPI Specification for Parent Fund Allocation and Youth Account Management
 openapi: 3.0.3
 info:
-  title: Parent Fund Allocation & Youth Account Management API
+  title: Youth Account Parental Controls API
+  version: '1.0.0'
   description: |
-    API for parents/guardians to allocate/manage funds for youth accounts, set spending limits, and view transaction history.
-    All endpoints require OAuth2 authentication and RBAC (parent/guardian only).
-  version: 1.0.0
-  contact:
-    email: devops@scib-inception.com
-  termsOfService: https://scib-inception.com/terms
-
+    API for managing youth accounts, parental controls, fund allocation, spending limits, and transaction history.
+    Compliance: GDPR, PCI-DSS, ISO 27001.
+    Audit: All fund allocations, spending limit changes, and transaction retrievals logged with user, timestamp, and action.
 servers:
-  - url: https://api.scib-inception.com
-    description: Production server
-
+  - url: https://api.bank.com
+    description: Production API server
 security:
-  - OAuth2:
-      - parent_guardian
-
+  - bearerAuth: []
+paths:
+  /api/youth-accounts/{youthAccountId}/dashboard:
+    get:
+      summary: Get youth account dashboard
+      operationId: getYouthAccountDashboard
+      tags:
+        - Youth Accounts
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Youth account identifier
+      responses:
+        '200':
+          description: Dashboard details for youth account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouthAccountDashboardResponse'
+        '403':
+          description: Forbidden - unauthorized access
+        '404':
+          description: Not Found - invalid youth account
+      security:
+        - bearerAuth: []
+  /api/youth-accounts/{youthAccountId}/fund-transfer:
+    post:
+      summary: Transfer funds to youth account
+      operationId: postYouthAccountFundTransfer
+      tags:
+        - Youth Accounts
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Youth account identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundTransferRequest'
+      responses:
+        '200':
+          description: Fund transfer result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundTransferResponse'
+        '400':
+          description: Bad Request - insufficient funds or invalid mapping
+        '500':
+          description: Internal Server Error - transfer service failure
+      security:
+        - bearerAuth: []
+  /api/youth-accounts/{youthAccountId}/spending-limit:
+    put:
+      summary: Set or update weekly spending limit
+      operationId: putYouthAccountSpendingLimit
+      tags:
+        - Youth Accounts
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Youth account identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpendingLimitRequest'
+      responses:
+        '200':
+          description: Spending limit update result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendingLimitResponse'
+        '400':
+          description: Bad Request - invalid value
+        '403':
+          description: Forbidden - unauthorized access
+      security:
+        - bearerAuth: []
+  /api/youth-accounts/{youthAccountId}/transactions:
+    get:
+      summary: Get youth account transaction history
+      operationId: getYouthAccountTransactions
+      tags:
+        - Youth Accounts
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Youth account identifier
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Start date for transaction history
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: End date for transaction history
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number for pagination
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page size for pagination
+      responses:
+        '200':
+          description: Transaction history and pagination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+        '403':
+          description: Forbidden - unauthorized access
+        '404':
+          description: Not Found - invalid youth account
+      security:
+        - bearerAuth: []
 components:
   securitySchemes:
-    OAuth2:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://auth.scib-inception.com/oauth2/authorize
-          tokenUrl: https://auth.scib-inception.com/oauth2/token
-          scopes:
-            parent_guardian: Parent/Guardian access
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    YouthAccountDashboard:
+    YouthAccountDashboardResponse:
       type: object
       properties:
         youthAccountId:
           type: string
         accountBalance:
           type: number
-          format: decimal
+          format: double
         spendingLimit:
           type: number
-          format: decimal
+          format: double
         currency:
           type: string
         recentTransactions:
           type: array
           items:
-            $ref: '#/components/schemas/TransactionSummary'
-    TransactionSummary:
+            $ref: '#/components/schemas/DashboardTransaction'
+    DashboardTransaction:
       type: object
       properties:
         transactionId:
@@ -58,7 +192,7 @@ components:
           type: string
         amount:
           type: number
-          format: decimal
+          format: double
     FundTransferRequest:
       type: object
       required:
@@ -70,7 +204,7 @@ components:
           type: string
         transferAmount:
           type: number
-          format: decimal
+          format: double
         currency:
           type: string
     FundTransferResponse:
@@ -83,7 +217,7 @@ components:
           enum: [SUCCESS, FAILURE]
         updatedBalance:
           type: number
-          format: decimal
+          format: double
     SpendingLimitRequest:
       type: object
       required:
@@ -91,7 +225,7 @@ components:
       properties:
         weeklyLimit:
           type: number
-          format: decimal
+          format: double
     SpendingLimitResponse:
       type: object
       properties:
@@ -99,10 +233,19 @@ components:
           type: string
         weeklyLimit:
           type: number
-          format: decimal
+          format: double
         status:
           type: string
           enum: [UPDATED]
+    TransactionsResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     Transaction:
       type: object
       properties:
@@ -115,182 +258,16 @@ components:
           type: string
         amount:
           type: number
-          format: decimal
+          format: double
         transactionType:
           type: string
           enum: [debit, credit]
-    TransactionHistoryResponse:
+    Pagination:
       type: object
       properties:
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-        pagination:
-          type: object
-          properties:
-            page:
-              type: integer
-            pageSize:
-              type: integer
-            totalRecords:
-              type: integer
-
-paths:
-  /api/youth-accounts/{youthAccountId}/dashboard:
-    get:
-      summary: Retrieve youth account dashboard details
-      description: Returns youth account balance, spending limit, currency, and recent transactions.
-      tags:
-        - Youth Account
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Dashboard details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/YouthAccountDashboard'
-        '403':
-          description: Forbidden - unauthorized access
-        '404':
-          description: Not Found - invalid account
-      security:
-        - OAuth2: [parent_guardian]
-
-  /api/youth-accounts/{youthAccountId}/fund-transfer:
-    post:
-      summary: Transfer funds from parent to youth account
-      description: Initiate a fund transfer from parent/guardian to youth account.
-      tags:
-        - Fund Transfer
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FundTransferRequest'
-      responses:
-        '200':
-          description: Fund transfer successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FundTransferResponse'
-        '400':
-          description: Bad Request - insufficient funds, invalid mapping
-        '500':
-          description: Internal Server Error - service failure
-      security:
-        - OAuth2: [parent_guardian]
-
-  /api/youth-accounts/{youthAccountId}/spending-limit:
-    put:
-      summary: Configure weekly spending limit
-      description: Update weekly spending limit for youth account.
-      tags:
-        - Spending Limit
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SpendingLimitRequest'
-      responses:
-        '200':
-          description: Spending limit updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SpendingLimitResponse'
-        '400':
-          description: Bad Request - validation error
-        '403':
-          description: Forbidden - unauthorized
-      security:
-        - OAuth2: [parent_guardian]
-
-  /api/youth-accounts/{youthAccountId}/transactions:
-    get:
-      summary: Retrieve transaction history
-      description: Returns paginated transaction history for youth account.
-      tags:
-        - Transaction History
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: Transaction history
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransactionHistoryResponse'
-        '403':
-          description: Forbidden - unauthorized access
-        '404':
-          description: Not Found - invalid account
-      security:
-        - OAuth2: [parent_guardian]
-
-# Global compliance and auditability
-x-compliance:
-  GDPR:
-    dataMinimization: true
-    accessControl: true
-    deletion: true
-  ISO27001:
-    accessControl: true
-    logging: true
-    encryption: true
-x-audit:
-  logging:
-    enabled: true
-    retentionYears: 7
-    logMasking: true
-
-# End of OpenAPI Specification
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalRecords:
+          type: integer
