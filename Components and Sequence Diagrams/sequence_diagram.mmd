@@ -1,48 +1,44 @@
-%% Sequence Diagram for Parent-Managed Youth Account APIs
+%% Sequence Diagram: Youth Account Parental Fund Management
 sequenceDiagram
-  participant Parent as Parent/Guardian (Web/Mobile UI)
-  participant APIGW as API Gateway
-  participant YouthS as Youth Service
-  participant SettingsS as Settings Service
-  participant TxnS as Transaction Service Proxy
-  participant DB as Youth DB
-  participant CoreBank as Core Banking
-  participant Auth as OAuth Service
-  participant Notification as Notification Service
+  participant Parent as Parent/Guardian
+  participant WebApp as Web Application
+  participant API as Youth Account API
+  participant AccSvc as Account Service
+  participant TxnSvc as Transaction Service
+  participant PaySvc as Payment Service
+  participant NotifSvc as Notification Service
+  participant YDB as Youth Account DB
 
-  Note over Parent,APIGW: All API calls secured by OAuth2/JWT, RBAC enforced
+  %% Dashboard Retrieval
+  Parent->>WebApp: Login, view dashboard
+  WebApp->>API: GET /api/youth-accounts/{id}/dashboard (OAuth2)
+  API->>AccSvc: Validate ownership, fetch balance
+  API->>YDB: Get spending limit
+  API->>TxnSvc: Get recent transactions
+  API-->>WebApp: Dashboard data
+  WebApp-->>Parent: Render dashboard
 
-  Parent->>APIGW: GET /api/youth-accounts/{id}/dashboard (JWT)
-  APIGW->>Auth: Validate JWT/OAuth2
-  APIGW->>YouthS: Forward request
-  YouthS->>DB: Fetch youth account, limits
-  YouthS->>TxnS: GET transaction summary
-  TxnS->>CoreBank: GET transactions
-  YouthS->>APIGW: Aggregate dashboard response
-  APIGW->>Parent: Return dashboard JSON
+  %% Fund Transfer
+  Parent->>WebApp: Initiate fund transfer
+  WebApp->>API: POST /api/youth-accounts/{id}/fund-transfer
+  API->>AccSvc: Validate source, check balance
+  API->>PaySvc: Execute transfer
+  API->>YDB: Update balance
+  API->>NotifSvc: Send notification
+  API-->>WebApp: Transfer result
+  WebApp-->>Parent: Show transfer status
 
-  Parent->>APIGW: POST /api/youth-accounts/{id}/fund-transfer
-  APIGW->>Auth: Validate JWT/OAuth2
-  APIGW->>YouthS: Forward transfer request
-  YouthS->>CoreBank: POST fund transfer
-  YouthS->>DB: Update balance
-  YouthS->>Notification: Send alert
-  YouthS->>APIGW: Return transfer result
-  APIGW->>Parent: Transfer status
+  %% Set Spending Limit
+  Parent->>WebApp: Set/Update spending limit
+  WebApp->>API: PUT /api/youth-accounts/{id}/spending-limit
+  API->>YDB: Update weekly limit
+  API->>NotifSvc: Notify update
+  API-->>WebApp: Limit updated
+  WebApp-->>Parent: Show confirmation
 
-  Parent->>APIGW: PUT /api/youth-accounts/{id}/spending-limit
-  APIGW->>Auth: Validate JWT/OAuth2
-  APIGW->>YouthS: Forward limit update
-  YouthS->>SettingsS: Update spending limit
-  SettingsS->>DB: Persist new limit
-  SettingsS->>YouthS: Confirm update
-  YouthS->>APIGW: Return status
-  APIGW->>Parent: Limit update confirmation
-
-  Parent->>APIGW: GET /api/youth-accounts/{id}/transactions
-  APIGW->>Auth: Validate JWT/OAuth2
-  APIGW->>YouthS: Forward request
-  YouthS->>TxnS: Fetch transactions
-  TxnS->>CoreBank: Proxy transaction query
-  YouthS->>APIGW: Return transaction list
-  APIGW->>Parent: Return transactions
+  %% Transaction History
+  Parent->>WebApp: View transaction history
+  WebApp->>API: GET /api/youth-accounts/{id}/transactions
+  API->>TxnSvc: Fetch transactions
+  API-->>WebApp: Transaction list
+  WebApp-->>Parent: Display transactions
