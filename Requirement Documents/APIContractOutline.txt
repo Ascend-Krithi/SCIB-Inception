@@ -1,99 +1,721 @@
-# API Contract Outline: Youth Account Management
+# API Contract Outline
 
-## 1. GET /api/youth-accounts/{youthAccountId}/dashboard
-- **Method**: GET
-- **Request**: Path param: youthAccountId
-- **Response**:
+## Overview
+This document outlines the API contract for the enterprise solution, defining the major endpoints, methods, request/response schemas, and error handling patterns. The API follows RESTful principles and includes comprehensive security, validation, and error handling mechanisms.
+
+## API Design Principles
+- RESTful architecture with resource-based URLs
+- Consistent HTTP status codes and error responses
+- JSON-first approach for request/response payloads
+- Comprehensive input validation and sanitization
+- Rate limiting and throttling protection
+- OAuth 2.0 / JWT-based authentication
+- API versioning through URL path (/v1/, /v2/)
+- CORS support for web applications
+- OpenAPI 3.0 specification compliance
+
+## Authentication
+All API endpoints require authentication unless explicitly marked as public.
+
+**Authentication Method**: Bearer Token (JWT)
+**Header**: `Authorization: Bearer <jwt_token>`
+**Token Expiration**: 1 hour (configurable)
+**Refresh Token**: Available for token renewal
+
+## Global Error Handling
+
+### Standard Error Response Format
 ```json
 {
-  "youthAccountId": "string",
-  "accountBalance": "decimal",
-  "spendingLimit": "decimal",
-  "currency": "string",
-  "recentTransactions": [
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Additional error details",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/v1/users",
+    "traceId": "abc123-def456-ghi789"
+  }
+}
+```
+
+### Common HTTP Status Codes
+- **200 OK**: Successful GET, PUT, PATCH
+- **201 Created**: Successful POST
+- **204 No Content**: Successful DELETE
+- **400 Bad Request**: Invalid request data
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **409 Conflict**: Resource conflict (e.g., duplicate)
+- **422 Unprocessable Entity**: Validation errors
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: Server error
+- **503 Service Unavailable**: Service temporarily unavailable
+
+## Rate Limiting
+- **Default Limit**: 1000 requests per hour per user
+- **Burst Limit**: 100 requests per minute
+- **Headers**: 
+  - `X-RateLimit-Limit`: Total requests allowed
+  - `X-RateLimit-Remaining`: Remaining requests
+  - `X-RateLimit-Reset`: Reset timestamp
+
+---
+
+## Authentication Endpoints
+
+### POST /api/v1/auth/login
+**Description**: Authenticate user and obtain access token
+
+**Request Schema**:
+```json
+{
+  "username": "string", // Required, 3-50 characters
+  "password": "string", // Required, minimum 8 characters
+  "rememberMe": "boolean" // Optional, default false
+}
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "tokenType": "Bearer",
+  "expiresIn": 3600,
+  "user": {
+    "id": "string",
+    "username": "string",
+    "email": "string",
+    "roles": ["string"]
+  }
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid request format
+- **401 Unauthorized**: Invalid credentials
+- **429 Too Many Requests**: Too many login attempts
+
+### POST /api/v1/auth/refresh
+**Description**: Refresh access token using refresh token
+
+**Request Schema**:
+```json
+{
+  "refreshToken": "string" // Required
+}
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "accessToken": "string",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid refresh token format
+- **401 Unauthorized**: Expired or invalid refresh token
+
+### POST /api/v1/auth/logout
+**Description**: Invalidate current session and tokens
+
+**Request Schema**: No body required
+
+**Response Schema** (204 No Content): Empty response
+
+**Error Handling**:
+- **401 Unauthorized**: Invalid or expired token
+
+---
+
+## User Management Endpoints
+
+### GET /api/v1/users
+**Description**: Retrieve paginated list of users
+
+**Query Parameters**:
+- `page`: Page number (default: 1)
+- `size`: Page size (default: 20, max: 100)
+- `sort`: Sort field (default: username)
+- `order`: Sort order (asc/desc, default: asc)
+- `search`: Search term for username/email
+- `role`: Filter by role
+- `active`: Filter by active status (true/false)
+
+**Response Schema** (200 OK):
+```json
+{
+  "data": [
     {
-      "transactionId": "string",
-      "date": "datetime",
+      "id": "string",
+      "username": "string",
+      "email": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "roles": ["string"],
+      "isActive": "boolean",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "lastLoginAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "size": 20,
+    "totalElements": 150,
+    "totalPages": 8,
+    "hasNext": true,
+    "hasPrevious": false
+  }
+}
+```
+
+**Error Handling**:
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **422 Unprocessable Entity**: Invalid query parameters
+
+### GET /api/v1/users/{id}
+**Description**: Retrieve specific user by ID
+
+**Path Parameters**:
+- `id`: User ID (UUID format)
+
+**Response Schema** (200 OK):
+```json
+{
+  "id": "string",
+  "username": "string",
+  "email": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "phoneNumber": "string",
+  "roles": ["string"],
+  "permissions": ["string"],
+  "isActive": "boolean",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z",
+  "lastLoginAt": "2024-01-15T10:30:00Z",
+  "profile": {
+    "department": "string",
+    "jobTitle": "string",
+    "manager": "string"
+  }
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid user ID format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: User not found
+
+### POST /api/v1/users
+**Description**: Create new user
+
+**Request Schema**:
+```json
+{
+  "username": "string", // Required, 3-50 characters, unique
+  "email": "string", // Required, valid email format, unique
+  "password": "string", // Required, minimum 8 characters
+  "firstName": "string", // Required, 1-50 characters
+  "lastName": "string", // Required, 1-50 characters
+  "phoneNumber": "string", // Optional, valid phone format
+  "roles": ["string"], // Required, valid role names
+  "isActive": "boolean", // Optional, default true
+  "profile": {
+    "department": "string", // Optional
+    "jobTitle": "string", // Optional
+    "manager": "string" // Optional, valid user ID
+  }
+}
+```
+
+**Response Schema** (201 Created):
+```json
+{
+  "id": "string",
+  "username": "string",
+  "email": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "phoneNumber": "string",
+  "roles": ["string"],
+  "isActive": "boolean",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid request format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **409 Conflict**: Username or email already exists
+- **422 Unprocessable Entity**: Validation errors
+
+### PUT /api/v1/users/{id}
+**Description**: Update existing user (full update)
+
+**Path Parameters**:
+- `id`: User ID (UUID format)
+
+**Request Schema**:
+```json
+{
+  "username": "string", // Required, 3-50 characters
+  "email": "string", // Required, valid email format
+  "firstName": "string", // Required, 1-50 characters
+  "lastName": "string", // Required, 1-50 characters
+  "phoneNumber": "string", // Optional, valid phone format
+  "roles": ["string"], // Required, valid role names
+  "isActive": "boolean", // Required
+  "profile": {
+    "department": "string", // Optional
+    "jobTitle": "string", // Optional
+    "manager": "string" // Optional, valid user ID
+  }
+}
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "id": "string",
+  "username": "string",
+  "email": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "phoneNumber": "string",
+  "roles": ["string"],
+  "isActive": "boolean",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid user ID or request format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: User not found
+- **409 Conflict**: Username or email conflict
+- **422 Unprocessable Entity**: Validation errors
+
+### PATCH /api/v1/users/{id}
+**Description**: Partial update of user
+
+**Path Parameters**:
+- `id`: User ID (UUID format)
+
+**Request Schema** (all fields optional):
+```json
+{
+  "firstName": "string",
+  "lastName": "string",
+  "phoneNumber": "string",
+  "isActive": "boolean",
+  "profile": {
+    "department": "string",
+    "jobTitle": "string"
+  }
+}
+```
+
+**Response Schema** (200 OK): Same as PUT response
+
+**Error Handling**: Same as PUT
+
+### DELETE /api/v1/users/{id}
+**Description**: Soft delete user (deactivate)
+
+**Path Parameters**:
+- `id`: User ID (UUID format)
+
+**Response Schema** (204 No Content): Empty response
+
+**Error Handling**:
+- **400 Bad Request**: Invalid user ID format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: User not found
+- **409 Conflict**: Cannot delete user with active dependencies
+
+### POST /api/v1/users/{id}/reset-password
+**Description**: Reset user password (admin only)
+
+**Path Parameters**:
+- `id`: User ID (UUID format)
+
+**Request Schema**:
+```json
+{
+  "temporaryPassword": "string", // Optional, auto-generated if not provided
+  "forcePasswordChange": "boolean" // Optional, default true
+}
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "message": "Password reset successfully",
+  "temporaryPassword": "string", // Only if auto-generated
+  "passwordResetRequired": "boolean"
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid user ID format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: User not found
+
+---
+
+## Role Management Endpoints
+
+### GET /api/v1/roles
+**Description**: Retrieve list of available roles
+
+**Query Parameters**:
+- `includePermissions`: Include permissions in response (true/false, default: false)
+
+**Response Schema** (200 OK):
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "name": "string",
       "description": "string",
-      "amount": "decimal"
+      "isSystem": "boolean",
+      "permissions": ["string"], // Only if includePermissions=true
+      "createdAt": "2024-01-15T10:30:00Z"
     }
   ]
 }
 ```
-- **Error Handling**:
-  - 403 Forbidden (unauthorized)
-  - 404 Not Found (invalid account)
 
-## 2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- **Method**: POST
-- **Request**:
-```json
-{
-  "sourceAccountId": "string",
-  "transferAmount": "decimal",
-  "currency": "string"
-}
-```
-- **Response**:
-```json
-{
-  "transferId": "string",
-  "status": "SUCCESS",
-  "updatedBalance": "decimal"
-}
-```
-- **Error Handling**:
-  - 400 Bad Request (insufficient funds, invalid mapping)
-  - 500 Internal Server Error (transfer service failure)
+**Error Handling**:
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
 
-## 3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- **Method**: PUT
-- **Request**:
-```json
-{
-  "weeklyLimit": "decimal"
-}
-```
-- **Response**:
-```json
-{
-  "youthAccountId": "string",
-  "weeklyLimit": "decimal",
-  "status": "UPDATED"
-}
-```
-- **Error Handling**:
-  - 400 Bad Request (invalid value)
-  - 403 Forbidden (unauthorized)
+### GET /api/v1/roles/{id}
+**Description**: Retrieve specific role by ID
 
-## 4. GET /api/youth-accounts/{youthAccountId}/transactions
-- **Method**: GET
-- **Request Query Params**: startDate, endDate, page, pageSize
-- **Response**:
+**Path Parameters**:
+- `id`: Role ID (UUID format)
+
+**Response Schema** (200 OK):
 ```json
 {
-  "transactions": [
+  "id": "string",
+  "name": "string",
+  "description": "string",
+  "isSystem": "boolean",
+  "permissions": [
     {
-      "transactionId": "string",
-      "date": "datetime",
-      "merchant": "string",
-      "amount": "decimal",
-      "transactionType": "debit | credit"
+      "id": "string",
+      "name": "string",
+      "resource": "string",
+      "action": "string",
+      "description": "string"
+    }
+  ],
+  "userCount": "number",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: Invalid role ID format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Role not found
+
+---
+
+## Audit Log Endpoints
+
+### GET /api/v1/audit-logs
+**Description**: Retrieve audit logs with filtering
+
+**Query Parameters**:
+- `page`: Page number (default: 1)
+- `size`: Page size (default: 50, max: 200)
+- `userId`: Filter by user ID
+- `action`: Filter by action type
+- `resource`: Filter by resource type
+- `fromDate`: Start date (ISO 8601 format)
+- `toDate`: End date (ISO 8601 format)
+- `ipAddress`: Filter by IP address
+
+**Response Schema** (200 OK):
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "userId": "string",
+      "username": "string",
+      "action": "string",
+      "resource": "string",
+      "resourceId": "string",
+      "details": "object",
+      "ipAddress": "string",
+      "userAgent": "string",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "success": "boolean",
+      "errorMessage": "string"
     }
   ],
   "pagination": {
-    "page": "number",
-    "pageSize": "number",
-    "totalRecords": "number"
+    "page": 1,
+    "size": 50,
+    "totalElements": 1000,
+    "totalPages": 20,
+    "hasNext": true,
+    "hasPrevious": false
   }
 }
 ```
-- **Error Handling**:
-  - 403 Forbidden (unauthorized)
-  - 404 Not Found (invalid account)
 
-## 5. Common Aspects
-- **Authentication**: OAuth2 Bearer Token
-- **Authorization**: RBAC, parent must own youth account
-- **Validation**: All inputs validated, descriptive errors
-- **Audit Logging**: All requests and changes logged
+**Error Handling**:
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions (audit access required)
+- **422 Unprocessable Entity**: Invalid date range or parameters
+
+---
+
+## Health Check and Monitoring Endpoints
+
+### GET /api/v1/health
+**Description**: Basic health check (public endpoint)
+
+**Response Schema** (200 OK):
+```json
+{
+  "status": "UP",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0",
+  "environment": "production"
+}
+```
+
+### GET /api/v1/health/detailed
+**Description**: Detailed health check with dependencies (admin only)
+
+**Response Schema** (200 OK):
+```json
+{
+  "status": "UP",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0",
+  "environment": "production",
+  "components": {
+    "database": {
+      "status": "UP",
+      "responseTime": "15ms",
+      "details": {
+        "activeConnections": 25,
+        "maxConnections": 100
+      }
+    },
+    "cache": {
+      "status": "UP",
+      "responseTime": "2ms",
+      "details": {
+        "hitRate": "95.2%",
+        "memoryUsage": "45%"
+      }
+    },
+    "externalServices": {
+      "authProvider": {
+        "status": "UP",
+        "responseTime": "120ms"
+      },
+      "paymentGateway": {
+        "status": "UP",
+        "responseTime": "200ms"
+      }
+    }
+  }
+}
+```
+
+**Error Handling**:
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Admin access required
+- **503 Service Unavailable**: One or more critical components are down
+
+---
+
+## File Upload Endpoints
+
+### POST /api/v1/files/upload
+**Description**: Upload file with metadata
+
+**Request**: Multipart form data
+- `file`: File binary data (required)
+- `metadata`: JSON string with file metadata (optional)
+
+**Metadata Schema**:
+```json
+{
+  "description": "string",
+  "category": "string",
+  "tags": ["string"],
+  "isPublic": "boolean"
+}
+```
+
+**Response Schema** (201 Created):
+```json
+{
+  "id": "string",
+  "filename": "string",
+  "originalName": "string",
+  "size": "number",
+  "mimeType": "string",
+  "uploadedBy": "string",
+  "uploadedAt": "2024-01-15T10:30:00Z",
+  "downloadUrl": "string",
+  "metadata": {
+    "description": "string",
+    "category": "string",
+    "tags": ["string"],
+    "isPublic": "boolean"
+  }
+}
+```
+
+**Error Handling**:
+- **400 Bad Request**: No file provided or invalid format
+- **401 Unauthorized**: Authentication required
+- **413 Payload Too Large**: File size exceeds limit (10MB)
+- **415 Unsupported Media Type**: File type not allowed
+- **422 Unprocessable Entity**: Invalid metadata
+
+### GET /api/v1/files/{id}/download
+**Description**: Download file by ID
+
+**Path Parameters**:
+- `id`: File ID (UUID format)
+
+**Response**: File binary data with appropriate headers
+
+**Error Handling**:
+- **400 Bad Request**: Invalid file ID format
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: No access to file
+- **404 Not Found**: File not found
+
+---
+
+## Validation Rules
+
+### Common Validation Patterns
+- **Email**: RFC 5322 compliant email format
+- **Phone**: E.164 international format
+- **Password**: Minimum 8 characters, at least one uppercase, lowercase, number, and special character
+- **Username**: 3-50 characters, alphanumeric and underscore only
+- **UUID**: Standard UUID v4 format
+- **Date**: ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)
+
+### Input Sanitization
+- HTML encoding for text fields
+- SQL injection prevention
+- XSS protection
+- Path traversal prevention
+- File upload validation
+
+### Rate Limiting by Endpoint
+- Authentication endpoints: 5 requests per minute
+- File upload endpoints: 10 requests per minute
+- Standard CRUD endpoints: 100 requests per minute
+- Read-only endpoints: 200 requests per minute
+
+---
+
+## API Versioning Strategy
+
+### Version Format
+- URL Path: `/api/v1/`, `/api/v2/`
+- Semantic versioning for internal tracking
+- Backward compatibility maintained for one major version
+
+### Deprecation Process
+1. Announce deprecation 6 months in advance
+2. Add deprecation headers to responses
+3. Provide migration guide and timeline
+4. Sunset old version after 12 months
+
+### Version Headers
+- `API-Version`: Current API version
+- `API-Deprecated`: Deprecation notice (if applicable)
+- `API-Sunset`: Sunset date (if applicable)
+
+---
+
+## Security Considerations
+
+### Authentication Security
+- JWT tokens with short expiration (1 hour)
+- Refresh token rotation
+- Secure token storage recommendations
+- Account lockout after failed attempts
+
+### Authorization Security
+- Principle of least privilege
+- Resource-level access control
+- Role-based permissions
+- API endpoint authorization
+
+### Data Security
+- Input validation and sanitization
+- Output encoding
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+
+### Transport Security
+- TLS 1.3 encryption
+- HSTS headers
+- Certificate pinning recommendations
+- Secure cookie attributes
+
+---
+
+## Monitoring and Observability
+
+### Request Tracking
+- Unique request ID (`X-Request-ID` header)
+- Distributed tracing support
+- Request/response logging
+- Performance metrics
+
+### Health Monitoring
+- Endpoint availability monitoring
+- Response time tracking
+- Error rate monitoring
+- Dependency health checks
+
+### Audit Logging
+- All API calls logged
+- User action tracking
+- Security event logging
+- Compliance audit trails
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: [Current Date]
+**API Version**: v1
+**OpenAPI Specification**: Available at `/api/v1/swagger.json`
+
+---
+
+This API contract outline provides comprehensive coverage of the enterprise solution's API endpoints, following RESTful principles and enterprise security standards. All endpoints include proper authentication, authorization, validation, error handling, and audit logging capabilities.
