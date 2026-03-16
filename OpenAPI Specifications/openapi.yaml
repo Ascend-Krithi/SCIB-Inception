@@ -2,53 +2,45 @@ openapi: 3.0.3
 info:
   title: Enterprise Solution API
   description: |
-    Comprehensive enterprise-grade API for the business solution providing user management, authentication, 
-    audit logging, file management, and health monitoring capabilities. This API follows RESTful principles 
-    and includes comprehensive security, validation, and error handling mechanisms.
+    Comprehensive API specification for the enterprise solution, synthesized from High-Level Design Document and API Contract Outline.
     
-    ## Key Features
-    - OAuth 2.0 / JWT-based authentication
-    - Role-based access control (RBAC)
-    - Comprehensive audit logging
-    - File upload and download capabilities
-    - Health monitoring and observability
-    - Rate limiting and throttling protection
-    - CORS support for web applications
-    - OpenAPI 3.0 specification compliance
+    This API provides secure, scalable, and compliant endpoints for:
+    - User authentication and management
+    - Business entity operations
+    - Audit and compliance reporting
+    - System health monitoring
     
     ## Security
-    All API endpoints require authentication unless explicitly marked as public.
-    Authentication is performed using Bearer Token (JWT) in the Authorization header.
-    
-    ## Rate Limiting
-    - Default Limit: 1000 requests per hour per user
-    - Burst Limit: 100 requests per minute
-    - Authentication endpoints: 5 requests per minute
-    - File upload endpoints: 10 requests per minute
+    All endpoints require Bearer token authentication unless otherwise specified.
     
     ## Compliance
-    This API is designed to meet enterprise compliance requirements including:
-    - GDPR (General Data Protection Regulation)
-    - PCI-DSS (Payment Card Industry Data Security Standard)
-    - ISO 27001 (Information Security Management)
-    - SOC 2 Type II (Service Organization Control)
+    This API is designed to meet GDPR, PCI-DSS, SOX, HIPAA, and ISO 27001 compliance requirements.
+    
+    ## Rate Limiting
+    - Authenticated users: 1000 requests per hour
+    - Anonymous users: 100 requests per hour
+    
+    ## Support
+    For API support, contact: api-support@enterprise-solution.com
   version: 1.0.0
   contact:
-    name: Enterprise Solution Team
-    email: api-support@enterprise.com
-    url: https://enterprise.com/support
+    name: API Support Team
+    email: api-support@enterprise-solution.com
+    url: https://api.enterprise-solution.com/docs
   license:
     name: Proprietary
-    url: https://enterprise.com/license
-  termsOfService: https://enterprise.com/terms
+    url: https://enterprise-solution.com/license
 
 servers:
-  - url: https://api.enterprise.com/v1
+  - url: https://api.enterprise-solution.com/v1
     description: Production server
-  - url: https://staging-api.enterprise.com/v1
+  - url: https://staging-api.enterprise-solution.com/v1
     description: Staging server
-  - url: https://dev-api.enterprise.com/v1
+  - url: https://dev-api.enterprise-solution.com/v1
     description: Development server
+
+security:
+  - BearerAuth: []
 
 paths:
   # Authentication Endpoints
@@ -56,9 +48,10 @@ paths:
     post:
       tags:
         - Authentication
-      summary: User login
-      description: Authenticate user and obtain access token
-      operationId: loginUser
+      summary: User authentication and token generation
+      description: Authenticate user credentials and generate access tokens
+      operationId: authenticateUser
+      security: []
       requestBody:
         required: true
         content:
@@ -69,19 +62,12 @@ paths:
               standard_login:
                 summary: Standard login
                 value:
-                  username: "john.doe"
-                  password: "SecurePass123!"
-                  rememberMe: false
+                  email: user@example.com
+                  password: SecurePassword123!
+                  remember_me: false
       responses:
         '200':
-          description: Login successful
-          headers:
-            X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
-            X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
-            X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
+          description: Authentication successful
           content:
             application/json:
               schema:
@@ -90,12 +76,12 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/RateLimitExceeded'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 5
-      x-rate-limit-window: 60
 
   /auth/refresh:
     post:
@@ -104,6 +90,7 @@ paths:
       summary: Refresh access token
       description: Refresh access token using refresh token
       operationId: refreshToken
+      security: []
       requestBody:
         required: true
         content:
@@ -123,18 +110,14 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 10
-      x-rate-limit-window: 60
 
   /auth/logout:
     post:
       tags:
         - Authentication
       summary: User logout
-      description: Invalidate current session and tokens
+      description: Invalidate user session and tokens
       operationId: logoutUser
-      security:
-        - BearerAuth: []
       responses:
         '204':
           description: Logout successful
@@ -148,19 +131,28 @@ paths:
     get:
       tags:
         - User Management
-      summary: Get users list
-      description: Retrieve paginated list of users with filtering and sorting
+      summary: Retrieve list of users
+      description: Get paginated list of users with optional filtering
       operationId: getUsers
-      security:
-        - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/SizeParam'
-        - $ref: '#/components/parameters/SortParam'
-        - $ref: '#/components/parameters/OrderParam'
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
         - name: search
           in: query
-          description: Search term for username/email
+          description: Search by name or email
           schema:
             type: string
             maxLength: 100
@@ -169,12 +161,12 @@ paths:
           description: Filter by role
           schema:
             type: string
-            maxLength: 50
-        - name: active
+        - name: status
           in: query
-          description: Filter by active status
+          description: Filter by status
           schema:
-            type: boolean
+            type: string
+            enum: [active, inactive]
       responses:
         '200':
           description: Users retrieved successfully
@@ -187,11 +179,9 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 100
-      x-rate-limit-window: 60
 
     post:
       tags:
@@ -199,8 +189,6 @@ paths:
       summary: Create new user
       description: Create a new user account
       operationId: createUser
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -213,7 +201,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -223,38 +211,40 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 50
-      x-rate-limit-window: 60
 
   /users/{id}:
     get:
       tags:
         - User Management
       summary: Get user by ID
-      description: Retrieve specific user by ID
+      description: Retrieve specific user details
       operationId: getUserById
-      security:
-        - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/UserIdParam'
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: User retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserDetailResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/UserDetails'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -262,12 +252,16 @@ paths:
       tags:
         - User Management
       summary: Update user
-      description: Update existing user (full update)
+      description: Update existing user information
       operationId: updateUser
-      security:
-        - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/UserIdParam'
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -280,45 +274,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-    patch:
-      tags:
-        - User Management
-      summary: Partial update user
-      description: Partial update of user information
-      operationId: patchUser
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/UserIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchUserRequest'
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -328,151 +284,188 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
     delete:
       tags:
         - User Management
-      summary: Delete user
-      description: Soft delete user (deactivate)
-      operationId: deleteUser
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/UserIdParam'
-      responses:
-        '204':
-          description: User deleted successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /users/{id}/reset-password:
-    post:
-      tags:
-        - User Management
-      summary: Reset user password
-      description: Reset user password (admin only)
-      operationId: resetUserPassword
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/UserIdParam'
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
-      responses:
-        '200':
-          description: Password reset successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResetPasswordResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  # Role Management Endpoints
-  /roles:
-    get:
-      tags:
-        - Role Management
-      summary: Get roles list
-      description: Retrieve list of available roles
-      operationId: getRoles
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: includePermissions
-          in: query
-          description: Include permissions in response
-          schema:
-            type: boolean
-            default: false
-      responses:
-        '200':
-          description: Roles retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RolesResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /roles/{id}:
-    get:
-      tags:
-        - Role Management
-      summary: Get role by ID
-      description: Retrieve specific role by ID with permissions
-      operationId: getRoleById
-      security:
-        - BearerAuth: []
+      summary: Deactivate user
+      description: Deactivate user account (soft delete)
+      operationId: deactivateUser
       parameters:
         - name: id
           in: path
           required: true
-          description: Role ID
+          description: User ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deactivated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Business Entity Endpoints
+  /entities:
+    get:
+      tags:
+        - Business Entities
+      summary: Retrieve business entities
+      description: Get paginated list of business entities with filtering
+      operationId: getEntities
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          description: Filter by entity type
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+        - name: created_after
+          in: query
+          description: Filter entities created after this date
+          schema:
+            type: string
+            format: date-time
+        - name: created_before
+          in: query
+          description: Filter entities created before this date
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Entities retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitiesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Business Entities
+      summary: Create business entity
+      description: Create a new business entity
+      operationId: createEntity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEntityRequest'
+      responses:
+        '201':
+          description: Entity created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /entities/{id}:
+    get:
+      tags:
+        - Business Entities
+      summary: Get entity by ID
+      description: Retrieve specific business entity details with audit trail
+      operationId: getEntityById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Entity ID
           schema:
             type: string
             format: uuid
       responses:
         '200':
-          description: Role retrieved successfully
+          description: Entity retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleDetailResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/EntityDetails'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # Audit Log Endpoints
-  /audit-logs:
+  # Audit and Compliance Endpoints
+  /audit/logs:
     get:
       tags:
-        - Audit Logs
-      summary: Get audit logs
-      description: Retrieve audit logs with filtering
+        - Audit & Compliance
+      summary: Retrieve audit logs
+      description: Get paginated audit logs with filtering capabilities
       operationId: getAuditLogs
-      security:
-        - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/SizeParam'
-        - name: userId
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: user_id
           in: query
           description: Filter by user ID
           schema:
@@ -483,31 +476,23 @@ paths:
           description: Filter by action type
           schema:
             type: string
-            maxLength: 50
         - name: resource
           in: query
           description: Filter by resource type
           schema:
             type: string
-            maxLength: 50
-        - name: fromDate
+        - name: from_date
           in: query
-          description: Start date (ISO 8601 format)
+          description: Filter logs from this date
           schema:
             type: string
             format: date-time
-        - name: toDate
+        - name: to_date
           in: query
-          description: End date (ISO 8601 format)
+          description: Filter logs to this date
           schema:
             type: string
             format: date-time
-        - name: ipAddress
-          in: query
-          description: Filter by IP address
-          schema:
-            type: string
-            format: ipv4
       responses:
         '200':
           description: Audit logs retrieved successfully
@@ -520,20 +505,19 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 200
-      x-rate-limit-window: 60
 
-  # Health Check Endpoints
+  # Health Check and Monitoring Endpoints
   /health:
     get:
       tags:
-        - Health Check
-      summary: Basic health check
-      description: Basic health check (public endpoint)
-      operationId: getHealth
+        - Health & Monitoring
+      summary: System health check
+      description: Check system health and service status
+      operationId: getHealthStatus
+      security: []
       responses:
         '200':
           description: System is healthy
@@ -548,125 +532,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
 
-  /health/detailed:
+  /metrics:
     get:
       tags:
-        - Health Check
-      summary: Detailed health check
-      description: Detailed health check with dependencies (admin only)
-      operationId: getDetailedHealth
-      security:
-        - BearerAuth: []
+        - Health & Monitoring
+      summary: System metrics
+      description: Get system performance metrics (admin only)
+      operationId: getMetrics
       responses:
         '200':
-          description: Detailed health information
+          description: Metrics retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DetailedHealthResponse'
+                $ref: '#/components/schemas/MetricsResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '503':
-          description: One or more components are unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DetailedHealthResponse'
-
-  # File Management Endpoints
-  /files/upload:
-    post:
-      tags:
-        - File Management
-      summary: Upload file
-      description: Upload file with metadata
-      operationId: uploadFile
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FileUploadRequest'
-      responses:
-        '201':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FileUploadResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '413':
-          description: Payload too large
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '415':
-          description: Unsupported media type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-rate-limit: 10
-      x-rate-limit-window: 60
-
-  /files/{id}/download:
-    get:
-      tags:
-        - File Management
-      summary: Download file
-      description: Download file by ID
-      operationId: downloadFile
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: File ID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: File content
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-          headers:
-            Content-Disposition:
-              description: File attachment header
-              schema:
-                type: string
-            Content-Type:
-              description: File MIME type
-              schema:
-                type: string
-            Content-Length:
-              description: File size in bytes
-              schema:
-                type: integer
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -676,1312 +559,664 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: |
-        JWT Bearer token authentication. Include the token in the Authorization header:
-        `Authorization: Bearer <jwt_token>`
-        
-        Token expires in 1 hour and can be refreshed using the /auth/refresh endpoint.
-
-  parameters:
-    PageParam:
-      name: page
-      in: query
-      description: Page number (1-based)
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    
-    SizeParam:
-      name: size
-      in: query
-      description: Page size
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
-    
-    SortParam:
-      name: sort
-      in: query
-      description: Sort field
-      schema:
-        type: string
-        default: "username"
-        maxLength: 50
-    
-    OrderParam:
-      name: order
-      in: query
-      description: Sort order
-      schema:
-        type: string
-        enum: ["asc", "desc"]
-        default: "asc"
-    
-    UserIdParam:
-      name: id
-      in: path
-      required: true
-      description: User ID (UUID format)
-      schema:
-        type: string
-        format: uuid
-
-  headers:
-    X-RateLimit-Limit:
-      description: Total requests allowed per time window
-      schema:
-        type: integer
-    
-    X-RateLimit-Remaining:
-      description: Remaining requests in current time window
-      schema:
-        type: integer
-    
-    X-RateLimit-Reset:
-      description: Time when rate limit resets (Unix timestamp)
-      schema:
-        type: integer
-        format: int64
-
-  responses:
-    BadRequest:
-      description: Bad request - Invalid request format or parameters
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            invalid_format:
-              summary: Invalid request format
-              value:
-                error:
-                  code: "INVALID_REQUEST_FORMAT"
-                  message: "Invalid request format"
-                  details: "Request body must be valid JSON"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
-    
-    Unauthorized:
-      description: Unauthorized - Authentication required or invalid token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            missing_token:
-              summary: Missing authentication token
-              value:
-                error:
-                  code: "AUTHENTICATION_REQUIRED"
-                  message: "Authentication required"
-                  details: "Authorization header with Bearer token is required"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
-    
-    Forbidden:
-      description: Forbidden - Insufficient permissions
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            insufficient_permissions:
-              summary: Insufficient permissions
-              value:
-                error:
-                  code: "INSUFFICIENT_PERMISSIONS"
-                  message: "Insufficient permissions to access this resource"
-                  details: "User role does not have required permissions"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
-    
-    NotFound:
-      description: Not found - Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            user_not_found:
-              summary: User not found
-              value:
-                error:
-                  code: "USER_NOT_FOUND"
-                  message: "User not found"
-                  details: "User with specified ID does not exist"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users/123e4567-e89b-12d3-a456-426614174000"
-                  traceId: "abc123-def456-ghi789"
-    
-    Conflict:
-      description: Conflict - Resource conflict (e.g., duplicate)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            username_exists:
-              summary: Username already exists
-              value:
-                error:
-                  code: "USERNAME_ALREADY_EXISTS"
-                  message: "Username already exists"
-                  details: "A user with this username already exists in the system"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
-    
-    UnprocessableEntity:
-      description: Unprocessable entity - Validation errors
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ValidationErrorResponse'
-          examples:
-            validation_errors:
-              summary: Validation errors
-              value:
-                error:
-                  code: "VALIDATION_ERROR"
-                  message: "Validation failed"
-                  details: "One or more fields contain invalid values"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
-                  validationErrors:
-                    - field: "email"
-                      message: "Invalid email format"
-                      rejectedValue: "invalid-email"
-                    - field: "password"
-                      message: "Password must be at least 8 characters long"
-                      rejectedValue: "123"
-    
-    TooManyRequests:
-      description: Too many requests - Rate limit exceeded
-      headers:
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            rate_limit_exceeded:
-              summary: Rate limit exceeded
-              value:
-                error:
-                  code: "RATE_LIMIT_EXCEEDED"
-                  message: "Rate limit exceeded"
-                  details: "Too many requests. Please try again later."
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/auth/login"
-                  traceId: "abc123-def456-ghi789"
-    
-    InternalServerError:
-      description: Internal server error - Server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            server_error:
-              summary: Internal server error
-              value:
-                error:
-                  code: "INTERNAL_SERVER_ERROR"
-                  message: "An internal server error occurred"
-                  details: "Please try again later or contact support if the problem persists"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  path: "/api/v1/users"
-                  traceId: "abc123-def456-ghi789"
+      description: JWT Bearer token authentication
 
   schemas:
     # Authentication Schemas
     LoginRequest:
       type: object
       required:
-        - username
+        - email
         - password
       properties:
-        username:
+        email:
           type: string
-          minLength: 3
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._-]+$'
-          description: Username (3-50 characters, alphanumeric and special characters)
-          example: "john.doe"
+          format: email
+          description: User email address
+          example: user@example.com
         password:
           type: string
           minLength: 8
-          maxLength: 128
-          format: password
-          description: Password (minimum 8 characters)
-          example: "SecurePass123!"
-        rememberMe:
+          description: User password
+          example: SecurePassword123!
+        remember_me:
           type: boolean
           default: false
-          description: Remember user session for extended period
-          example: false
+          description: Remember user session
 
     LoginResponse:
       type: object
-      required:
-        - accessToken
-        - refreshToken
-        - tokenType
-        - expiresIn
-        - user
       properties:
-        accessToken:
+        access_token:
           type: string
           description: JWT access token
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        refreshToken:
+        refresh_token:
           type: string
-          description: Refresh token for obtaining new access tokens
-          example: "rt_1234567890abcdef"
-        tokenType:
+          description: JWT refresh token
+        token_type:
           type: string
-          enum: ["Bearer"]
+          enum: [Bearer]
           description: Token type
-          example: "Bearer"
-        expiresIn:
+        expires_in:
           type: integer
           description: Token expiration time in seconds
-          example: 3600
         user:
           $ref: '#/components/schemas/UserInfo'
 
     RefreshTokenRequest:
       type: object
       required:
-        - refreshToken
+        - refresh_token
       properties:
-        refreshToken:
+        refresh_token:
           type: string
           description: Valid refresh token
-          example: "rt_1234567890abcdef"
 
     RefreshTokenResponse:
       type: object
-      required:
-        - accessToken
-        - tokenType
-        - expiresIn
       properties:
-        accessToken:
+        access_token:
           type: string
           description: New JWT access token
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        tokenType:
+        token_type:
           type: string
-          enum: ["Bearer"]
+          enum: [Bearer]
           description: Token type
-          example: "Bearer"
-        expiresIn:
+        expires_in:
           type: integer
           description: Token expiration time in seconds
-          example: 3600
 
     # User Management Schemas
     UserInfo:
       type: object
-      required:
-        - id
-        - username
-        - email
-        - roles
       properties:
         id:
           type: string
           format: uuid
-          description: Unique user identifier
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        username:
-          type: string
-          description: Username
-          example: "john.doe"
+          description: User unique identifier
         email:
           type: string
           format: email
-          description: Email address
-          example: "john.doe@enterprise.com"
+          description: User email address
+        first_name:
+          type: string
+          description: User first name
+        last_name:
+          type: string
+          description: User last name
         roles:
           type: array
           items:
             type: string
           description: User roles
-          example: ["USER", "ADMIN"]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User unique identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+        first_name:
+          type: string
+          maxLength: 50
+          description: User first name
+        last_name:
+          type: string
+          maxLength: 50
+          description: User last name
+        roles:
+          type: array
+          items:
+            type: string
+          description: User roles
+        status:
+          type: string
+          enum: [active, inactive]
+          description: User status
+        created_at:
+          type: string
+          format: date-time
+          description: User creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: User last update timestamp
+
+    UserDetails:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            phone:
+              type: string
+              description: User phone number
+            department:
+              type: string
+              maxLength: 100
+              description: User department
+            last_login:
+              type: string
+              format: date-time
+              description: Last login timestamp
 
     CreateUserRequest:
       type: object
       required:
-        - username
         - email
+        - first_name
+        - last_name
         - password
-        - firstName
-        - lastName
         - roles
       properties:
-        username:
-          type: string
-          minLength: 3
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._-]+$'
-          description: Unique username
-          example: "jane.smith"
         email:
           type: string
           format: email
-          maxLength: 255
-          description: Email address (must be unique)
-          example: "jane.smith@enterprise.com"
+          description: User email address (must be unique)
+        first_name:
+          type: string
+          maxLength: 50
+          description: User first name
+        last_name:
+          type: string
+          maxLength: 50
+          description: User last name
         password:
           type: string
           minLength: 8
-          maxLength: 128
-          format: password
-          description: Password (minimum 8 characters)
-          example: "SecurePass123!"
-        firstName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: First name
-          example: "Jane"
-        lastName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: Last name
-          example: "Smith"
-        phoneNumber:
-          type: string
-          pattern: '^\+?[1-9]\d{1,14}$'
-          description: Phone number (E.164 format)
-          example: "+1234567890"
+          description: User password (complexity requirements apply)
         roles:
           type: array
           items:
             type: string
           minItems: 1
-          description: User roles
-          example: ["USER"]
-        isActive:
-          type: boolean
-          default: true
-          description: User active status
-          example: true
-        profile:
-          $ref: '#/components/schemas/UserProfile'
-
-    UpdateUserRequest:
-      type: object
-      required:
-        - username
-        - email
-        - firstName
-        - lastName
-        - roles
-        - isActive
-      properties:
-        username:
+          description: User roles (must be valid role names)
+        phone:
           type: string
-          minLength: 3
-          maxLength: 50
-          pattern: '^[a-zA-Z0-9._-]+$'
-          description: Username
-          example: "jane.smith"
-        email:
-          type: string
-          format: email
-          maxLength: 255
-          description: Email address
-          example: "jane.smith@enterprise.com"
-        firstName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: First name
-          example: "Jane"
-        lastName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: Last name
-          example: "Smith"
-        phoneNumber:
-          type: string
-          pattern: '^\+?[1-9]\d{1,14}$'
-          description: Phone number (E.164 format)
-          example: "+1234567890"
-        roles:
-          type: array
-          items:
-            type: string
-          minItems: 1
-          description: User roles
-          example: ["USER", "ADMIN"]
-        isActive:
-          type: boolean
-          description: User active status
-          example: true
-        profile:
-          $ref: '#/components/schemas/UserProfile'
-
-    PatchUserRequest:
-      type: object
-      properties:
-        firstName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: First name
-          example: "Jane"
-        lastName:
-          type: string
-          minLength: 1
-          maxLength: 50
-          description: Last name
-          example: "Smith"
-        phoneNumber:
-          type: string
-          pattern: '^\+?[1-9]\d{1,14}$'
-          description: Phone number (E.164 format)
-          example: "+1234567890"
-        isActive:
-          type: boolean
-          description: User active status
-          example: true
-        profile:
-          type: object
-          properties:
-            department:
-              type: string
-              maxLength: 100
-              description: Department
-              example: "Engineering"
-            jobTitle:
-              type: string
-              maxLength: 100
-              description: Job title
-              example: "Senior Developer"
-
-    UserProfile:
-      type: object
-      properties:
+          description: User phone number
         department:
           type: string
           maxLength: 100
-          description: Department
-          example: "Engineering"
-        jobTitle:
-          type: string
-          maxLength: 100
-          description: Job title
-          example: "Senior Developer"
-        manager:
-          type: string
-          format: uuid
-          description: Manager user ID
-          example: "456e7890-e12b-34d5-a678-426614174001"
+          description: User department
 
-    UserResponse:
+    UpdateUserRequest:
       type: object
-      required:
-        - id
-        - username
-        - email
-        - firstName
-        - lastName
-        - roles
-        - isActive
-        - createdAt
       properties:
-        id:
+        first_name:
           type: string
-          format: uuid
-          description: User ID
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        username:
+          maxLength: 50
+          description: User first name
+        last_name:
           type: string
-          description: Username
-          example: "jane.smith"
-        email:
-          type: string
-          format: email
-          description: Email address
-          example: "jane.smith@enterprise.com"
-        firstName:
-          type: string
-          description: First name
-          example: "Jane"
-        lastName:
-          type: string
-          description: Last name
-          example: "Smith"
-        phoneNumber:
-          type: string
-          description: Phone number
-          example: "+1234567890"
+          maxLength: 50
+          description: User last name
         roles:
           type: array
           items:
             type: string
-          description: User roles
-          example: ["USER"]
-        isActive:
-          type: boolean
-          description: User active status
-          example: true
-        createdAt:
+          description: User roles (must be valid role names)
+        phone:
           type: string
-          format: date-time
-          description: User creation timestamp
-          example: "2024-01-15T10:30:00Z"
-        updatedAt:
+          description: User phone number
+        department:
           type: string
-          format: date-time
-          description: User last update timestamp
-          example: "2024-01-15T10:30:00Z"
-
-    UserDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/UserResponse'
-        - type: object
-          properties:
-            permissions:
-              type: array
-              items:
-                type: string
-              description: User permissions
-              example: ["USER_READ", "USER_WRITE"]
-            lastLoginAt:
-              type: string
-              format: date-time
-              description: Last login timestamp
-              example: "2024-01-15T10:30:00Z"
-            profile:
-              $ref: '#/components/schemas/UserProfile'
+          maxLength: 100
+          description: User department
+        status:
+          type: string
+          enum: [active, inactive]
+          description: User status
 
     UsersResponse:
       type: object
-      required:
-        - data
-        - pagination
       properties:
         data:
           type: array
           items:
-            type: object
-            required:
-              - id
-              - username
-              - email
-              - firstName
-              - lastName
-              - roles
-              - isActive
-              - createdAt
-            properties:
-              id:
-                type: string
-                format: uuid
-                description: User ID
-                example: "123e4567-e89b-12d3-a456-426614174000"
-              username:
-                type: string
-                description: Username
-                example: "jane.smith"
-              email:
-                type: string
-                format: email
-                description: Email address
-                example: "jane.smith@enterprise.com"
-              firstName:
-                type: string
-                description: First name
-                example: "Jane"
-              lastName:
-                type: string
-                description: Last name
-                example: "Smith"
-              roles:
-                type: array
-                items:
-                  type: string
-                description: User roles
-                example: ["USER"]
-              isActive:
-                type: boolean
-                description: User active status
-                example: true
-              createdAt:
-                type: string
-                format: date-time
-                description: User creation timestamp
-                example: "2024-01-15T10:30:00Z"
-              lastLoginAt:
-                type: string
-                format: date-time
-                description: Last login timestamp
-                example: "2024-01-15T10:30:00Z"
+            $ref: '#/components/schemas/User'
         pagination:
-          $ref: '#/components/schemas/PaginationInfo'
+          $ref: '#/components/schemas/Pagination'
 
-    ResetPasswordRequest:
+    # Business Entity Schemas
+    Entity:
       type: object
-      properties:
-        temporaryPassword:
-          type: string
-          minLength: 8
-          maxLength: 128
-          format: password
-          description: Temporary password (auto-generated if not provided)
-          example: "TempPass123!"
-        forcePasswordChange:
-          type: boolean
-          default: true
-          description: Force password change on next login
-          example: true
-
-    ResetPasswordResponse:
-      type: object
-      required:
-        - message
-        - passwordResetRequired
-      properties:
-        message:
-          type: string
-          description: Success message
-          example: "Password reset successfully"
-        temporaryPassword:
-          type: string
-          description: Temporary password (only if auto-generated)
-          example: "TempPass123!"
-        passwordResetRequired:
-          type: boolean
-          description: Whether password reset is required on next login
-          example: true
-
-    # Role Management Schemas
-    RolesResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            required:
-              - id
-              - name
-              - description
-              - isSystem
-              - createdAt
-            properties:
-              id:
-                type: string
-                format: uuid
-                description: Role ID
-                example: "789e0123-e45b-67d8-a901-426614174002"
-              name:
-                type: string
-                description: Role name
-                example: "ADMIN"
-              description:
-                type: string
-                description: Role description
-                example: "Administrator role with full system access"
-              isSystem:
-                type: boolean
-                description: Whether this is a system role
-                example: true
-              permissions:
-                type: array
-                items:
-                  type: string
-                description: Role permissions (only if includePermissions=true)
-                example: ["USER_READ", "USER_WRITE", "ADMIN_ACCESS"]
-              createdAt:
-                type: string
-                format: date-time
-                description: Role creation timestamp
-                example: "2024-01-15T10:30:00Z"
-
-    RoleDetailResponse:
-      type: object
-      required:
-        - id
-        - name
-        - description
-        - isSystem
-        - permissions
-        - userCount
-        - createdAt
       properties:
         id:
           type: string
           format: uuid
-          description: Role ID
-          example: "789e0123-e45b-67d8-a901-426614174002"
+          description: Entity unique identifier
         name:
           type: string
-          description: Role name
-          example: "ADMIN"
+          maxLength: 200
+          description: Entity name
+        type:
+          type: string
+          description: Entity type
         description:
           type: string
-          description: Role description
-          example: "Administrator role with full system access"
-        isSystem:
-          type: boolean
-          description: Whether this is a system role
-          example: true
-        permissions:
+          maxLength: 1000
+          description: Entity description
+        status:
+          type: string
+          description: Entity status
+        metadata:
+          type: object
+          description: Custom entity metadata
+        tags:
           type: array
           items:
-            type: object
-            required:
-              - id
-              - name
-              - resource
-              - action
-              - description
-            properties:
-              id:
-                type: string
-                format: uuid
-                description: Permission ID
-                example: "abc12345-def6-7890-abcd-426614174003"
-              name:
-                type: string
-                description: Permission name
-                example: "USER_READ"
-              resource:
-                type: string
-                description: Resource type
-                example: "USER"
-              action:
-                type: string
-                description: Action type
-                example: "READ"
-              description:
-                type: string
-                description: Permission description
-                example: "Read user information"
-        userCount:
-          type: integer
-          description: Number of users with this role
-          example: 5
-        createdAt:
+            type: string
+          maxItems: 50
+          description: Entity tags
+        created_by:
+          type: string
+          format: uuid
+          description: Creator user ID
+        created_at:
           type: string
           format: date-time
-          description: Role creation timestamp
-          example: "2024-01-15T10:30:00Z"
-        updatedAt:
+          description: Entity creation timestamp
+        updated_at:
           type: string
           format: date-time
-          description: Role last update timestamp
-          example: "2024-01-15T10:30:00Z"
+          description: Entity last update timestamp
 
-    # Audit Log Schemas
-    AuditLogsResponse:
+    EntityDetails:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            audit_trail:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditEntry'
+              description: Entity audit trail
+
+    CreateEntityRequest:
       type: object
       required:
-        - data
-        - pagination
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          description: Entity name
+        type:
+          type: string
+          description: Entity type (must be valid entity type)
+        description:
+          type: string
+          maxLength: 1000
+          description: Entity description
+        metadata:
+          type: object
+          description: Custom entity metadata
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 50
+          description: Entity tags
+
+    EntitiesResponse:
+      type: object
       properties:
         data:
           type: array
           items:
-            type: object
-            required:
-              - id
-              - userId
-              - username
-              - action
-              - resource
-              - timestamp
-              - success
-            properties:
-              id:
-                type: string
-                format: uuid
-                description: Audit log ID
-                example: "def45678-abc9-0123-def4-426614174004"
-              userId:
-                type: string
-                format: uuid
-                description: User ID who performed the action
-                example: "123e4567-e89b-12d3-a456-426614174000"
-              username:
-                type: string
-                description: Username who performed the action
-                example: "jane.smith"
-              action:
-                type: string
-                description: Action performed
-                example: "USER_CREATE"
-              resource:
-                type: string
-                description: Resource affected
-                example: "USER"
-              resourceId:
-                type: string
-                description: ID of the affected resource
-                example: "456e7890-e12b-34d5-a678-426614174001"
-              details:
-                type: object
-                description: Additional action details
-                example: {"newUser": {"username": "new.user", "email": "new.user@enterprise.com"}}
-              ipAddress:
-                type: string
-                format: ipv4
-                description: IP address of the request
-                example: "192.168.1.100"
-              userAgent:
-                type: string
-                description: User agent string
-                example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-              timestamp:
-                type: string
-                format: date-time
-                description: Timestamp of the action
-                example: "2024-01-15T10:30:00Z"
-              success:
-                type: boolean
-                description: Whether the action was successful
-                example: true
-              errorMessage:
-                type: string
-                description: Error message if action failed
-                example: null
+            $ref: '#/components/schemas/Entity'
         pagination:
-          $ref: '#/components/schemas/PaginationInfo'
+          $ref: '#/components/schemas/Pagination'
 
-    # Health Check Schemas
+    # Audit Schemas
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Audit entry unique identifier
+        user_id:
+          type: string
+          format: uuid
+          description: User who performed the action
+        action:
+          type: string
+          description: Action performed
+        resource:
+          type: string
+          description: Resource affected
+        resource_id:
+          type: string
+          description: Resource identifier
+        details:
+          type: object
+          description: Additional audit details
+        ip_address:
+          type: string
+          format: ipv4
+          description: Client IP address
+        user_agent:
+          type: string
+          description: Client user agent
+        timestamp:
+          type: string
+          format: date-time
+          description: Audit event timestamp
+
+    AuditLogsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    # Health and Monitoring Schemas
     HealthResponse:
       type: object
-      required:
-        - status
-        - timestamp
-        - version
-        - environment
       properties:
         status:
           type: string
-          enum: ["UP", "DOWN"]
-          description: Overall system status
-          example: "UP"
+          enum: [healthy, unhealthy, degraded]
+          description: Overall system health status
         timestamp:
           type: string
           format: date-time
           description: Health check timestamp
-          example: "2024-01-15T10:30:00Z"
         version:
           type: string
           description: Application version
-          example: "1.0.0"
         environment:
           type: string
           description: Environment name
-          example: "production"
-
-    DetailedHealthResponse:
-      allOf:
-        - $ref: '#/components/schemas/HealthResponse'
-        - type: object
-          required:
-            - components
-          properties:
-            components:
-              type: object
-              properties:
-                database:
-                  type: object
-                  required:
-                    - status
-                    - responseTime
-                  properties:
-                    status:
-                      type: string
-                      enum: ["UP", "DOWN"]
-                      example: "UP"
-                    responseTime:
-                      type: string
-                      description: Database response time
-                      example: "15ms"
-                    details:
-                      type: object
-                      properties:
-                        activeConnections:
-                          type: integer
-                          example: 25
-                        maxConnections:
-                          type: integer
-                          example: 100
-                cache:
-                  type: object
-                  required:
-                    - status
-                    - responseTime
-                  properties:
-                    status:
-                      type: string
-                      enum: ["UP", "DOWN"]
-                      example: "UP"
-                    responseTime:
-                      type: string
-                      description: Cache response time
-                      example: "2ms"
-                    details:
-                      type: object
-                      properties:
-                        hitRate:
-                          type: string
-                          example: "95.2%"
-                        memoryUsage:
-                          type: string
-                          example: "45%"
-                externalServices:
-                  type: object
-                  properties:
-                    authProvider:
-                      type: object
-                      required:
-                        - status
-                        - responseTime
-                      properties:
-                        status:
-                          type: string
-                          enum: ["UP", "DOWN"]
-                          example: "UP"
-                        responseTime:
-                          type: string
-                          example: "120ms"
-                    paymentGateway:
-                      type: object
-                      required:
-                        - status
-                        - responseTime
-                      properties:
-                        status:
-                          type: string
-                          enum: ["UP", "DOWN"]
-                          example: "UP"
-                        responseTime:
-                          type: string
-                          example: "200ms"
-
-    # File Management Schemas
-    FileUploadRequest:
-      type: object
-      required:
-        - file
-      properties:
-        file:
-          type: string
-          format: binary
-          description: File to upload (max 10MB)
-        metadata:
-          type: string
-          description: JSON string with file metadata
-          example: '{"description": "User manual", "category": "documentation", "tags": ["manual", "help"], "isPublic": false}'
-
-    FileUploadResponse:
-      type: object
-      required:
-        - id
-        - filename
-        - originalName
-        - size
-        - mimeType
-        - uploadedBy
-        - uploadedAt
-        - downloadUrl
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: File ID
-          example: "ghi78901-jkl2-3456-mno7-426614174005"
-        filename:
-          type: string
-          description: Generated filename
-          example: "20240115_103000_user_manual.pdf"
-        originalName:
-          type: string
-          description: Original filename
-          example: "user_manual.pdf"
-        size:
-          type: integer
-          description: File size in bytes
-          example: 2048576
-        mimeType:
-          type: string
-          description: File MIME type
-          example: "application/pdf"
-        uploadedBy:
-          type: string
-          format: uuid
-          description: ID of user who uploaded the file
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        uploadedAt:
-          type: string
-          format: date-time
-          description: Upload timestamp
-          example: "2024-01-15T10:30:00Z"
-        downloadUrl:
-          type: string
-          format: uri
-          description: File download URL
-          example: "https://api.enterprise.com/v1/files/ghi78901-jkl2-3456-mno7-426614174005/download"
-        metadata:
+        services:
           type: object
           properties:
-            description:
+            database:
               type: string
-              example: "User manual"
-            category:
+              enum: [healthy, unhealthy]
+            cache:
               type: string
-              example: "documentation"
-            tags:
-              type: array
-              items:
-                type: string
-              example: ["manual", "help"]
-            isPublic:
-              type: boolean
-              example: false
+              enum: [healthy, unhealthy]
+            external_apis:
+              type: string
+              enum: [healthy, unhealthy]
+          description: Individual service health status
+
+    MetricsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Metrics collection timestamp
+        metrics:
+          type: object
+          properties:
+            requests_per_minute:
+              type: number
+              description: Current requests per minute
+            average_response_time:
+              type: number
+              description: Average response time in milliseconds
+            error_rate:
+              type: number
+              description: Error rate as percentage
+            active_users:
+              type: integer
+              description: Number of active users
+            database_connections:
+              type: integer
+              description: Active database connections
+            memory_usage:
+              type: number
+              description: Memory usage as percentage
+            cpu_usage:
+              type: number
+              description: CPU usage as percentage
 
     # Common Schemas
-    PaginationInfo:
+    Pagination:
       type: object
-      required:
-        - page
-        - size
-        - totalElements
-        - totalPages
-        - hasNext
-        - hasPrevious
       properties:
-        page:
+        current_page:
           type: integer
-          description: Current page number (1-based)
-          example: 1
-        size:
-          type: integer
-          description: Page size
-          example: 20
-        totalElements:
-          type: integer
-          description: Total number of elements
-          example: 150
-        totalPages:
+          description: Current page number
+        total_pages:
           type: integer
           description: Total number of pages
-          example: 8
-        hasNext:
-          type: boolean
-          description: Whether there is a next page
-          example: true
-        hasPrevious:
-          type: boolean
-          description: Whether there is a previous page
-          example: false
+        total_items:
+          type: integer
+          description: Total number of items
+        items_per_page:
+          type: integer
+          description: Number of items per page
 
     ErrorResponse:
       type: object
-      required:
-        - error
       properties:
         error:
           type: object
-          required:
-            - code
-            - message
-            - timestamp
-            - path
-            - traceId
           properties:
             code:
               type: string
               description: Error code
-              example: "VALIDATION_ERROR"
             message:
               type: string
               description: Human-readable error message
-              example: "Validation failed"
             details:
-              type: string
+              type: object
               description: Additional error details
-              example: "One or more fields contain invalid values"
             timestamp:
               type: string
               format: date-time
               description: Error timestamp
-              example: "2024-01-15T10:30:00Z"
-            path:
+            request_id:
               type: string
-              description: Request path
-              example: "/api/v1/users"
-            traceId:
-              type: string
-              description: Trace ID for debugging
-              example: "abc123-def456-ghi789"
+              format: uuid
+              description: Request identifier for tracking
 
-    ValidationErrorResponse:
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - type: object
-          properties:
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid request format
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
             error:
-              type: object
-              properties:
-                validationErrors:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - field
-                      - message
-                      - rejectedValue
-                    properties:
-                      field:
-                        type: string
-                        description: Field name that failed validation
-                        example: "email"
-                      message:
-                        type: string
-                        description: Validation error message
-                        example: "Invalid email format"
-                      rejectedValue:
-                        description: Value that was rejected
-                        example: "invalid-email"
+              code: INVALID_REQUEST
+              message: The request format is invalid
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: AUTHENTICATION_REQUIRED
+              message: Valid authentication is required
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INSUFFICIENT_PERMISSIONS
+              message: You do not have permission to access this resource
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    NotFound:
+      description: Not Found - Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: RESOURCE_NOT_FOUND
+              message: The requested resource was not found
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: RESOURCE_CONFLICT
+              message: A resource with this identifier already exists
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    ValidationError:
+      description: Unprocessable Entity - Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Request validation failed
+              details:
+                email: Email format is invalid
+                password: Password must be at least 8 characters
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    RateLimitExceeded:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per hour
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when rate limit resets
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: Too many requests. Please try again later.
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+    InternalServerError:
+      description: Internal Server Error - Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An internal server error occurred
+              timestamp: '2023-12-07T10:00:00Z'
+              request_id: 123e4567-e89b-12d3-a456-426614174000
+
+  headers:
+    X-RateLimit-Limit:
+      description: Request limit per hour
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Remaining requests in current window
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: Time when rate limit resets (Unix timestamp)
+      schema:
+        type: integer
+    X-Request-ID:
+      description: Unique request identifier for tracking
+      schema:
+        type: string
+        format: uuid
+    API-Version:
+      description: API version used for the request
+      schema:
+        type: string
+        example: "1.0"
 
 tags:
   - name: Authentication
-    description: |
-      User authentication and session management endpoints.
-      
-      **Features:**
-      - JWT-based authentication
-      - Refresh token support
-      - Session management
-      - Rate limiting for security
-      
-      **Security:**
-      - Account lockout after failed attempts
-      - Rate limiting: 5 requests per minute
-      - Secure token storage recommendations
-      
+    description: User authentication and session management
   - name: User Management
-    description: |
-      Complete user lifecycle management including CRUD operations.
-      
-      **Features:**
-      - User creation, update, and deletion
-      - Pagination and filtering
-      - Role-based access control
-      - Password reset functionality
-      
-      **Security:**
-      - Input validation and sanitization
-      - Role-based authorization
-      - Audit logging for all operations
-      
-  - name: Role Management
-    description: |
-      Role and permission management for RBAC implementation.
-      
-      **Features:**
-      - Role listing and details
-      - Permission management
-      - System vs custom roles
-      
-      **Security:**
-      - Admin-only access
-      - Immutable system roles
-      
-  - name: Audit Logs
-    description: |
-      Comprehensive audit logging for compliance and security monitoring.
-      
-      **Features:**
-      - Complete audit trail
-      - Advanced filtering
-      - Compliance reporting
-      
-      **Security:**
-      - Immutable audit logs
-      - Admin-only access
-      - Retention policies
-      
-  - name: Health Check
-    description: |
-      System health monitoring and status endpoints.
-      
-      **Features:**
-      - Basic and detailed health checks
-      - Dependency monitoring
-      - Performance metrics
-      
-      **Monitoring:**
-      - Real-time status
-      - Component health
-      - Response time tracking
-      
-  - name: File Management
-    description: |
-      File upload and download capabilities with metadata support.
-      
-      **Features:**
-      - Secure file upload (max 10MB)
-      - File metadata management
-      - Access control
-      
-      **Security:**
-      - File type validation
-      - Virus scanning
-      - Access control
+    description: User account management operations
+  - name: Business Entities
+    description: Business entity management operations
+  - name: Audit & Compliance
+    description: Audit logging and compliance reporting
+  - name: Health & Monitoring
+    description: System health checks and monitoring
 
-externalDocs:
-  description: Enterprise Solution Documentation
-  url: https://docs.enterprise.com/api
+# API Extensions for tooling and documentation
+x-tagGroups:
+  - name: Core APIs
+    tags:
+      - Authentication
+      - User Management
+      - Business Entities
+  - name: Operations
+    tags:
+      - Audit & Compliance
+      - Health & Monitoring
 
-# OpenAPI Extensions for additional metadata
-x-api-version: "1.0.0"
-x-api-status: "stable"
+# Compliance and Security Metadata
 x-compliance:
-  - "GDPR"
-  - "PCI-DSS"
-  - "ISO 27001"
-  - "SOC 2"
-x-security-schemes:
-  - "OAuth 2.0"
-  - "JWT"
-  - "RBAC"
-x-rate-limiting:
-  enabled: true
-  default-limit: 1000
-  default-window: 3600
-x-monitoring:
-  enabled: true
-  metrics: true
-  tracing: true
-  logging: true
-x-audit:
-  enabled: true
-  retention: "7 years"
-  compliance: true
+  gdpr: true
+  pci-dss: true
+  sox: true
+  hipaa: true
+  iso27001: true
+
+x-security-requirements:
+  authentication: Bearer Token (JWT)
+  authorization: Role-Based Access Control (RBAC)
+  encryption-at-rest: AES-256
+  encryption-in-transit: TLS 1.3
+  audit-logging: All API calls logged
+  rate-limiting: Per-user and global limits
+
+x-performance-requirements:
+  response-time-95th-percentile: 200ms
+  response-time-99th-percentile: 500ms
+  concurrent-users: 10000
+  throughput: 1000 requests/second
+  availability: 99.99%
+
+x-contact:
+  support-email: api-support@enterprise-solution.com
+  documentation: https://api.enterprise-solution.com/docs
+  status-page: https://status.enterprise-solution.com
