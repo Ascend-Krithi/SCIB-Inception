@@ -1,71 +1,213 @@
-<?xml version="1.0" standalone="no"?>
-<svg width="900" height="600" xmlns="http://www.w3.org/2000/svg">
-  <title>Sequence Diagram - Youth Account Parental Controls</title>
-  <desc>Sequence of major API operations and service interactions for youth account parental controls</desc>
-  <g font-family="Arial" font-size="15">
-    <!-- Lifelines -->
-    <line x1="80" x2="80" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="60" y="50">Parent</text>
-    <line x1="220" x2="220" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="190" y="50">Web UI</text>
-    <line x1="400" x2="400" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="365" y="50">API Gateway</text>
-    <line x1="600" x2="600" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="570" y="50">Auth Service</text>
-    <line x1="750" x2="750" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="710" y="50">Youth Account Svc</text>
-    <line x1="870" x2="870" y1="60" y2="540" stroke="#999" stroke-dasharray="5,5"/>
-    <text x="830" y="50">Txn Service</text>
-
-    <!-- Sequence: Dashboard Load -->
-    <text x="20" y="90">1. Dashboard Load</text>
-    <polygon points="80,100 220,100 220,110 80,110" fill="#e0e0e0" />
-    <line x1="100" x2="220" y1="105" y2="105" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="120" y="95">Open UI</text>
-    <line x1="220" x2="400" y1="120" y2="120" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="250" y="115">GET /dashboard</text>
-    <line x1="400" x2="600" y1="140" y2="140" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="420" y="135">OAuth2 Validate</text>
-    <line x1="600" x2="400" y1="160" y2="160" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="520" y="155">200 OK</text>
-    <line x1="400" x2="750" y1="180" y2="180" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="430" y="175">Read Account</text>
-    <line x1="750" x2="400" y1="200" y2="200" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="650" y="195">Account Data</text>
-    <line x1="400" x2="870" y1="220" y2="220" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="430" y="215">Get Txns</text>
-    <line x1="870" x2="400" y1="240" y2="240" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="800" y="235">Txn List</text>
-    <line x1="400" x2="220" y1="260" y2="260" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="250" y="255">Dashboard Data</text>
-    <line x1="220" x2="80" y1="280" y2="280" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="120" y="275">Render UI</text>
-
-    <!-- Sequence: Fund Transfer -->
-    <text x="20" y="310">2. Fund Transfer</text>
-    <polygon points="80,320 220,320 220,330 80,330" fill="#e0e0e0" />
-    <line x1="100" x2="220" y1="325" y2="325" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="120" y="315">Submit Form</text>
-    <line x1="220" x2="400" y1="340" y2="340" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="250" y="335">POST /fund-transfer</text>
-    <line x1="400" x2="600" y1="360" y2="360" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="420" y="355">OAuth2 Validate</text>
-    <line x1="600" x2="400" y1="380" y2="380" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="520" y="375">200 OK</text>
-    <line x1="400" x2="870" y1="400" y2="400" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="430" y="395">Process Transfer</text>
-    <line x1="870" x2="400" y1="420" y2="420" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="800" y="415">Transfer Result</text>
-    <line x1="400" x2="220" y1="440" y2="440" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="250" y="435">Result</text>
-    <line x1="220" x2="80" y1="460" y2="460" stroke="#333" marker-end="url(#arrow)"/>
-    <text x="120" y="455">Show Status</text>
-
-    <!-- Arrow marker definition -->
-    <defs>
-      <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,0 L0,6 L9,3 z" fill="#333" />
-      </marker>
-    </defs>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; text-anchor: middle; }
+      .actor { font-family: Arial, sans-serif; font-size: 12px; text-anchor: middle; fill: #333; }
+      .lifeline { stroke: #333; stroke-width: 2; stroke-dasharray: 5,5; }
+      .activation { fill: #e1f5fe; stroke: #0277bd; stroke-width: 2; }
+      .message { stroke: #333; stroke-width: 1.5; marker-end: url(#arrowhead); }
+      .message-text { font-family: Arial, sans-serif; font-size: 10px; fill: #333; }
+      .note { fill: #fff3e0; stroke: #f57c00; stroke-width: 1; }
+      .note-text { font-family: Arial, sans-serif; font-size: 9px; fill: #333; }
+      .return { stroke: #666; stroke-width: 1; stroke-dasharray: 3,3; marker-end: url(#arrowhead-dashed); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+    <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="600" y="30" class="title">Enterprise Solution - User Authentication and Entity Management Sequence Diagram</text>
+  
+  <!-- Actors -->
+  <g id="actors">
+    <!-- User -->
+    <rect x="50" y="60" width="80" height="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="5"/>
+    <text x="90" y="85" class="actor">User</text>
+    
+    <!-- Web Application -->
+    <rect x="180" y="60" width="100" height="40" fill="#e8f5e8" stroke="#388e3c" stroke-width="2" rx="5"/>
+    <text x="230" y="85" class="actor">Web Application</text>
+    
+    <!-- API Gateway -->
+    <rect x="330" y="60" width="100" height="40" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+    <text x="380" y="85" class="actor">API Gateway</text>
+    
+    <!-- Auth Service -->
+    <rect x="480" y="60" width="100" height="40" fill="#fce4ec" stroke="#c2185b" stroke-width="2" rx="5"/>
+    <text x="530" y="85" class="actor">Auth Service</text>
+    
+    <!-- Business Service -->
+    <rect x="630" y="60" width="100" height="40" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" rx="5"/>
+    <text x="680" y="85" class="actor">Business Service</text>
+    
+    <!-- Data Service -->
+    <rect x="780" y="60" width="100" height="40" fill="#e0f2f1" stroke="#00695c" stroke-width="2" rx="5"/>
+    <text x="830" y="85" class="actor">Data Service</text>
+    
+    <!-- Database -->
+    <rect x="930" y="60" width="80" height="40" fill="#efebe9" stroke="#5d4037" stroke-width="2" rx="5"/>
+    <text x="970" y="85" class="actor">Database</text>
+    
+    <!-- Audit Service -->
+    <rect x="1060" y="60" width="100" height="40" fill="#ffebee" stroke="#d32f2f" stroke-width="2" rx="5"/>
+    <text x="1110" y="85" class="actor">Audit Service</text>
+  </g>
+  
+  <!-- Lifelines -->
+  <g id="lifelines">
+    <line x1="90" y1="100" x2="90" y2="750" class="lifeline"/>
+    <line x1="230" y1="100" x2="230" y2="750" class="lifeline"/>
+    <line x1="380" y1="100" x2="380" y2="750" class="lifeline"/>
+    <line x1="530" y1="100" x2="530" y2="750" class="lifeline"/>
+    <line x1="680" y1="100" x2="680" y2="750" class="lifeline"/>
+    <line x1="830" y1="100" x2="830" y2="750" class="lifeline"/>
+    <line x1="970" y1="100" x2="970" y2="750" class="lifeline"/>
+    <line x1="1110" y1="100" x2="1110" y2="750" class="lifeline"/>
+  </g>
+  
+  <!-- Sequence Messages -->
+  <g id="messages">
+    <!-- 1. User Login Request -->
+    <line x1="90" y1="130" x2="230" y2="130" class="message"/>
+    <text x="160" y="125" class="message-text">1. POST /auth/login</text>
+    
+    <!-- 2. Forward to API Gateway -->
+    <line x1="230" y1="150" x2="380" y2="150" class="message"/>
+    <text x="305" y="145" class="message-text">2. Forward request</text>
+    
+    <!-- 3. Route to Auth Service -->
+    <line x1="380" y1="170" x2="530" y2="170" class="message"/>
+    <text x="455" y="165" class="message-text">3. Route to auth</text>
+    
+    <!-- 4. Validate Credentials -->
+    <rect x="525" y="180" width="10" height="60" class="activation"/>
+    <line x1="530" y1="190" x2="830" y2="190" class="message"/>
+    <text x="680" y="185" class="message-text">4. Validate user credentials</text>
+    
+    <!-- 5. Query Database -->
+    <line x1="830" y1="210" x2="970" y2="210" class="message"/>
+    <text x="900" y="205" class="message-text">5. Query user</text>
+    
+    <!-- 6. Return User Data -->
+    <line x1="970" y1="230" x2="830" y2="230" class="return"/>
+    <text x="900" y="225" class="message-text">6. User data</text>
+    
+    <!-- 7. Generate JWT Token -->
+    <rect x="525" y="250" width="10" height="30" class="activation"/>
+    <text x="580" y="265" class="message-text">7. Generate JWT</text>
+    
+    <!-- 8. Log Authentication Event -->
+    <line x1="530" y1="290" x2="1110" y2="290" class="message"/>
+    <text x="820" y="285" class="message-text">8. Log auth event</text>
+    
+    <!-- 9. Return Token -->
+    <line x1="530" y1="310" x2="380" y2="310" class="return"/>
+    <text x="455" y="305" class="message-text">9. Return JWT token</text>
+    
+    <!-- 10. Return to Web App -->
+    <line x1="380" y1="330" x2="230" y2="330" class="return"/>
+    <text x="305" y="325" class="message-text">10. Auth response</text>
+    
+    <!-- 11. Return to User -->
+    <line x1="230" y1="350" x2="90" y2="350" class="return"/>
+    <text x="160" y="345" class="message-text">11. Login success</text>
+    
+    <!-- 12. Create Entity Request -->
+    <line x1="90" y1="390" x2="230" y2="390" class="message"/>
+    <text x="160" y="385" class="message-text">12. POST /entities</text>
+    
+    <!-- 13. Forward with JWT -->
+    <line x1="230" y1="410" x2="380" y2="410" class="message"/>
+    <text x="305" y="405" class="message-text">13. Forward + JWT</text>
+    
+    <!-- 14. Validate Token -->
+    <line x1="380" y1="430" x2="530" y2="430" class="message"/>
+    <text x="455" y="425" class="message-text">14. Validate JWT</text>
+    
+    <!-- 15. Token Valid Response -->
+    <line x1="530" y1="450" x2="380" y2="450" class="return"/>
+    <text x="455" y="445" class="message-text">15. Token valid</text>
+    
+    <!-- 16. Route to Business Service -->
+    <line x1="380" y1="470" x2="680" y2="470" class="message"/>
+    <text x="530" y="465" class="message-text">16. Route to business</text>
+    
+    <!-- 17. Process Entity Creation -->
+    <rect x="675" y="480" width="10" height="80" class="activation"/>
+    <line x1="680" y1="490" x2="830" y2="490" class="message"/>
+    <text x="755" y="485" class="message-text">17. Create entity</text>
+    
+    <!-- 18. Insert Entity -->
+    <line x1="830" y1="510" x2="970" y2="510" class="message"/>
+    <text x="900" y="505" class="message-text">18. INSERT entity</text>
+    
+    <!-- 19. Entity Created -->
+    <line x1="970" y1="530" x2="830" y2="530" class="return"/>
+    <text x="900" y="525" class="message-text">19. Entity ID</text>
+    
+    <!-- 20. Log Entity Creation -->
+    <line x1="680" y1="550" x2="1110" y2="550" class="message"/>
+    <text x="895" y="545" class="message-text">20. Log entity creation</text>
+    
+    <!-- 21. Return Entity -->
+    <line x1="680" y1="580" x2="380" y2="580" class="return"/>
+    <text x="530" y="575" class="message-text">21. Entity created</text>
+    
+    <!-- 22. Return to Web App -->
+    <line x1="380" y1="600" x2="230" y2="600" class="return"/>
+    <text x="305" y="595" class="message-text">22. Success response</text>
+    
+    <!-- 23. Return to User -->
+    <line x1="230" y1="620" x2="90" y2="620" class="return"/>
+    <text x="160" y="615" class="message-text">23. Entity created</text>
+  </g>
+  
+  <!-- Notes -->
+  <g id="notes">
+    <!-- Security Note -->
+    <rect x="50" y="660" width="200" height="60" class="note" rx="5"/>
+    <text x="60" y="675" class="note-text">Security Controls:</text>
+    <text x="60" y="690" class="note-text">• JWT Bearer Authentication</text>
+    <text x="60" y="705" class="note-text">• RBAC Authorization</text>
+    
+    <!-- Audit Note -->
+    <rect x="270" y="660" width="200" height="60" class="note" rx="5"/>
+    <text x="280" y="675" class="note-text">Audit & Compliance:</text>
+    <text x="280" y="690" class="note-text">• All actions logged</text>
+    <text x="280" y="705" class="note-text">• Immutable audit trail</text>
+    
+    <!-- Performance Note -->
+    <rect x="490" y="660" width="200" height="60" class="note" rx="5"/>
+    <text x="500" y="675" class="note-text">Performance:</text>
+    <text x="500" y="690" class="note-text">• Response time < 200ms</text>
+    <text x="500" y="705" class="note-text">• Caching enabled</text>
+    
+    <!-- Error Handling Note -->
+    <rect x="710" y="660" width="200" height="60" class="note" rx="5"/>
+    <text x="720" y="675" class="note-text">Error Handling:</text>
+    <text x="720" y="690" class="note-text">• Circuit breaker pattern</text>
+    <text x="720" y="705" class="note-text">• Graceful degradation</text>
+    
+    <!-- Compliance Note -->
+    <rect x="930" y="660" width="220" height="60" class="note" rx="5"/>
+    <text x="940" y="675" class="note-text">Compliance:</text>
+    <text x="940" y="690" class="note-text">• GDPR, PCI-DSS, SOX</text>
+    <text x="940" y="705" class="note-text">• Data encryption at rest/transit</text>
+  </g>
+  
+  <!-- Legend -->
+  <g id="legend">
+    <text x="50" y="780" class="message-text" font-weight="bold">Legend:</text>
+    <line x1="120" y1="775" x2="150" y2="775" class="message"/>
+    <text x="155" y="780" class="message-text">Synchronous Call</text>
+    <line x1="250" y1="775" x2="280" y2="775" class="return"/>
+    <text x="285" y="780" class="message-text">Return/Response</text>
+    <rect x="380" y="770" width="8" height="15" class="activation"/>
+    <text x="395" y="780" class="message-text">Activation</text>
   </g>
 </svg>
