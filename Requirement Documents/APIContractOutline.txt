@@ -1,557 +1,67 @@
-# API Contract Outline
+API Contract Outline
 
-## Overview
-This document outlines the API contracts for the enterprise solution, providing detailed specifications for all major endpoints, request/response schemas, authentication requirements, and error handling mechanisms.
-
-## Base Configuration
-
-### Base URL
-```
-https://api.enterprise-solution.com/v1
-```
-
-### Authentication
-- **Type**: Bearer Token (JWT)
-- **Header**: `Authorization: Bearer <token>`
-- **Token Expiry**: 1 hour
-- **Refresh Token**: Available for token renewal
-
-### Content Type
-- **Request**: `application/json`
-- **Response**: `application/json`
-
-### Rate Limiting
-- **Authenticated Users**: 1000 requests per hour
-- **Anonymous Users**: 100 requests per hour
-- **Rate Limit Headers**: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
-
-## Authentication Endpoints
-
-### POST /auth/login
-**Purpose**: User authentication and token generation
-
-**Request Schema**:
-```json
-{
-  "email": "string (required, email format)",
-  "password": "string (required, min 8 characters)",
-  "remember_me": "boolean (optional, default: false)"
-}
-```
-
-**Response Schema** (200 OK):
-```json
-{
-  "access_token": "string",
-  "refresh_token": "string",
-  "token_type": "Bearer",
-  "expires_in": "number (seconds)",
-  "user": {
-    "id": "string (UUID)",
-    "email": "string",
-    "first_name": "string",
-    "last_name": "string",
-    "roles": ["string"]
+1. GET /api/youth-accounts/{youthAccountId}/dashboard
+- Method: GET
+- Request: Path param youthAccountId
+- Response:
+  {
+    "youthAccountId": "string",
+    "accountBalance": "decimal",
+    "spendingLimit": "decimal",
+    "currency": "string",
+    "recentTransactions": [
+      { "transactionId": "string", "date": "datetime", "description": "string", "amount": "decimal" }
+    ]
   }
-}
-```
+- Errors: 403 Unauthorized, 404 Not Found
 
-**Error Handling**:
-- `400 Bad Request`: Invalid request format
-- `401 Unauthorized`: Invalid credentials
-- `422 Unprocessable Entity`: Validation errors
-- `429 Too Many Requests`: Rate limit exceeded
-- `500 Internal Server Error`: Server error
-
-### POST /auth/refresh
-**Purpose**: Refresh access token using refresh token
-
-**Request Schema**:
-```json
-{
-  "refresh_token": "string (required)"
-}
-```
-
-**Response Schema** (200 OK):
-```json
-{
-  "access_token": "string",
-  "token_type": "Bearer",
-  "expires_in": "number (seconds)"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid request format
-- `401 Unauthorized`: Invalid or expired refresh token
-- `500 Internal Server Error`: Server error
-
-### POST /auth/logout
-**Purpose**: Invalidate user session and tokens
-
-**Request Schema**: Empty body
-
-**Response Schema** (204 No Content): Empty response
-
-**Error Handling**:
-- `401 Unauthorized`: Invalid or missing token
-- `500 Internal Server Error`: Server error
-
-## User Management Endpoints
-
-### GET /users
-**Purpose**: Retrieve list of users with pagination and filtering
-
-**Query Parameters**:
-- `page`: number (optional, default: 1)
-- `limit`: number (optional, default: 20, max: 100)
-- `search`: string (optional, search by name or email)
-- `role`: string (optional, filter by role)
-- `status`: string (optional, values: active, inactive)
-
-**Response Schema** (200 OK):
-```json
-{
-  "data": [
-    {
-      "id": "string (UUID)",
-      "email": "string",
-      "first_name": "string",
-      "last_name": "string",
-      "roles": ["string"],
-      "status": "string",
-      "created_at": "string (ISO 8601)",
-      "updated_at": "string (ISO 8601)"
-    }
-  ],
-  "pagination": {
-    "current_page": "number",
-    "total_pages": "number",
-    "total_items": "number",
-    "items_per_page": "number"
+2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Method: POST
+- Request:
+  {
+    "sourceAccountId": "string",
+    "transferAmount": "decimal",
+    "currency": "string"
   }
-}
-```
-
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `422 Unprocessable Entity`: Invalid query parameters
-- `500 Internal Server Error`: Server error
-
-### POST /users
-**Purpose**: Create a new user account
-
-**Request Schema**:
-```json
-{
-  "email": "string (required, email format, unique)",
-  "first_name": "string (required, max 50 characters)",
-  "last_name": "string (required, max 50 characters)",
-  "password": "string (required, min 8 characters, complexity requirements)",
-  "roles": ["string (required, valid role names)"],
-  "phone": "string (optional, phone format)",
-  "department": "string (optional, max 100 characters)"
-}
-```
-
-**Response Schema** (201 Created):
-```json
-{
-  "id": "string (UUID)",
-  "email": "string",
-  "first_name": "string",
-  "last_name": "string",
-  "roles": ["string"],
-  "status": "active",
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid request format
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `409 Conflict`: Email already exists
-- `422 Unprocessable Entity`: Validation errors
-- `500 Internal Server Error`: Server error
-
-### GET /users/{id}
-**Purpose**: Retrieve specific user details
-
-**Path Parameters**:
-- `id`: string (required, UUID format)
-
-**Response Schema** (200 OK):
-```json
-{
-  "id": "string (UUID)",
-  "email": "string",
-  "first_name": "string",
-  "last_name": "string",
-  "roles": ["string"],
-  "status": "string",
-  "phone": "string",
-  "department": "string",
-  "last_login": "string (ISO 8601)",
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)"
-}
-```
-
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: User not found
-- `422 Unprocessable Entity`: Invalid user ID format
-- `500 Internal Server Error`: Server error
-
-### PUT /users/{id}
-**Purpose**: Update existing user information
-
-**Path Parameters**:
-- `id`: string (required, UUID format)
-
-**Request Schema**:
-```json
-{
-  "first_name": "string (optional, max 50 characters)",
-  "last_name": "string (optional, max 50 characters)",
-  "roles": ["string (optional, valid role names)"],
-  "phone": "string (optional, phone format)",
-  "department": "string (optional, max 100 characters)",
-  "status": "string (optional, values: active, inactive)"
-}
-```
-
-**Response Schema** (200 OK):
-```json
-{
-  "id": "string (UUID)",
-  "email": "string",
-  "first_name": "string",
-  "last_name": "string",
-  "roles": ["string"],
-  "status": "string",
-  "phone": "string",
-  "department": "string",
-  "updated_at": "string (ISO 8601)"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid request format
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: User not found
-- `422 Unprocessable Entity`: Validation errors
-- `500 Internal Server Error`: Server error
-
-### DELETE /users/{id}
-**Purpose**: Deactivate user account (soft delete)
-
-**Path Parameters**:
-- `id`: string (required, UUID format)
-
-**Response Schema** (204 No Content): Empty response
-
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: User not found
-- `422 Unprocessable Entity`: Invalid user ID format
-- `500 Internal Server Error`: Server error
-
-## Business Entity Endpoints
-
-### GET /entities
-**Purpose**: Retrieve list of business entities with filtering and pagination
-
-**Query Parameters**:
-- `page`: number (optional, default: 1)
-- `limit`: number (optional, default: 20, max: 100)
-- `type`: string (optional, filter by entity type)
-- `status`: string (optional, filter by status)
-- `created_after`: string (optional, ISO 8601 date)
-- `created_before`: string (optional, ISO 8601 date)
-
-**Response Schema** (200 OK):
-```json
-{
-  "data": [
-    {
-      "id": "string (UUID)",
-      "name": "string",
-      "type": "string",
-      "status": "string",
-      "metadata": "object",
-      "created_by": "string (UUID)",
-      "created_at": "string (ISO 8601)",
-      "updated_at": "string (ISO 8601)"
-    }
-  ],
-  "pagination": {
-    "current_page": "number",
-    "total_pages": "number",
-    "total_items": "number",
-    "items_per_page": "number"
+- Response:
+  {
+    "transferId": "string",
+    "status": "SUCCESS",
+    "updatedBalance": "decimal"
   }
-}
-```
+- Errors: 400 Insufficient funds, 400 Invalid account, 500 Transfer failure
 
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `422 Unprocessable Entity`: Invalid query parameters
-- `500 Internal Server Error`: Server error
-
-### POST /entities
-**Purpose**: Create a new business entity
-
-**Request Schema**:
-```json
-{
-  "name": "string (required, max 200 characters)",
-  "type": "string (required, valid entity type)",
-  "description": "string (optional, max 1000 characters)",
-  "metadata": "object (optional, custom fields)",
-  "tags": ["string (optional, max 50 tags)"]
-}
-```
-
-**Response Schema** (201 Created):
-```json
-{
-  "id": "string (UUID)",
-  "name": "string",
-  "type": "string",
-  "description": "string",
-  "status": "active",
-  "metadata": "object",
-  "tags": ["string"],
-  "created_by": "string (UUID)",
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid request format
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `422 Unprocessable Entity`: Validation errors
-- `500 Internal Server Error`: Server error
-
-### GET /entities/{id}
-**Purpose**: Retrieve specific business entity details
-
-**Path Parameters**:
-- `id`: string (required, UUID format)
-
-**Response Schema** (200 OK):
-```json
-{
-  "id": "string (UUID)",
-  "name": "string",
-  "type": "string",
-  "description": "string",
-  "status": "string",
-  "metadata": "object",
-  "tags": ["string"],
-  "created_by": "string (UUID)",
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)",
-  "audit_trail": [
-    {
-      "action": "string",
-      "user_id": "string (UUID)",
-      "timestamp": "string (ISO 8601)",
-      "changes": "object"
-    }
-  ]
-}
-```
-
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Entity not found
-- `422 Unprocessable Entity`: Invalid entity ID format
-- `500 Internal Server Error`: Server error
-
-## Audit and Compliance Endpoints
-
-### GET /audit/logs
-**Purpose**: Retrieve audit logs with filtering and pagination
-
-**Query Parameters**:
-- `page`: number (optional, default: 1)
-- `limit`: number (optional, default: 50, max: 200)
-- `user_id`: string (optional, UUID format)
-- `action`: string (optional, filter by action type)
-- `resource`: string (optional, filter by resource type)
-- `from_date`: string (optional, ISO 8601 date)
-- `to_date`: string (optional, ISO 8601 date)
-
-**Response Schema** (200 OK):
-```json
-{
-  "data": [
-    {
-      "id": "string (UUID)",
-      "user_id": "string (UUID)",
-      "action": "string",
-      "resource": "string",
-      "resource_id": "string",
-      "details": "object",
-      "ip_address": "string",
-      "user_agent": "string",
-      "timestamp": "string (ISO 8601)"
-    }
-  ],
-  "pagination": {
-    "current_page": "number",
-    "total_pages": "number",
-    "total_items": "number",
-    "items_per_page": "number"
+3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Method: PUT
+- Request:
+  {
+    "weeklyLimit": "decimal"
   }
-}
-```
-
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions (audit access required)
-- `422 Unprocessable Entity`: Invalid query parameters
-- `500 Internal Server Error`: Server error
-
-## Health Check and Monitoring Endpoints
-
-### GET /health
-**Purpose**: System health check endpoint
-
-**Response Schema** (200 OK):
-```json
-{
-  "status": "healthy",
-  "timestamp": "string (ISO 8601)",
-  "version": "string",
-  "environment": "string",
-  "services": {
-    "database": "healthy",
-    "cache": "healthy",
-    "external_apis": "healthy"
+- Response:
+  {
+    "youthAccountId": "string",
+    "weeklyLimit": "decimal",
+    "status": "UPDATED"
   }
-}
-```
+- Errors: 400 Validation error, 403 Unauthorized
 
-**Error Handling**:
-- `503 Service Unavailable`: System unhealthy
-
-### GET /metrics
-**Purpose**: System metrics for monitoring (requires admin role)
-
-**Response Schema** (200 OK):
-```json
-{
-  "timestamp": "string (ISO 8601)",
-  "metrics": {
-    "requests_per_minute": "number",
-    "average_response_time": "number (milliseconds)",
-    "error_rate": "number (percentage)",
-    "active_users": "number",
-    "database_connections": "number",
-    "memory_usage": "number (percentage)",
-    "cpu_usage": "number (percentage)"
+4. GET /api/youth-accounts/{youthAccountId}/transactions
+- Method: GET
+- Query params: startDate, endDate, page, pageSize
+- Response:
+  {
+    "transactions": [
+      { "transactionId": "string", "date": "datetime", "merchant": "string", "amount": "decimal", "transactionType": "debit | credit" }
+    ],
+    "pagination": { "page": "number", "pageSize": "number", "totalRecords": "number" }
   }
-}
-```
+- Errors: 403 Unauthorized, 404 Not Found
 
-**Error Handling**:
-- `401 Unauthorized`: Missing or invalid authentication
-- `403 Forbidden`: Insufficient permissions (admin role required)
-- `500 Internal Server Error`: Server error
-
-## Error Response Format
-
-All error responses follow a consistent format:
-
-```json
-{
-  "error": {
-    "code": "string (error code)",
-    "message": "string (human-readable message)",
-    "details": "object (optional, additional error details)",
-    "timestamp": "string (ISO 8601)",
-    "request_id": "string (UUID, for tracking)"
+General:
+- All endpoints: OAuth2 Bearer token required
+- RBAC: Only parent/guardian can manage youth account
+- Standard error response:
+  {
+    "error": "string",
+    "message": "string"
   }
-}
-```
-
-### Common Error Codes
-- `INVALID_REQUEST`: Malformed request
-- `AUTHENTICATION_REQUIRED`: Missing authentication
-- `INVALID_CREDENTIALS`: Invalid login credentials
-- `INSUFFICIENT_PERMISSIONS`: Access denied
-- `RESOURCE_NOT_FOUND`: Requested resource not found
-- `VALIDATION_ERROR`: Request validation failed
-- `RATE_LIMIT_EXCEEDED`: Too many requests
-- `INTERNAL_ERROR`: Server error
-- `SERVICE_UNAVAILABLE`: Service temporarily unavailable
-
-## Versioning Strategy
-
-### API Versioning
-- **Method**: URI versioning (e.g., `/v1/`, `/v2/`)
-- **Backward Compatibility**: Maintained for at least 12 months
-- **Deprecation Notice**: 6 months advance notice
-- **Version Header**: `API-Version` header for version specification
-
-### Schema Evolution
-- **Additive Changes**: New optional fields can be added without version change
-- **Breaking Changes**: Require new API version
-- **Field Deprecation**: Marked as deprecated before removal
-
-## Security Considerations
-
-### Input Validation
-- All inputs validated against schema
-- SQL injection prevention
-- XSS protection
-- CSRF protection
-
-### Output Filtering
-- Sensitive data filtering based on user permissions
-- PII data masking
-- Field-level access control
-
-### Audit Requirements
-- All API calls logged
-- User actions tracked
-- Data access monitored
-- Compliance reporting
-
-## Performance Considerations
-
-### Caching Strategy
-- Response caching for read-heavy endpoints
-- ETags for conditional requests
-- Cache invalidation on data updates
-
-### Pagination
-- Cursor-based pagination for large datasets
-- Configurable page sizes
-- Total count optimization
-
-### Rate Limiting
-- Per-user rate limits
-- Endpoint-specific limits
-- Graceful degradation
-
----
-
-**Document Version**: 1.0
-**Last Updated**: [Current Date]
-**API Version**: v1
-**Contact**: api-support@enterprise-solution.com
