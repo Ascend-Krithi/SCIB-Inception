@@ -1,373 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" height="1000" viewBox="0 0 1400 1000">
+<svg width="1200" height="650" xmlns="http://www.w3.org/2000/svg">
+  <desc>Component Diagram: Youth Account Management Solution - Microservices, API Gateway, Auth, Integrations, Compliance</desc>
+  <g font-family="monospace" font-size="16">
+    <!-- System Boundary -->
+    <rect x="40" y="60" width="1120" height="420" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="60" y="85" font-size="18" font-weight="bold">Banking Web Application (System Boundary)</text>
+    <!-- Web UI -->
+    <rect x="80" y="120" width="180" height="60" fill="#fff" stroke="#1976d2" stroke-width="2"/>
+    <text x="95" y="150">Web UI</text>
+    <text x="95" y="170" font-size="13">React/Angular</text>
+    <!-- API Gateway -->
+    <rect x="300" y="120" width="180" height="60" fill="#fff" stroke="#1976d2" stroke-width="2"/>
+    <text x="315" y="150">API Gateway</text>
+    <text x="315" y="170" font-size="13">Spring Cloud Gateway</text>
+    <!-- Youth Account Service -->
+    <rect x="520" y="120" width="220" height="60" fill="#fff" stroke="#1976d2" stroke-width="2"/>
+    <text x="535" y="150">Youth Account Service</text>
+    <text x="535" y="170" font-size="13">Java/Spring Boot</text>
+    <!-- Auth Service -->
+    <rect x="780" y="120" width="180" height="60" fill="#fff" stroke="#1976d2" stroke-width="2"/>
+    <text x="795" y="150">Auth Service</text>
+    <text x="795" y="170" font-size="13">OAuth 2.0 Server</text>
+    <!-- Core Banking Integration -->
+    <rect x="1040" y="90" width="120" height="60" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+    <text x="1055" y="120">Core Banking</text>
+    <!-- Transaction Service Integration -->
+    <rect x="1040" y="180" width="120" height="60" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+    <text x="1055" y="210">Transaction Service</text>
+    <!-- Flows -->
+    <!-- Web UI -> API Gateway -->
+    <line x1="260" y1="150" x2="300" y2="150" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="270" y="140" font-size="12">REST</text>
+    <!-- API Gateway -> Youth Account Service -->
+    <line x1="480" y1="150" x2="520" y2="150" stroke="#1976d2" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="490" y="140" font-size="12">REST</text>
+    <!-- API Gateway -> Auth Service -->
+    <line x1="390" y1="180" x2="780" y2="180" stroke="#1976d2" stroke-dasharray="8" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="540" y="195" font-size="12">Token Validation</text>
+    <!-- Youth Account Service -> Core Banking -->
+    <line x1="740" y1="150" x2="1040" y2="120" stroke="#fbc02d" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="900" y="130" font-size="12">Account/Fund APIs</text>
+    <!-- Youth Account Service -> Transaction Service -->
+    <line x1="740" y1="170" x2="1040" y2="210" stroke="#fbc02d" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="900" y="200" font-size="12">Transaction Queries</text>
+    <!-- Parent/Guardian -->
+    <rect x="80" y="240" width="120" height="50" fill="#fce4ec" stroke="#d81b60" stroke-width="2"/>
+    <text x="95" y="270">Parent/Guardian</text>
+    <!-- Youth -->
+    <rect x="80" y="320" width="120" height="50" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+    <text x="110" y="350">Youth</text>
+    <!-- Parent/Guardian -> Web UI -->
+    <line x1="140" y1="240" x2="140" y2="180" stroke="#d81b60" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="145" y="200" font-size="12">Login, Manage</text>
+    <!-- Youth -> Core Banking (spend) -->
+    <line x1="200" y1="345" x2="1040" y2="120" stroke="#388e3c" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="650" y="330" font-size="12">Card Spends</text>
+    <!-- Compliance and Audit -->
+    <rect x="40" y="500" width="1120" height="80" fill="#e0f7fa" stroke="#00838f" stroke-width="2"/>
+    <text x="60" y="530" font-size="15">Compliance: GDPR, PCI-DSS, ISO 27001 | All APIs OAuth2 secured, RBAC enforced, audit logged (user, timestamp, action, outcome), logs retained 7 years</text>
+    <text x="60" y="550" font-size="13">Non-Functional: <500ms API, Multi-AZ, stateless, CI/CD, DR, monitoring, centralized logging, input validation, output filtering</text>
+  </g>
   <defs>
-    <style>
-      .title { font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; text-anchor: middle; fill: #1a237e; }
-      .subtitle { font-family: Arial, sans-serif; font-size: 14px; text-anchor: middle; fill: #424242; }
-      .component { fill: #e3f2fd; stroke: #1976d2; stroke-width: 2; }
-      .external { fill: #fff3e0; stroke: #f57c00; stroke-width: 2; }
-      .database { fill: #e8f5e8; stroke: #388e3c; stroke-width: 2; }
-      .security { fill: #ffebee; stroke: #d32f2f; stroke-width: 2; }
-      .monitoring { fill: #f3e5f5; stroke: #7b1fa2; stroke-width: 2; }
-      .component-text { font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle; fill: #1a237e; font-weight: bold; }
-      .component-desc { font-family: Arial, sans-serif; font-size: 9px; text-anchor: middle; fill: #424242; }
-      .connection { stroke: #424242; stroke-width: 2; marker-end: url(#arrowhead); }
-      .bidirectional { stroke: #424242; stroke-width: 2; marker-end: url(#arrowhead); marker-start: url(#arrowhead); }
-      .data-flow { stroke: #4caf50; stroke-width: 2; marker-end: url(#arrowhead-green); }
-      .security-flow { stroke: #f44336; stroke-width: 2; marker-end: url(#arrowhead-red); }
-      .layer-text { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #37474f; }
-      .zone-bg { fill: #fafafa; stroke: #bdbdbd; stroke-width: 1; stroke-dasharray: 5,5; }
-    </style>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#424242" />
-    </marker>
-    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
-    </marker>
-    <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#f44336" />
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 L2,5 z" fill="#1976d2"/>
     </marker>
   </defs>
-  
-  <!-- Title -->
-  <text x="700" y="30" class="title">Enterprise Solution - Component Architecture Diagram</text>
-  <text x="700" y="50" class="subtitle">Microservices Architecture with Security, Compliance, and Monitoring</text>
-  
-  <!-- Presentation Layer Zone -->
-  <rect x="50" y="80" width="1300" height="120" class="zone-bg" rx="10"/>
-  <text x="70" y="100" class="layer-text">Presentation Layer</text>
-  
-  <!-- Web Application -->
-  <rect x="100" y="120" width="150" height="60" class="component" rx="5"/>
-  <text x="175" y="140" class="component-text">Web Application</text>
-  <text x="175" y="155" class="component-desc">React/Angular SPA</text>
-  <text x="175" y="170" class="component-desc">Progressive Web App</text>
-  
-  <!-- Mobile App -->
-  <rect x="280" y="120" width="150" height="60" class="component" rx="5"/>
-  <text x="355" y="140" class="component-text">Mobile Application</text>
-  <text x="355" y="155" class="component-desc">iOS/Android Native</text>
-  <text x="355" y="170" class="component-desc">React Native/Flutter</text>
-  
-  <!-- Admin Console -->
-  <rect x="460" y="120" width="150" height="60" class="component" rx="5"/>
-  <text x="535" y="140" class="component-text">Admin Console</text>
-  <text x="535" y="155" class="component-desc">Administrative UI</text>
-  <text x="535" y="170" class="component-desc">System Management</text>
-  
-  <!-- CDN -->
-  <rect x="640" y="120" width="120" height="60" class="external" rx="5"/>
-  <text x="700" y="140" class="component-text">CDN</text>
-  <text x="700" y="155" class="component-desc">CloudFlare</text>
-  <text x="700" y="170" class="component-desc">Static Assets</text>
-  
-  <!-- Load Balancer -->
-  <rect x="790" y="120" width="120" height="60" class="external" rx="5"/>
-  <text x="850" y="140" class="component-text">Load Balancer</text>
-  <text x="850" y="155" class="component-desc">AWS ALB</text>
-  <text x="850" y="170" class="component-desc">Traffic Distribution</text>
-  
-  <!-- API Gateway Layer Zone -->
-  <rect x="50" y="220" width="1300" height="100" class="zone-bg" rx="10"/>
-  <text x="70" y="240" class="layer-text">API Gateway Layer</text>
-  
-  <!-- API Gateway -->
-  <rect x="300" y="250" width="200" height="60" class="component" rx="5"/>
-  <text x="400" y="270" class="component-text">API Gateway</text>
-  <text x="400" y="285" class="component-desc">Kong/AWS API Gateway</text>
-  <text x="400" y="300" class="component-desc">Routing, Rate Limiting, Auth</text>
-  
-  <!-- Rate Limiter -->
-  <rect x="530" y="250" width="120" height="60" class="security" rx="5"/>
-  <text x="590" y="270" class="component-text">Rate Limiter</text>
-  <text x="590" y="285" class="component-desc">Redis-based</text>
-  <text x="590" y="300" class="component-desc">1000 req/hr</text>
-  
-  <!-- API Documentation -->
-  <rect x="680" y="250" width="120" height="60" class="component" rx="5"/>
-  <text x="740" y="270" class="component-text">API Docs</text>
-  <text x="740" y="285" class="component-desc">Swagger/OpenAPI</text>
-  <text x="740" y="300" class="component-desc">Interactive Docs</text>
-  
-  <!-- Service Layer Zone -->
-  <rect x="50" y="340" width="1300" height="200" class="zone-bg" rx="10"/>
-  <text x="70" y="360" class="layer-text">Microservices Layer</text>
-  
-  <!-- Authentication Service -->
-  <rect x="100" y="380" width="150" height="80" class="security" rx="5"/>
-  <text x="175" y="400" class="component-text">Authentication</text>
-  <text x="175" y="415" class="component-text">Service</text>
-  <text x="175" y="430" class="component-desc">Spring Boot</text>
-  <text x="175" y="445" class="component-desc">JWT, OAuth 2.0, MFA</text>
-  
-  <!-- Business Logic Service -->
-  <rect x="280" y="380" width="150" height="80" class="component" rx="5"/>
-  <text x="355" y="400" class="component-text">Business Logic</text>
-  <text x="355" y="415" class="component-text">Service</text>
-  <text x="355" y="430" class="component-desc">Spring Boot</text>
-  <text x="355" y="445" class="component-desc">Domain Logic, Rules</text>
-  
-  <!-- User Management Service -->
-  <rect x="460" y="380" width="150" height="80" class="component" rx="5"/>
-  <text x="535" y="400" class="component-text">User Management</text>
-  <text x="535" y="415" class="component-text">Service</text>
-  <text x="535" y="430" class="component-desc">Spring Boot</text>
-  <text x="535" y="445" class="component-desc">CRUD, RBAC</text>
-  
-  <!-- Entity Management Service -->
-  <rect x="640" y="380" width="150" height="80" class="component" rx="5"/>
-  <text x="715" y="400" class="component-text">Entity Management</text>
-  <text x="715" y="415" class="component-text">Service</text>
-  <text x="715" y="430" class="component-desc">Spring Boot</text>
-  <text x="715" y="445" class="component-desc">Business Entities</text>
-  
-  <!-- Notification Service -->
-  <rect x="820" y="380" width="150" height="80" class="component" rx="5"/>
-  <text x="895" y="400" class="component-text">Notification</text>
-  <text x="895" y="415" class="component-text">Service</text>
-  <text x="895" y="430" class="component-desc">Node.js</text>
-  <text x="895" y="445" class="component-desc">Email, SMS, Push</text>
-  
-  <!-- Data Access Service -->
-  <rect x="1000" y="380" width="150" height="80" class="component" rx="5"/>
-  <text x="1075" y="400" class="component-text">Data Access</text>
-  <text x="1075" y="415" class="component-text">Service</text>
-  <text x="1075" y="430" class="component-desc">Spring Boot</text>
-  <text x="1075" y="445" class="component-desc">Repository Pattern</text>
-  
-  <!-- Data Layer Zone -->
-  <rect x="50" y="560" width="1300" height="120" class="zone-bg" rx="10"/>
-  <text x="70" y="580" class="layer-text">Data Layer</text>
-  
-  <!-- Primary Database -->
-  <rect x="150" y="600" width="150" height="60" class="database" rx="5"/>
-  <text x="225" y="620" class="component-text">Primary Database</text>
-  <text x="225" y="635" class="component-desc">PostgreSQL</text>
-  <text x="225" y="650" class="component-desc">ACID Transactions</text>
-  
-  <!-- Read Replica -->
-  <rect x="330" y="600" width="150" height="60" class="database" rx="5"/>
-  <text x="405" y="620" class="component-text">Read Replica</text>
-  <text x="405" y="635" class="component-desc">PostgreSQL</text>
-  <text x="405" y="650" class="component-desc">Read-only Queries</text>
-  
-  <!-- Cache -->
-  <rect x="510" y="600" width="120" height="60" class="database" rx="5"/>
-  <text x="570" y="620" class="component-text">Cache</text>
-  <text x="570" y="635" class="component-desc">Redis Cluster</text>
-  <text x="570" y="650" class="component-desc">Session, Data</text>
-  
-  <!-- Audit Database -->
-  <rect x="660" y="600" width="150" height="60" class="database" rx="5"/>
-  <text x="735" y="620" class="component-text">Audit Database</text>
-  <text x="735" y="635" class="component-desc">PostgreSQL</text>
-  <text x="735" y="650" class="component-desc">Immutable Logs</text>
-  
-  <!-- File Storage -->
-  <rect x="840" y="600" width="120" height="60" class="external" rx="5"/>
-  <text x="900" y="620" class="component-text">File Storage</text>
-  <text x="900" y="635" class="component-desc">AWS S3</text>
-  <text x="900" y="650" class="component-desc">Documents, Media</text>
-  
-  <!-- Message Queue -->
-  <rect x="990" y="600" width="120" height="60" class="external" rx="5"/>
-  <text x="1050" y="620" class="component-text">Message Queue</text>
-  <text x="1050" y="635" class="component-desc">Apache Kafka</text>
-  <text x="1050" y="650" class="component-desc">Event Streaming</text>
-  
-  <!-- Monitoring & Security Zone -->
-  <rect x="50" y="700" width="1300" height="180" class="zone-bg" rx="10"/>
-  <text x="70" y="720" class="layer-text">Cross-Cutting Concerns</text>
-  
-  <!-- Audit Service -->
-  <rect x="100" y="740" width="120" height="60" class="security" rx="5"/>
-  <text x="160" y="760" class="component-text">Audit Service</text>
-  <text x="160" y="775" class="component-desc">Spring Boot</text>
-  <text x="160" y="790" class="component-desc">Compliance Logs</text>
-  
-  <!-- Security Scanner -->
-  <rect x="250" y="740" width="120" height="60" class="security" rx="5"/>
-  <text x="310" y="760" class="component-text">Security Scanner</text>
-  <text x="310" y="775" class="component-desc">SAST/DAST</text>
-  <text x="310" y="790" class="component-desc">Vulnerability Mgmt</text>
-  
-  <!-- Monitoring Stack -->
-  <rect x="400" y="740" width="120" height="60" class="monitoring" rx="5"/>
-  <text x="460" y="760" class="component-text">Monitoring</text>
-  <text x="460" y="775" class="component-desc">Prometheus</text>
-  <text x="460" y="790" class="component-desc">Grafana, Alerts</text>
-  
-  <!-- Logging Stack -->
-  <rect x="550" y="740" width="120" height="60" class="monitoring" rx="5"/>
-  <text x="610" y="760" class="component-text">Logging</text>
-  <text x="610" y="775" class="component-desc">ELK Stack</text>
-  <text x="610" y="790" class="component-desc">Centralized Logs</text>
-  
-  <!-- Tracing -->
-  <rect x="700" y="740" width="120" height="60" class="monitoring" rx="5"/>
-  <text x="760" y="760" class="component-text">Tracing</text>
-  <text x="760" y="775" class="component-desc">Jaeger</text>
-  <text x="760" y="790" class="component-desc">Distributed Tracing</text>
-  
-  <!-- Backup Service -->
-  <rect x="850" y="740" width="120" height="60" class="external" rx="5"/>
-  <text x="910" y="760" class="component-text">Backup Service</text>
-  <text x="910" y="775" class="component-desc">AWS Backup</text>
-  <text x="910" y="790" class="component-desc">Automated, Encrypted</text>
-  
-  <!-- Secret Management -->
-  <rect x="1000" y="740" width="120" height="60" class="security" rx="5"/>
-  <text x="1060" y="760" class="component-text">Secret Mgmt</text>
-  <text x="1060" y="775" class="component-desc">HashiCorp Vault</text>
-  <text x="1060" y="790" class="component-desc">Key Rotation</text>
-  
-  <!-- Configuration -->
-  <rect x="1150" y="740" width="120" height="60" class="external" rx="5"/>
-  <text x="1210" y="760" class="component-text">Config Service</text>
-  <text x="1210" y="775" class="component-desc">Spring Cloud</text>
-  <text x="1210" y="790" class="component-desc">Dynamic Config</text>
-  
-  <!-- Health Checks -->
-  <rect x="100" y="820" width="120" height="40" class="monitoring" rx="5"/>
-  <text x="160" y="835" class="component-text">Health Checks</text>
-  <text x="160" y="850" class="component-desc">Actuator Endpoints</text>
-  
-  <!-- Circuit Breaker -->
-  <rect x="250" y="820" width="120" height="40" class="component" rx="5"/>
-  <text x="310" y="835" class="component-text">Circuit Breaker</text>
-  <text x="310" y="850" class="component-desc">Hystrix/Resilience4j</text>
-  
-  <!-- Service Discovery -->
-  <rect x="400" y="820" width="120" height="40" class="external" rx="5"/>
-  <text x="460" y="835" class="component-text">Service Discovery</text>
-  <text x="460" y="850" class="component-desc">Consul/Eureka</text>
-  
-  <!-- External Systems Zone -->
-  <rect x="50" y="890" width="1300" height="80" class="zone-bg" rx="10"/>
-  <text x="70" y="910" class="layer-text">External Integrations</text>
-  
-  <!-- Identity Provider -->
-  <rect x="150" y="920" width="150" height="40" class="external" rx="5"/>
-  <text x="225" y="935" class="component-text">Identity Provider</text>
-  <text x="225" y="950" class="component-desc">OAuth 2.0, SAML</text>
-  
-  <!-- Payment Gateway -->
-  <rect x="330" y="920" width="150" height="40" class="external" rx="5"/>
-  <text x="405" y="935" class="component-text">Payment Gateway</text>
-  <text x="405" y="950" class="component-desc">PCI-DSS Compliant</text>
-  
-  <!-- Email Service -->
-  <rect x="510" y="920" width="120" height="40" class="external" rx="5"/>
-  <text x="570" y="935" class="component-text">Email Service</text>
-  <text x="570" y="950" class="component-desc">SendGrid/SES</text>
-  
-  <!-- SMS Service -->
-  <rect x="660" y="920" width="120" height="40" class="external" rx="5"/>
-  <text x="720" y="935" class="component-text">SMS Service</text>
-  <text x="720" y="950" class="component-desc">Twilio</text>
-  
-  <!-- External APIs -->
-  <rect x="810" y="920" width="120" height="40" class="external" rx="5"/>
-  <text x="870" y="935" class="component-text">External APIs</text>
-  <text x="870" y="950" class="component-desc">Third-party Services</text>
-  
-  <!-- SIEM -->
-  <rect x="960" y="920" width="120" height="40" class="security" rx="5"/>
-  <text x="1020" y="935" class="component-text">SIEM</text>
-  <text x="1020" y="950" class="component-desc">Splunk/QRadar</text>
-  
-  <!-- Connections -->
-  <g id="connections">
-    <!-- Presentation to API Gateway -->
-    <line x1="175" y1="180" x2="400" y2="250" class="connection"/>
-    <line x1="355" y1="180" x2="400" y2="250" class="connection"/>
-    <line x1="535" y1="180" x2="400" y2="250" class="connection"/>
-    
-    <!-- Load Balancer to API Gateway -->
-    <line x1="850" y1="180" x2="450" y2="250" class="connection"/>
-    
-    <!-- API Gateway to Services -->
-    <line x1="350" y1="310" x2="175" y2="380" class="connection"/>
-    <line x1="380" y1="310" x2="355" y2="380" class="connection"/>
-    <line x1="420" y1="310" x2="535" y2="380" class="connection"/>
-    <line x1="450" y1="310" x2="715" y2="380" class="connection"/>
-    
-    <!-- Services to Data Layer -->
-    <line x1="355" y1="460" x2="225" y2="600" class="data-flow"/>
-    <line x1="535" y1="460" x2="405" y2="600" class="data-flow"/>
-    <line x1="715" y1="460" x2="570" y2="600" class="data-flow"/>
-    <line x1="1075" y1="460" x2="735" y2="600" class="data-flow"/>
-    
-    <!-- Authentication to Audit -->
-    <line x1="175" y1="460" x2="160" y2="740" class="security-flow"/>
-    
-    <!-- Services to Monitoring -->
-    <line x1="355" y1="460" x2="460" y2="740" class="connection"/>
-    <line x1="535" y1="460" x2="610" y2="740" class="connection"/>
-    
-    <!-- External Integrations -->
-    <line x1="175" y1="460" x2="225" y2="920" class="connection"/>
-    <line x1="895" y1="460" x2="570" y2="920" class="connection"/>
-    <line x1="895" y1="460" x2="720" y2="920" class="connection"/>
-    
-    <!-- Database Replication -->
-    <line x1="300" y1="630" x2="330" y2="630" class="data-flow"/>
-    
-    <!-- Cache to Services -->
-    <line x1="570" y1="600" x2="355" y2="460" class="bidirectional"/>
-    
-    <!-- Message Queue -->
-    <line x1="895" y1="460" x2="1050" y2="600" class="connection"/>
-  </g>
-  
-  <!-- Compliance and Security Annotations -->
-  <g id="annotations">
-    <!-- Security Zone -->
-    <rect x="1200" y="100" width="180" height="200" fill="#ffebee" stroke="#d32f2f" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-    <text x="1210" y="120" class="component-text" fill="#d32f2f">Security Controls</text>
-    <text x="1210" y="140" class="component-desc">• Multi-Factor Auth</text>
-    <text x="1210" y="155" class="component-desc">• RBAC Authorization</text>
-    <text x="1210" y="170" class="component-desc">• AES-256 Encryption</text>
-    <text x="1210" y="185" class="component-desc">• TLS 1.3 Transit</text>
-    <text x="1210" y="200" class="component-desc">• JWT Bearer Tokens</text>
-    <text x="1210" y="215" class="component-desc">• Input Validation</text>
-    <text x="1210" y="230" class="component-desc">• Rate Limiting</text>
-    <text x="1210" y="245" class="component-desc">• Audit Logging</text>
-    <text x="1210" y="260" class="component-desc">• Vulnerability Scanning</text>
-    <text x="1210" y="275" class="component-desc">• SIEM Integration</text>
-    <text x="1210" y="290" class="component-desc">• Secret Management</text>
-    
-    <!-- Compliance Zone -->
-    <rect x="1200" y="320" width="180" height="160" fill="#e8f5e8" stroke="#388e3c" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-    <text x="1210" y="340" class="component-text" fill="#388e3c">Compliance</text>
-    <text x="1210" y="360" class="component-desc">• GDPR Compliant</text>
-    <text x="1210" y="375" class="component-desc">• PCI-DSS Level 1</text>
-    <text x="1210" y="390" class="component-desc">• SOX Controls</text>
-    <text x="1210" y="405" class="component-desc">• HIPAA Ready</text>
-    <text x="1210" y="420" class="component-desc">• ISO 27001</text>
-    <text x="1210" y="435" class="component-desc">• Data Retention</text>
-    <text x="1210" y="450" class="component-desc">• Right to be Forgotten</text>
-    <text x="1210" y="465" class="component-desc">• Audit Trails</text>
-    
-    <!-- Performance Zone -->
-    <rect x="1200" y="500" width="180" height="140" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-    <text x="1210" y="520" class="component-text" fill="#1976d2">Performance</text>
-    <text x="1210" y="540" class="component-desc">• 99.99% Availability</text>
-    <text x="1210" y="555" class="component-desc">• &lt;200ms Response</text>
-    <text x="1210" y="570" class="component-desc">• 10K Concurrent Users</text>
-    <text x="1210" y="585" class="component-desc">• Auto-scaling</text>
-    <text x="1210" y="600" class="component-desc">• Load Balancing</text>
-    <text x="1210" y="615" class="component-desc">• Caching Strategy</text>
-    <text x="1210" y="630" class="component-desc">• CDN Integration</text>
-    
-    <!-- Disaster Recovery Zone -->
-    <rect x="1200" y="660" width="180" height="120" fill="#fff3e0" stroke="#f57c00" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-    <text x="1210" y="680" class="component-text" fill="#f57c00">Disaster Recovery</text>
-    <text x="1210" y="700" class="component-desc">• RTO &lt; 4 hours</text>
-    <text x="1210" y="715" class="component-desc">• RPO &lt; 1 hour</text>
-    <text x="1210" y="730" class="component-desc">• Multi-region</text>
-    <text x="1210" y="745" class="component-desc">• Automated Backups</text>
-    <text x="1210" y="760" class="component-desc">• Failover Testing</text>
-    <text x="1210" y="775" class="component-desc">• Business Continuity</text>
-  </g>
 </svg>
