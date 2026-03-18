@@ -1,1222 +1,340 @@
 openapi: 3.0.3
 info:
-  title: Enterprise Solution API
+  title: Youth Account Management API
+  version: '1.0.0'
   description: |
-    Comprehensive API specification for the enterprise solution, synthesized from High-Level Design Document and API Contract Outline.
-    
-    This API provides secure, scalable, and compliant endpoints for:
-    - User authentication and management
-    - Business entity operations
-    - Audit and compliance reporting
-    - System health monitoring
-    
-    ## Security
-    All endpoints require Bearer token authentication unless otherwise specified.
-    
-    ## Compliance
-    This API is designed to meet GDPR, PCI-DSS, SOX, HIPAA, and ISO 27001 compliance requirements.
-    
-    ## Rate Limiting
-    - Authenticated users: 1000 requests per hour
-    - Anonymous users: 100 requests per hour
-    
-    ## Support
-    For API support, contact: api-support@enterprise-solution.com
-  version: 1.0.0
+    REST APIs for parent/guardian management of youth accounts, including dashboard access, fund allocation, spending limit management, and transaction history. 
+    All endpoints are OAuth2 secured, RBAC enforced, and auditable. 
+    Compliant with GDPR, PCI-DSS, ISO 27001.
   contact:
-    name: API Support Team
-    email: api-support@enterprise-solution.com
-    url: https://api.enterprise-solution.com/docs
+    name: SCIB-Inception API Team
+    email: api-support@scib-inception.com
   license:
-    name: Proprietary
-    url: https://enterprise-solution.com/license
-
+    name: MIT
 servers:
-  - url: https://api.enterprise-solution.com/v1
-    description: Production server
-  - url: https://staging-api.enterprise-solution.com/v1
-    description: Staging server
-  - url: https://dev-api.enterprise-solution.com/v1
-    description: Development server
-
+  - url: https://api.scib-inception.com
+    description: Production API server
+  - url: https://sandbox.api.scib-inception.com
+    description: Sandbox server
 security:
-  - BearerAuth: []
+  - bearerAuth: []
 
 paths:
-  # Authentication Endpoints
-  /auth/login:
-    post:
-      tags:
-        - Authentication
-      summary: User authentication and token generation
-      description: Authenticate user credentials and generate access tokens
-      operationId: authenticateUser
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-            examples:
-              standard_login:
-                summary: Standard login
-                value:
-                  email: user@example.com
-                  password: SecurePassword123!
-                  remember_me: false
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '429':
-          $ref: '#/components/responses/RateLimitExceeded'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /auth/refresh:
-    post:
-      tags:
-        - Authentication
-      summary: Refresh access token
-      description: Refresh access token using refresh token
-      operationId: refreshToken
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        '200':
-          description: Token refreshed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /auth/logout:
-    post:
-      tags:
-        - Authentication
-      summary: User logout
-      description: Invalidate user session and tokens
-      operationId: logoutUser
-      responses:
-        '204':
-          description: Logout successful
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  # User Management Endpoints
-  /users:
+  /api/youth-accounts/{youthAccountId}/dashboard:
     get:
+      summary: Get dashboard for youth account
+      description: Retrieve youth account balance, spending limit, currency, and recent transactions.
+      operationId: getYouthAccountDashboard
       tags:
-        - User Management
-      summary: Retrieve list of users
-      description: Get paginated list of users with optional filtering
-      operationId: getUsers
+        - Youth Accounts
       parameters:
-        - name: page
-          in: query
-          description: Page number
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: limit
-          in: query
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-        - name: search
-          in: query
-          description: Search by name or email
-          schema:
-            type: string
-            maxLength: 100
-        - name: role
-          in: query
-          description: Filter by role
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: Filter by status
-          schema:
-            type: string
-            enum: [active, inactive]
-      responses:
-        '200':
-          description: Users retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-    post:
-      tags:
-        - User Management
-      summary: Create new user
-      description: Create a new user account
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
-      responses:
-        '201':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /users/{id}:
-    get:
-      tags:
-        - User Management
-      summary: Get user by ID
-      description: Retrieve specific user details
-      operationId: getUserById
-      parameters:
-        - name: id
+        - name: youthAccountId
           in: path
           required: true
-          description: User ID
           schema:
             type: string
-            format: uuid
+          description: Youth account identifier
       responses:
         '200':
-          description: User retrieved successfully
+          description: Dashboard for youth account
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserDetails'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: '#/components/schemas/YouthAccountDashboard'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
 
+  /api/youth-accounts/{youthAccountId}/fund-transfer:
+    post:
+      summary: Transfer funds to youth account
+      description: Parent/guardian allocates funds to youth account.
+      operationId: transferFundsToYouthAccount
+      tags:
+        - Youth Accounts
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Youth account identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundTransferRequest'
+      responses:
+        '200':
+          description: Fund transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundTransferResponse'
+        '400':
+          description: Bad Request (Insufficient funds or invalid account)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Transfer failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /api/youth-accounts/{youthAccountId}/spending-limit:
     put:
+      summary: Set weekly spending limit for youth account
+      description: Parent/guardian sets or updates weekly spending limit.
+      operationId: setYouthAccountSpendingLimit
       tags:
-        - User Management
-      summary: Update user
-      description: Update existing user information
-      operationId: updateUser
+        - Youth Accounts
       parameters:
-        - name: id
+        - name: youthAccountId
           in: path
           required: true
-          description: User ID
           schema:
             type: string
-            format: uuid
+          description: Youth account identifier
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/SpendingLimitRequest'
       responses:
         '200':
-          description: User updated successfully
+          description: Spending limit updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/SpendingLimitResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
 
-    delete:
+  /api/youth-accounts/{youthAccountId}/transactions:
+    get:
+      summary: Get transaction history for youth account
+      description: Retrieve paginated transaction history for youth account.
+      operationId: getYouthAccountTransactions
       tags:
-        - User Management
-      summary: Deactivate user
-      description: Deactivate user account (soft delete)
-      operationId: deactivateUser
+        - Youth Accounts
       parameters:
-        - name: id
+        - name: youthAccountId
           in: path
           required: true
-          description: User ID
           schema:
             type: string
-            format: uuid
-      responses:
-        '204':
-          description: User deactivated successfully
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  # Business Entity Endpoints
-  /entities:
-    get:
-      tags:
-        - Business Entities
-      summary: Retrieve business entities
-      description: Get paginated list of business entities with filtering
-      operationId: getEntities
-      parameters:
+          description: Youth account identifier
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter transactions by start date (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter transactions by end date (YYYY-MM-DD)
         - name: page
           in: query
-          description: Page number
+          required: false
           schema:
             type: integer
-            minimum: 1
             default: 1
-        - name: limit
+            minimum: 1
+          description: Pagination - page number
+        - name: pageSize
           in: query
-          description: Number of items per page
+          required: false
           schema:
             type: integer
+            default: 20
             minimum: 1
             maximum: 100
-            default: 20
-        - name: type
-          in: query
-          description: Filter by entity type
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: Filter by status
-          schema:
-            type: string
-        - name: created_after
-          in: query
-          description: Filter entities created after this date
-          schema:
-            type: string
-            format: date-time
-        - name: created_before
-          in: query
-          description: Filter entities created before this date
-          schema:
-            type: string
-            format: date-time
+          description: Pagination - page size
       responses:
         '200':
-          description: Entities retrieved successfully
+          description: Transaction history
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EntitiesResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: '#/components/schemas/TransactionHistoryResponse'
         '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-    post:
-      tags:
-        - Business Entities
-      summary: Create business entity
-      description: Create a new business entity
-      operationId: createEntity
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateEntityRequest'
-      responses:
-        '201':
-          description: Entity created successfully
+          description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Entity'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /entities/{id}:
-    get:
-      tags:
-        - Business Entities
-      summary: Get entity by ID
-      description: Retrieve specific business entity details with audit trail
-      operationId: getEntityById
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Entity ID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Entity retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EntityDetails'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  # Audit and Compliance Endpoints
-  /audit/logs:
-    get:
-      tags:
-        - Audit & Compliance
-      summary: Retrieve audit logs
-      description: Get paginated audit logs with filtering capabilities
-      operationId: getAuditLogs
-      parameters:
-        - name: page
-          in: query
-          description: Page number
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: limit
-          in: query
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 200
-            default: 50
-        - name: user_id
-          in: query
-          description: Filter by user ID
-          schema:
-            type: string
-            format: uuid
-        - name: action
-          in: query
-          description: Filter by action type
-          schema:
-            type: string
-        - name: resource
-          in: query
-          description: Filter by resource type
-          schema:
-            type: string
-        - name: from_date
-          in: query
-          description: Filter logs from this date
-          schema:
-            type: string
-            format: date-time
-        - name: to_date
-          in: query
-          description: Filter logs to this date
-          schema:
-            type: string
-            format: date-time
-      responses:
-        '200':
-          description: Audit logs retrieved successfully
+          description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuditLogsResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  # Health Check and Monitoring Endpoints
-  /health:
-    get:
-      tags:
-        - Health & Monitoring
-      summary: System health check
-      description: Check system health and service status
-      operationId: getHealthStatus
-      security: []
-      responses:
-        '200':
-          description: System is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-        '503':
-          description: System is unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-
-  /metrics:
-    get:
-      tags:
-        - Health & Monitoring
-      summary: System metrics
-      description: Get system performance metrics (admin only)
-      operationId: getMetrics
-      responses:
-        '200':
-          description: Metrics retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MetricsResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
 
 components:
   securitySchemes:
-    BearerAuth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT Bearer token authentication
-
   schemas:
-    # Authentication Schemas
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-          description: User email address
-          example: user@example.com
-        password:
-          type: string
-          minLength: 8
-          description: User password
-          example: SecurePassword123!
-        remember_me:
-          type: boolean
-          default: false
-          description: Remember user session
-
-    LoginResponse:
+    YouthAccountDashboard:
       type: object
       properties:
-        access_token:
+        youthAccountId:
           type: string
-          description: JWT access token
-        refresh_token:
+        accountBalance:
+          type: number
+          format: decimal
+        spendingLimit:
+          type: number
+          format: decimal
+        currency:
           type: string
-          description: JWT refresh token
-        token_type:
-          type: string
-          enum: [Bearer]
-          description: Token type
-        expires_in:
-          type: integer
-          description: Token expiration time in seconds
-        user:
-          $ref: '#/components/schemas/UserInfo'
-
-    RefreshTokenRequest:
-      type: object
-      required:
-        - refresh_token
-      properties:
-        refresh_token:
-          type: string
-          description: Valid refresh token
-
-    RefreshTokenResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: New JWT access token
-        token_type:
-          type: string
-          enum: [Bearer]
-          description: Token type
-        expires_in:
-          type: integer
-          description: Token expiration time in seconds
-
-    # User Management Schemas
-    UserInfo:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: User unique identifier
-        email:
-          type: string
-          format: email
-          description: User email address
-        first_name:
-          type: string
-          description: User first name
-        last_name:
-          type: string
-          description: User last name
-        roles:
+        recentTransactions:
           type: array
           items:
-            type: string
-          description: User roles
-
-    User:
+            $ref: '#/components/schemas/RecentTransaction'
+    RecentTransaction:
       type: object
       properties:
-        id:
+        transactionId:
           type: string
-          format: uuid
-          description: User unique identifier
-        email:
-          type: string
-          format: email
-          description: User email address
-        first_name:
-          type: string
-          maxLength: 50
-          description: User first name
-        last_name:
-          type: string
-          maxLength: 50
-          description: User last name
-        roles:
-          type: array
-          items:
-            type: string
-          description: User roles
-        status:
-          type: string
-          enum: [active, inactive]
-          description: User status
-        created_at:
+        date:
           type: string
           format: date-time
-          description: User creation timestamp
-        updated_at:
-          type: string
-          format: date-time
-          description: User last update timestamp
-
-    UserDetails:
-      allOf:
-        - $ref: '#/components/schemas/User'
-        - type: object
-          properties:
-            phone:
-              type: string
-              description: User phone number
-            department:
-              type: string
-              maxLength: 100
-              description: User department
-            last_login:
-              type: string
-              format: date-time
-              description: Last login timestamp
-
-    CreateUserRequest:
-      type: object
-      required:
-        - email
-        - first_name
-        - last_name
-        - password
-        - roles
-      properties:
-        email:
-          type: string
-          format: email
-          description: User email address (must be unique)
-        first_name:
-          type: string
-          maxLength: 50
-          description: User first name
-        last_name:
-          type: string
-          maxLength: 50
-          description: User last name
-        password:
-          type: string
-          minLength: 8
-          description: User password (complexity requirements apply)
-        roles:
-          type: array
-          items:
-            type: string
-          minItems: 1
-          description: User roles (must be valid role names)
-        phone:
-          type: string
-          description: User phone number
-        department:
-          type: string
-          maxLength: 100
-          description: User department
-
-    UpdateUserRequest:
-      type: object
-      properties:
-        first_name:
-          type: string
-          maxLength: 50
-          description: User first name
-        last_name:
-          type: string
-          maxLength: 50
-          description: User last name
-        roles:
-          type: array
-          items:
-            type: string
-          description: User roles (must be valid role names)
-        phone:
-          type: string
-          description: User phone number
-        department:
-          type: string
-          maxLength: 100
-          description: User department
-        status:
-          type: string
-          enum: [active, inactive]
-          description: User status
-
-    UsersResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    # Business Entity Schemas
-    Entity:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Entity unique identifier
-        name:
-          type: string
-          maxLength: 200
-          description: Entity name
-        type:
-          type: string
-          description: Entity type
         description:
           type: string
-          maxLength: 1000
-          description: Entity description
-        status:
-          type: string
-          description: Entity status
-        metadata:
-          type: object
-          description: Custom entity metadata
-        tags:
-          type: array
-          items:
-            type: string
-          maxItems: 50
-          description: Entity tags
-        created_by:
-          type: string
-          format: uuid
-          description: Creator user ID
-        created_at:
-          type: string
-          format: date-time
-          description: Entity creation timestamp
-        updated_at:
-          type: string
-          format: date-time
-          description: Entity last update timestamp
-
-    EntityDetails:
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
-            audit_trail:
-              type: array
-              items:
-                $ref: '#/components/schemas/AuditEntry'
-              description: Entity audit trail
-
-    CreateEntityRequest:
+        amount:
+          type: number
+          format: decimal
+    FundTransferRequest:
       type: object
       required:
-        - name
-        - type
+        - sourceAccountId
+        - transferAmount
+        - currency
       properties:
-        name:
+        sourceAccountId:
           type: string
-          maxLength: 200
-          description: Entity name
-        type:
+        transferAmount:
+          type: number
+          format: decimal
+        currency:
           type: string
-          description: Entity type (must be valid entity type)
-        description:
-          type: string
-          maxLength: 1000
-          description: Entity description
-        metadata:
-          type: object
-          description: Custom entity metadata
-        tags:
-          type: array
-          items:
-            type: string
-          maxItems: 50
-          description: Entity tags
-
-    EntitiesResponse:
+    FundTransferResponse:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Entity'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    # Audit Schemas
-    AuditEntry:
-      type: object
-      properties:
-        id:
+        transferId:
           type: string
-          format: uuid
-          description: Audit entry unique identifier
-        user_id:
-          type: string
-          format: uuid
-          description: User who performed the action
-        action:
-          type: string
-          description: Action performed
-        resource:
-          type: string
-          description: Resource affected
-        resource_id:
-          type: string
-          description: Resource identifier
-        details:
-          type: object
-          description: Additional audit details
-        ip_address:
-          type: string
-          format: ipv4
-          description: Client IP address
-        user_agent:
-          type: string
-          description: Client user agent
-        timestamp:
-          type: string
-          format: date-time
-          description: Audit event timestamp
-
-    AuditLogsResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AuditEntry'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    # Health and Monitoring Schemas
-    HealthResponse:
-      type: object
-      properties:
         status:
           type: string
-          enum: [healthy, unhealthy, degraded]
-          description: Overall system health status
-        timestamp:
-          type: string
-          format: date-time
-          description: Health check timestamp
-        version:
-          type: string
-          description: Application version
-        environment:
-          type: string
-          description: Environment name
-        services:
-          type: object
-          properties:
-            database:
-              type: string
-              enum: [healthy, unhealthy]
-            cache:
-              type: string
-              enum: [healthy, unhealthy]
-            external_apis:
-              type: string
-              enum: [healthy, unhealthy]
-          description: Individual service health status
-
-    MetricsResponse:
+          enum: [SUCCESS]
+        updatedBalance:
+          type: number
+          format: decimal
+    SpendingLimitRequest:
+      type: object
+      required:
+        - weeklyLimit
+      properties:
+        weeklyLimit:
+          type: number
+          format: decimal
+    SpendingLimitResponse:
       type: object
       properties:
-        timestamp:
+        youthAccountId:
+          type: string
+        weeklyLimit:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [UPDATED]
+    TransactionHistoryResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Transaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        date:
           type: string
           format: date-time
-          description: Metrics collection timestamp
-        metrics:
-          type: object
-          properties:
-            requests_per_minute:
-              type: number
-              description: Current requests per minute
-            average_response_time:
-              type: number
-              description: Average response time in milliseconds
-            error_rate:
-              type: number
-              description: Error rate as percentage
-            active_users:
-              type: integer
-              description: Number of active users
-            database_connections:
-              type: integer
-              description: Active database connections
-            memory_usage:
-              type: number
-              description: Memory usage as percentage
-            cpu_usage:
-              type: number
-              description: CPU usage as percentage
-
-    # Common Schemas
+        merchant:
+          type: string
+        amount:
+          type: number
+          format: decimal
+        transactionType:
+          type: string
+          enum: [debit, credit]
     Pagination:
       type: object
       properties:
-        current_page:
+        page:
           type: integer
-          description: Current page number
-        total_pages:
+        pageSize:
           type: integer
-          description: Total number of pages
-        total_items:
+        totalRecords:
           type: integer
-          description: Total number of items
-        items_per_page:
-          type: integer
-          description: Number of items per page
-
     ErrorResponse:
       type: object
       properties:
         error:
-          type: object
-          properties:
-            code:
-              type: string
-              description: Error code
-            message:
-              type: string
-              description: Human-readable error message
-            details:
-              type: object
-              description: Additional error details
-            timestamp:
-              type: string
-              format: date-time
-              description: Error timestamp
-            request_id:
-              type: string
-              format: uuid
-              description: Request identifier for tracking
+          type: string
+        message:
+          type: string
 
-  responses:
-    BadRequest:
-      description: Bad Request - Invalid request format
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: INVALID_REQUEST
-              message: The request format is invalid
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    Unauthorized:
-      description: Unauthorized - Authentication required or invalid
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: AUTHENTICATION_REQUIRED
-              message: Valid authentication is required
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    Forbidden:
-      description: Forbidden - Insufficient permissions
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: INSUFFICIENT_PERMISSIONS
-              message: You do not have permission to access this resource
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    NotFound:
-      description: Not Found - Requested resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: RESOURCE_NOT_FOUND
-              message: The requested resource was not found
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    Conflict:
-      description: Conflict - Resource already exists
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: RESOURCE_CONFLICT
-              message: A resource with this identifier already exists
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    ValidationError:
-      description: Unprocessable Entity - Validation errors
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: VALIDATION_ERROR
-              message: Request validation failed
-              details:
-                email: Email format is invalid
-                password: Password must be at least 8 characters
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    RateLimitExceeded:
-      description: Too Many Requests - Rate limit exceeded
-      headers:
-        X-RateLimit-Limit:
-          description: Request limit per hour
-          schema:
-            type: integer
-        X-RateLimit-Remaining:
-          description: Remaining requests in current window
-          schema:
-            type: integer
-        X-RateLimit-Reset:
-          description: Time when rate limit resets
-          schema:
-            type: integer
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: RATE_LIMIT_EXCEEDED
-              message: Too many requests. Please try again later.
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-    InternalServerError:
-      description: Internal Server Error - Server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: INTERNAL_ERROR
-              message: An internal server error occurred
-              timestamp: '2023-12-07T10:00:00Z'
-              request_id: 123e4567-e89b-12d3-a456-426614174000
-
-  headers:
-    X-RateLimit-Limit:
-      description: Request limit per hour
-      schema:
-        type: integer
-    X-RateLimit-Remaining:
-      description: Remaining requests in current window
-      schema:
-        type: integer
-    X-RateLimit-Reset:
-      description: Time when rate limit resets (Unix timestamp)
-      schema:
-        type: integer
-    X-Request-ID:
-      description: Unique request identifier for tracking
-      schema:
-        type: string
-        format: uuid
-    API-Version:
-      description: API version used for the request
-      schema:
-        type: string
-        example: "1.0"
-
-tags:
-  - name: Authentication
-    description: User authentication and session management
-  - name: User Management
-    description: User account management operations
-  - name: Business Entities
-    description: Business entity management operations
-  - name: Audit & Compliance
-    description: Audit logging and compliance reporting
-  - name: Health & Monitoring
-    description: System health checks and monitoring
-
-# API Extensions for tooling and documentation
-x-tagGroups:
-  - name: Core APIs
-    tags:
-      - Authentication
-      - User Management
-      - Business Entities
-  - name: Operations
-    tags:
-      - Audit & Compliance
-      - Health & Monitoring
-
-# Compliance and Security Metadata
-x-compliance:
-  gdpr: true
-  pci-dss: true
-  sox: true
-  hipaa: true
-  iso27001: true
-
-x-security-requirements:
-  authentication: Bearer Token (JWT)
-  authorization: Role-Based Access Control (RBAC)
-  encryption-at-rest: AES-256
-  encryption-in-transit: TLS 1.3
-  audit-logging: All API calls logged
-  rate-limiting: Per-user and global limits
-
-x-performance-requirements:
-  response-time-95th-percentile: 200ms
-  response-time-99th-percentile: 500ms
-  concurrent-users: 10000
-  throughput: 1000 requests/second
-  availability: 99.99%
-
-x-contact:
-  support-email: api-support@enterprise-solution.com
-  documentation: https://api.enterprise-solution.com/docs
-  status-page: https://status.enterprise-solution.com
+x-audit:
+  description: |
+    All fund transfers, spending limit changes, and dashboard accesses are audit logged (user, timestamp, action, outcome).
+  retention: 7 years
+  compliantWith:
+    - GDPR
+    - PCI-DSS
+    - ISO 27001
