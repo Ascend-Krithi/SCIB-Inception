@@ -1,48 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Component Diagram: Youth Account Management Solution -->
-<svg width="950" height="540" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .comp { font: bold 15px sans-serif; fill: #1a1a1a; }
-    .iface { font: italic 13px sans-serif; fill: #555; }
-    .stroked { stroke: #444; stroke-width: 2; fill: #eaf3ff; }
-    .ext { fill: #fffbe8; stroke: #c9b971; stroke-width: 2; }
-    .label { font: 13px sans-serif; fill: #333; }
-    .arrow { stroke: #222; stroke-width: 2; marker-end: url(#arrow); }
-  </style>
-  <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto" markerUnits="strokeWidth">
-      <polygon points="0 0, 12 4, 0 8" fill="#222" />
-    </marker>
-  </defs>
-  <!-- Components -->
-  <rect x="70" y="60" width="170" height="60" class="stroked"/>
-  <text x="90" y="90" class="comp">Parent Web UI</text>
-  <rect x="280" y="60" width="170" height="60" class="stroked"/>
-  <text x="300" y="90" class="comp">API Gateway</text>
-  <rect x="490" y="60" width="210" height="60" class="stroked"/>
-  <text x="510" y="90" class="comp">Youth Account Management API</text>
-  <rect x="760" y="30" width="160" height="60" class="ext"/>
-  <text x="770" y="60" class="comp">Core Banking System</text>
-  <rect x="760" y="120" width="160" height="60" class="ext"/>
-  <text x="770" y="150" class="comp">Transaction Service</text>
-  <rect x="490" y="160" width="210" height="60" class="stroked"/>
-  <text x="510" y="190" class="comp">Youth Account DB</text>
-  <rect x="280" y="160" width="170" height="60" class="stroked"/>
-  <text x="300" y="190" class="comp">Identity/OAuth Service</text>
-  <!-- Relations -->
-  <line x1="240" y1="90" x2="280" y2="90" class="arrow"/>
-  <text x="250" y="80" class="label">REST/JSON</text>
-  <line x1="450" y1="90" x2="490" y2="90" class="arrow"/>
-  <text x="460" y="80" class="label">REST/JSON</text>
-  <line x1="700" y1="90" x2="760" y2="60" class="arrow"/>
-  <text x="705" y="55" class="label">REST/JSON</text>
-  <line x1="700" y1="120" x2="760" y2="150" class="arrow"/>
-  <text x="705" y="145" class="label">REST/JSON</text>
-  <line x1="700" y1="120" x2="490" y2="190" class="arrow"/>
-  <text x="540" y="170" class="label">JDBC</text>
-  <line x1="450" y1="90" x2="350" y2="190" class="arrow"/>
-  <text x="400" y="140" class="label">OAuth2/JWT</text>
-  <!-- External arrows -->
-  <line x1="280" y1="190" x2="490" y2="90" class="arrow"/>
-  <text x="320" y="130" class="label">Token Validation</text>
+<svg width="900" height="700" xmlns="http://www.w3.org/2000/svg">
+  <g font-family="Arial" font-size="16">
+    <!-- Component boxes -->
+    <rect x="40" y="40" width="180" height="80" fill="#f5f5f5" stroke="#0074d9"/>
+    <text x="55" y="75">Banking Web App</text>
+    <text x="55" y="95" font-size="14">React/Angular UI</text>
+    <rect x="260" y="40" width="180" height="80" fill="#f5f5f5" stroke="#0074d9"/>
+    <text x="275" y="75">Youth Account API</text>
+    <text x="275" y="95" font-size="14">Node.js/Java REST API</text>
+    <rect x="480" y="40" width="180" height="80" fill="#f5f5f5" stroke="#0074d9"/>
+    <text x="495" y="75">Core Banking Adapter</text>
+    <text x="495" y="95" font-size="14">Microservice Adapter</text>
+    <rect x="700" y="40" width="180" height="80" fill="#f5f5f5" stroke="#0074d9"/>
+    <text x="715" y="75">IAM/OAuth2 Service</text>
+    <text x="715" y="95" font-size="14">Okta/Auth0</text>
+    <rect x="260" y="160" width="180" height="80" fill="#f5f5f5" stroke="#0074d9"/>
+    <text x="275" y="195">Youth Account DB</text>
+    <text x="275" y="215" font-size="14">RDS/Postgres</text>
+    <!-- Relationships -->
+    <line x1="130" y1="120" x2="350" y2="120" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="170" y="115" font-size="14">REST/JSON API Calls</text>
+    <line x1="350" y1="120" x2="570" y2="120" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="390" y="115" font-size="14">Service integration</text>
+    <line x1="350" y1="120" x2="350" y2="200" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="360" y="160" font-size="14">CRUD</text>
+    <line x1="350" y1="120" x2="790" y2="120" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="600" y="115" font-size="14">Token validation, RBAC</text>
+    <!-- Arrow marker definition -->
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+        <polygon points="0,0 10,5 0,10" fill="#111"/>
+      </marker>
+    </defs>
+  </g>
 </svg>
