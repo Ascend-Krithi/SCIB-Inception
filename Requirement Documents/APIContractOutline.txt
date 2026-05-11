@@ -2,7 +2,7 @@ API Contract Outline
 
 1. GET /api/youth-accounts/{youthAccountId}/dashboard
 - Method: GET
-- Request: Path param youthAccountId
+- Description: Retrieves consolidated youth account dashboard information (balance, spending limit, recent transactions)
 - Response:
   {
     "youthAccountId": "string",
@@ -10,13 +10,19 @@ API Contract Outline
     "spendingLimit": "decimal",
     "currency": "string",
     "recentTransactions": [
-      { "transactionId": "string", "date": "datetime", "description": "string", "amount": "decimal" }
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "description": "string",
+        "amount": "decimal"
+      }
     ]
   }
-- Errors: 403 Unauthorized, 404 Not Found
+- Errors: 403, 404, 500
 
 2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
 - Method: POST
+- Description: Transfers funds from parent account to youth account
 - Request:
   {
     "sourceAccountId": "string",
@@ -26,13 +32,14 @@ API Contract Outline
 - Response:
   {
     "transferId": "string",
-    "status": "SUCCESS",
+    "status": "SUCCESS|FAILED",
     "updatedBalance": "decimal"
   }
-- Errors: 400 Insufficient funds, 400 Invalid account, 500 Transfer failure
+- Errors: 400, 404, 500
 
 3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
 - Method: PUT
+- Description: Configure weekly spending limit
 - Request:
   {
     "weeklyLimit": "decimal"
@@ -43,25 +50,39 @@ API Contract Outline
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Errors: 400 Validation error, 403 Unauthorized
+- Errors: 400, 404, 500
 
 4. GET /api/youth-accounts/{youthAccountId}/transactions
 - Method: GET
-- Query params: startDate, endDate, page, pageSize
+- Description: Returns transaction history for youth account
+- Query Params: startDate, endDate, page, pageSize
 - Response:
   {
     "transactions": [
-      { "transactionId": "string", "date": "datetime", "merchant": "string", "amount": "decimal", "transactionType": "debit | credit" }
+      {
+        "transactionId": "string",
+        "date": "datetime",
+        "merchant": "string",
+        "amount": "decimal",
+        "transactionType": "debit|credit"
+      }
     ],
-    "pagination": { "page": "number", "pageSize": "number", "totalRecords": "number" }
+    "pagination": {
+      "page": "number",
+      "pageSize": "number",
+      "totalRecords": "number"
+    }
   }
-- Errors: 403 Unauthorized, 404 Not Found
+- Errors: 403, 404, 500
 
-General:
-- All endpoints: OAuth2 Bearer token required
-- RBAC: Only parent/guardian can manage youth account
-- Standard error response:
-  {
-    "error": "string",
-    "message": "string"
-  }
+Error Schema:
+{
+  "errorCode": "string",
+  "message": "string",
+  "details": "object"
+}
+
+RBAC:
+- All endpoints require OAuth2 Bearer token
+- Parent must own youth account; youth may only view dashboard
+- All actions are logged for audit
