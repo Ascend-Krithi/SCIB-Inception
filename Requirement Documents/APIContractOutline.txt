@@ -1,9 +1,11 @@
-API Contract Outline
+# API Contract Outline: Youth Account Management
 
-1. Retrieve Youth Account Dashboard
-- Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
-- Request: Path param youthAccountId
-- Response:
+## 1. Retrieve Youth Account Dashboard
+- **Endpoint:** GET /api/youth-accounts/{youthAccountId}/dashboard
+- **Auth:** OAuth2 token (parent)
+- **Request:** Path: youthAccountId
+- **Response:**
+  ```json
   {
     "youthAccountId": "string",
     "accountBalance": "decimal",
@@ -18,42 +20,55 @@ API Contract Outline
       }
     ]
   }
-- Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
+  ```
+- **Errors:** 403 Unauthorized, 404 Not Found
 
-2. Fund Transfer to Youth Account
-- Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Request:
+## 2. Transfer Funds to Youth Account
+- **Endpoint:** POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- **Auth:** OAuth2 token (parent)
+- **Request:**
+  ```json
   {
     "sourceAccountId": "string",
     "transferAmount": "decimal",
     "currency": "string"
   }
-- Response:
+  ```
+- **Response:**
+  ```json
   {
     "transferId": "string",
     "status": "SUCCESS|FAILED",
     "updatedBalance": "decimal"
   }
-- Errors: 400 Bad Request (insufficient funds, invalid input), 403 Unauthorized, 404 Not Found, 500 Internal Error
+  ```
+- **Errors:** 400 Bad Request (validation), 400 Insufficient Funds, 403 Unauthorized, 500 Transfer Error
 
-3. Configure Weekly Spending Limit
-- Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Request:
+## 3. Configure Weekly Spending Limit
+- **Endpoint:** PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- **Auth:** OAuth2 token (parent)
+- **Request:**
+  ```json
   {
     "weeklyLimit": "decimal"
   }
-- Response:
+  ```
+- **Response:**
+  ```json
   {
     "youthAccountId": "string",
     "weeklyLimit": "decimal",
-    "status": "UPDATED|FAILED"
+    "status": "UPDATED"
   }
-- Errors: 400 Bad Request (invalid value), 403 Unauthorized, 404 Not Found, 500 Internal Error
+  ```
+- **Errors:** 400 Validation Error, 403 Unauthorized, 404 Not Found
 
-4. Retrieve Youth Account Transaction History
-- Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
-- Query Params: startDate, endDate, page, pageSize
-- Response:
+## 4. Retrieve Youth Account Transaction History
+- **Endpoint:** GET /api/youth-accounts/{youthAccountId}/transactions?startDate&endDate&page&pageSize
+- **Auth:** OAuth2 token (parent)
+- **Request:** Query params: startDate, endDate, page, pageSize
+- **Response:**
+  ```json
   {
     "transactions": [
       {
@@ -61,8 +76,7 @@ API Contract Outline
         "date": "datetime",
         "merchant": "string",
         "amount": "decimal",
-        "transactionType": "debit|credit",
-        "status": "COMPLETED|PENDING|FAILED"
+        "transactionType": "debit|credit"
       }
     ],
     "pagination": {
@@ -71,20 +85,31 @@ API Contract Outline
       "totalRecords": "number"
     }
   }
-- Errors: 400 Bad Request, 403 Unauthorized, 404 Not Found, 500 Internal Error
+  ```
+- **Errors:** 400 Bad Request, 403 Unauthorized, 404 Not Found
 
-5. Error Handling (All APIs)
-- 400: Validation errors (e.g., invalid input, insufficient funds)
-- 403: Unauthorized (invalid OAuth token, RBAC failure)
-- 404: Resource not found
-- 409: Conflict (concurrent modification)
-- 500: Internal server error
-- Error response example:
+## 5. General Error Handling
+- **Standard Error Response:**
+  ```json
   {
     "errorCode": "string",
     "message": "string",
     "details": "object"
   }
+  ```
+- **Common Error Codes:**
+  - 400 Validation Error
+  - 401 Unauthorized
+  - 403 Forbidden
+  - 404 Not Found
+  - 409 Conflict
+  - 500 Internal Server Error
+
+## 6. Security/Compliance
+- All endpoints require OAuth2 access token
+- RBAC enforced (parent can only access their youth accounts)
+- Input validation, output filtering, audit logging for all APIs
 
 ---
-All endpoints require OAuth2 authentication and enforce RBAC. Input validation and audit logging are mandatory for all APIs.
+
+# End of API Contract Outline
