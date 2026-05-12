@@ -1,68 +1,84 @@
-# Non-Functional Requirements (NFRs): Youth Account Management
+Non-Functional Requirements (NFRs)
+====================================
 
-## Security
-- OAuth 2.0 authentication for all APIs
-- RBAC enforced (parent/youth roles)
-- Input validation and output filtering on all endpoints
-- All actions and changes audit-logged
-- Data encryption at rest and in transit (TLS 1.2+)
+1. Security
+   - All API endpoints require OAuth2 authentication (SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30)
+   - Role-Based Access Control (RBAC) enforced for parent/youth roles
+   - All actions (fund transfer, limit changes, dashboard views) are audit logged
+   - Data encryption at rest and in transit (PCI-DSS, ISO 27001 compliance)
+   - Input validation and output filtering on all APIs
 
-## Compliance
-- GDPR: Data subject rights, deletion on request, data minimization
-- PCI-DSS: Secure handling of account/payment data
-- ISO 27001: Information Security Management compliance
+2. Compliance
+   - GDPR, PCI-DSS, ISO 27001 alignment
+   - All user actions logged with traceable IDs
+   - Data retention and deletion policies implemented
+   - Parental consent and notification for youth accounts
 
-## Performance
-- API response time < 500ms for 95% of requests
-- Fund transfers reflected in dashboard within 2 seconds
-- Transaction history pagination supported for large datasets
+3. Performance
+   - API response time < 500ms for 95% of requests (SCIB-26, SCIB-27, SCIB-28, SCIB-29)
+   - Fund transfers and dashboard updates must complete within 2s for 99% of cases
+   - Transaction history pagination supports 10,000+ records
 
-## Scalability
-- Horizontal scaling of API layer
-- Database partitioning for large user base
+4. Scalability
+   - Horizontal scaling for API and DB tiers
+   - Support for 100,000+ parent/youth accounts
 
-## Availability
-- 99.99% uptime SLA
-- Automated failover for API and DB tiers
+5. Availability
+   - 99.99% uptime (HA deployment, automated failover)
+   - No single points of failure
 
-## Reliability
-- All fund transfers and limit changes are atomic (ACID)
-- Transaction integrity ensured through DB transactions
+6. Reliability
+   - Automatic failover for critical services
+   - Retry logic for transient errors
+   - Transaction integrity (ACID semantics)
 
-## Maintainability
-- Modular service and API design
-- Code and API documentation maintained (Swagger/OpenAPI)
-- Automated test coverage > 80%
+7. Maintainability
+   - Modular API and UI codebases
+   - OpenAPI/Swagger specification for all endpoints (SCIB-30)
+   - Well-documented code and deployment scripts
 
-## Auditability
-- All parent/youth actions are logged with user, timestamp, action, and outcome
-- Audit logs are immutable and retained for 7 years
+8. Auditability
+   - All sensitive actions logged with timestamp, user, and action type
+   - Audit log export available for compliance reviews
 
-## Disaster Recovery
-- RTO < 4 hours, RPO < 1 hour
-- DR tests conducted bi-annually
+9. Disaster Recovery
+   - Daily encrypted backups, geo-redundant storage
+   - Recovery Point Objective (RPO) < 1 hour
+   - Recovery Time Objective (RTO) < 4 hours
 
-## Backup
-- Daily encrypted backups of all databases
-- Backup verification and restore tests monthly
+10. Backup
+    - Automated, encrypted daily backups
+    - Point-in-time restore support
 
-## Monitoring
-- Real-time metrics collection (API latency, error rate, transfer success)
-- Alerting for SLA breaches, security events
+11. Monitoring
+    - Real-time metrics for API latency, error rates, system health
+    - Alerting for SLA breaches and security events
 
-## Logging
-- Centralized log aggregation (e.g., ELK/Splunk)
-- Log masking for sensitive fields
-- Log retention policy: 1 year
+12. Logging
+    - Centralized, searchable log aggregation (e.g., ELK/Splunk)
+    - Retain logs for minimum 1 year for compliance
 
-## RBAC
-- Role-based access enforced at API and UI layers
-- Only parent/guardian can manage youth account
-- Youth cannot transfer funds or configure limits
+13. RBAC
+    - Strict enforcement of parent/youth roles at API and UI
+    - No cross-account data leakage
 
-## Additional
-- Concurrency: Handles simultaneous parent/youth operations (tested, see SCIB-1896/1898)
-- Validation: All amounts, account IDs, and limits validated (type, range, format)
-- Error Handling: Standardized error codes/messages for all APIs
-- Accessibility: UI meets WCAG 2.1 AA
-- Localization: Supports multi-language labels and messages
+14. Input Validation
+    - All numeric and string inputs validated for type, range, format
+    - Invalid inputs rejected with descriptive errors
+
+15. Output Filtering
+    - All API responses filtered for authorized data only
+
+16. Concurrency
+    - Correct handling of concurrent parent/youth operations (SCIB-1896, SCIB-1898)
+    - Pessimistic locking or equivalent measures for balance updates
+
+17. Rate Limiting
+    - API rate limits enforced to prevent abuse (e.g., 100 req/min/user)
+
+18. User Experience
+    - Responsive UI (desktop/tablet)
+    - Clear error and confirmation messages
+
+---
+END OF NFR DOCUMENT
