@@ -1,9 +1,8 @@
 API Contract Outline
 
-1. GET /api/youth-accounts/{youthAccountId}/dashboard
-- Description: Retrieve dashboard details for a youth account
-- Authentication: OAuth2 (parent)
-- Request: Path param: youthAccountId
+Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+- Method: GET
+- Request Params: youthAccountId (path)
 - Response:
   {
     "youthAccountId": "string",
@@ -19,14 +18,11 @@ API Contract Outline
       }
     ]
   }
-- Errors:
-  - 403 Unauthorized (parent does not own account)
-  - 404 Not Found (invalid youthAccountId)
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Server Error
 
-2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Description: Transfer funds from parent to youth account
-- Authentication: OAuth2 (parent)
-- Request:
+Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Method: POST
+- Request Body:
   {
     "sourceAccountId": "string",
     "transferAmount": "decimal",
@@ -38,15 +34,11 @@ API Contract Outline
     "status": "SUCCESS|FAILED",
     "updatedBalance": "decimal"
   }
-- Errors:
-  - 400 Bad Request (insufficient funds, invalid amount)
-  - 403 Unauthorized
-  - 404 Not Found (invalid account)
+- Error Handling: 400 Bad Request (validation/insufficient funds), 403 Unauthorized, 500 Internal Server Error
 
-3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Description: Set or update weekly spending limit for a youth account
-- Authentication: OAuth2 (parent)
-- Request:
+Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- Method: PUT
+- Request Body:
   {
     "weeklyLimit": "decimal"
   }
@@ -56,15 +48,11 @@ API Contract Outline
     "weeklyLimit": "decimal",
     "status": "UPDATED"
   }
-- Errors:
-  - 400 Bad Request (invalid value)
-  - 403 Unauthorized
-  - 404 Not Found
+- Error Handling: 400 Bad Request (validation), 403 Unauthorized, 500 Internal Server Error
 
-4. GET /api/youth-accounts/{youthAccountId}/transactions
-- Description: Retrieve youth account transaction history
-- Authentication: OAuth2 (parent)
-- Request: Query params: startDate, endDate, page, pageSize
+Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+- Method: GET
+- Query Params: startDate, endDate, page, pageSize
 - Response:
   {
     "transactions": [
@@ -82,19 +70,16 @@ API Contract Outline
       "totalRecords": "number"
     }
   }
-- Errors:
-  - 403 Unauthorized
-  - 404 Not Found
+- Error Handling: 403 Unauthorized, 404 Not Found, 500 Internal Server Error
 
-5. Error Handling (General)
-- All errors return structured JSON:
-  {
-    "errorCode": "string",
-    "message": "string",
-    "details": "string (optional)"
-  }
-- HTTP 400: Validation errors
-- HTTP 401: Authentication required
-- HTTP 403: Authorization failure
-- HTTP 404: Resource not found
-- HTTP 500: Internal server error
+Error Responses (All APIs):
+- 400: { "error": "Validation error details" }
+- 403: { "error": "Unauthorized" }
+- 404: { "error": "Resource not found" }
+- 409: { "error": "Conflict (e.g., duplicate transaction)" }
+- 500: { "error": "Internal server error" }
+
+RBAC:
+- Only parent/guardian with valid session can access/manage youth account APIs
+- Youth may access own account data (read-only)
+- Admins can audit but not initiate transfers
