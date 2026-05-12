@@ -1,74 +1,73 @@
-# Non-Functional Requirements (NFRs) for Youth Account Management
+Non-Functional Requirements (NFRs) for Youth Account Management
 
-## Security
-- OAuth 2.0 authentication for all APIs and UI access
-- RBAC: Only parent/guardian can access/manage their youth accounts
-- Input validation on all endpoints (amounts, IDs, limits)
-- Output filtering to prevent data leakage
-- Audit logging of all fund movements, limit changes, and access attempts
-- Encryption of data at rest and in transit
-- Session timeout and brute force protection
+1. Security
+- OAuth2 authentication for all API/UI access
+- Role-based access control (RBAC) for parent/youth
+- Input validation and output filtering on all endpoints
+- Data encryption at rest and in transit (TLS 1.2+)
+- Audit logging of all sensitive actions
+- Protection against common web vulnerabilities (OWASP Top 10)
 
-## Compliance
-- GDPR: Data minimization, user consent, right to erasure
-- PCI-DSS: No card data stored, secure handling of transfers
-- ISO 27001: Security controls, incident response procedures
-- All API access is logged for audit and regulatory review
+2. Compliance
+- GDPR: Right to access, rectify, erase, and restrict processing of PII
+- PCI-DSS: Secure handling of payment and transfer data
+- ISO 27001: Information security controls, audit trails
 
-## Performance
-- 95% of API responses <200ms under normal load
-- Dashboard API response <500ms
-- Support for 10,000 concurrent users
-- Fund transfers processed in <2 seconds
+3. Performance
+- API response time < 500ms (p95)
+- Dashboard load time < 1s
+- Fund transfer operation < 2s
 
-## Scalability
-- Horizontal scaling for API, UI, and DB layers
-- Stateless API design, support for container orchestration
+4. Scalability
+- Horizontal scaling for API and UI services
+- Support at least 10,000 concurrent parent/youth sessions
+- Stateless API design
 
-## Availability
-- 99.99% uptime for all user-facing services
-- Automatic failover for critical services
+5. Availability
+- 99.99% uptime SLA
+- HA deployment (multi-AZ, automated failover)
 
-## Reliability
-- All fund transfers and limit updates are ACID-compliant
-- Retry logic for transient failures
-- Data consistency ensured by DB transactions
+6. Reliability
+- Transactional integrity for fund transfers
+- Retry logic for transient errors
+- Data consistency for concurrent operations
 
-## Maintainability
-- Modular codebase, separation of concerns
-- Automated API and UI tests
-- OpenAPI/Swagger documentation
-- CI/CD pipeline for automated deployment
+7. Maintainability
+- Modular, documented codebase
+- OpenAPI/Swagger documentation for APIs
+- Automated CI/CD pipelines
 
-## Auditability
-- All actions (fund transfers, limit changes, logins) logged with user, timestamp, and context
-- Logs are immutable and centrally aggregated
+8. Auditability
+- Every fund transfer, limit change, and dashboard access logged with user, timestamp, action
+- Log retention as per regulatory policy (min 7 years)
 
-## Disaster Recovery
-- RTO < 4 hours, RPO < 1 hour
-- Geo-redundant backups and tested restore procedures
+9. Disaster Recovery
+- RTO (Recovery Time Objective) < 4 hours
+- RPO (Recovery Point Objective) < 1 hour
+- Geo-redundant encrypted backups
 
-## Backup
-- Daily encrypted backups
-- Regular backup verification and restore testing
+10. Backup
+- Daily backups of all data stores
+- Encrypted at rest and in transit
+- Point-in-time restore capability
 
-## Monitoring
-- Real-time metrics on API latency, error rates, and user activity
-- Automated alerting for SLA/SLO breaches
+11. Monitoring & Alerting
+- Real-time metrics on API latency, error rates, transaction volume
+- Automated alerts for SLA breaches, security events
+- Dashboards for operational visibility
 
-## Logging
-- Centralized, structured logging for all services
-- Separation of error, warning, and info logs
+12. Logging
+- Centralized log aggregation (e.g., ELK/Splunk)
+- Trace IDs for distributed tracing
+- Masking of sensitive data in logs
 
-## RBAC
-- Role-based access control on all APIs and UI views
-- Parent can only access their own youth accounts
+13. RBAC
+- All endpoints and UI actions enforce role-based access
+- Parent can only access/manage their own youth accounts
+- Youth access limited to their own account data
 
-## Additional
-- Accessibility: UI meets WCAG 2.1 AA
-- Internationalization: Multi-language support
-- Concurrency: Handles race conditions for simultaneous parent/youth actions
+14. Compliance Mapping
+- All NFRs traceable to acceptance criteria, ADRs, and regulatory standards
 
 ---
-
-# End of NFR List
+END OF NFR LIST
