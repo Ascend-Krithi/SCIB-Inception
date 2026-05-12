@@ -1,19 +1,18 @@
 openapi: 3.0.3
 info:
   title: Youth Account Management API
-  description: >-
-    API for managing youth accounts, enabling parents/guardians to allocate funds, set spending limits, and monitor activity. 
-    All endpoints are OAuth2-protected and RBAC-enforced. No PII/PHI/PCI data is exposed.
+  description: |
+    RESTful API for Youth Account Management. Enables parents to allocate/manage youth account funds, set spending limits, and review account activity. Built for regulated banking with security, compliance, and traceability.
   version: '1.0.0'
   contact:
-    name: SCIB-Inception API Team
-    url: https://github.com/Ascend-Krithi/SCIB-Inception
-    email: api-support@scib-inception.com
+    name: API Support
+    email: support@banking.example.com
+  termsOfService: https://banking.example.com/terms
 servers:
-  - url: https://api.scib-inception.com
-    description: Production server
-  - url: https://sandbox.api.scib-inception.com
-    description: Sandbox server
+  - url: https://api.banking.example.com/v1
+    description: Production
+  - url: https://sandbox.banking.example.com/v1
+    description: Sandbox
 security:
   - OAuth2: []
 
@@ -23,12 +22,25 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth.scib-inception.com/oauth/authorize
-          tokenUrl: https://auth.scib-inception.com/oauth/token
+          authorizationUrl: https://banking.example.com/oauth2/authorize
+          tokenUrl: https://banking.example.com/oauth2/token
           scopes:
-            youth_accounts: Access and manage youth accounts
+            parent: Parent-level access
+            youth: Youth-level access
   schemas:
-    YouthAccountDashboard:
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+      required: [errorCode, message]
+    DashboardResponse:
       type: object
       properties:
         youthAccountId:
@@ -44,9 +56,9 @@ components:
         recentTransactions:
           type: array
           items:
-            $ref: '#/components/schemas/DashboardTransaction'
+            $ref: '#/components/schemas/RecentTransaction'
       required: [youthAccountId, accountBalance, spendingLimit, currency, recentTransactions]
-    DashboardTransaction:
+    RecentTransaction:
       type: object
       properties:
         transactionId:
@@ -100,7 +112,7 @@ components:
           format: double
         status:
           type: string
-          enum: [UPDATED]
+          enum: [UPDATED, FAILED]
       required: [youthAccountId, weeklyLimit, status]
     Transaction:
       type: object
@@ -119,7 +131,7 @@ components:
           type: string
           enum: [debit, credit]
       required: [transactionId, date, merchant, amount, transactionType]
-    TransactionHistoryResponse:
+    TransactionListResponse:
       type: object
       properties:
         transactions:
@@ -127,82 +139,58 @@ components:
           items:
             $ref: '#/components/schemas/Transaction'
         pagination:
-          $ref: '#/components/schemas/Pagination'
-      required: [transactions, pagination]
-    Pagination:
-      type: object
-      properties:
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalRecords:
-          type: integer
-      required: [page, pageSize, totalRecords]
-    ErrorResponse:
-      type: object
-      properties:
-        errorCode:
-          type: string
-        message:
-          type: string
-        details:
           type: object
-      required: [errorCode, message]
+          properties:
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalRecords:
+              type: integer
+          required: [page, pageSize, totalRecords]
+      required: [transactions, pagination]
 
 paths:
   /api/youth-accounts/{youthAccountId}/dashboard:
     get:
-      summary: Retrieve Youth Account Dashboard
-      description: >-
-        Returns the dashboard for a youth account, including balance, spending limit, currency, and recent transactions.
+      summary: Retrieve youth account dashboard details
       operationId: getYouthAccountDashboard
-      tags: [YouthAccount]
+      tags: [Youth Account]
       security:
-        - OAuth2: [youth_accounts]
+        - OAuth2: [parent]
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
       responses:
         '200':
-          description: Successful response with dashboard data
+          description: Dashboard details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/YouthAccountDashboard'
+                $ref: '#/components/schemas/DashboardResponse'
         '403':
-          description: Unauthorized (parent does not have access)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Youth account not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
 
   /api/youth-accounts/{youthAccountId}/fund-transfer:
     post:
-      summary: Transfer Funds to Youth Account
-      description: >-
-        Transfers funds from the parent account to the specified youth account. Validation enforced for RBAC and input.
+      summary: Transfer funds from parent to youth account
       operationId: transferFundsToYouthAccount
-      tags: [YouthAccount]
+      tags: [Youth Account]
       security:
-        - OAuth2: [youth_accounts]
+        - OAuth2: [parent]
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
       requestBody:
         required: true
         content:
@@ -217,40 +205,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/FundTransferResponse'
         '400':
-          description: Validation error or insufficient funds
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Transfer error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/InternalError'
+        default:
+          $ref: '#/components/responses/Error'
 
   /api/youth-accounts/{youthAccountId}/spending-limit:
     put:
-      summary: Configure Weekly Spending Limit
-      description: >-
-        Configures the weekly spending limit for the youth account. Only the parent/guardian may perform this action.
-      operationId: configureWeeklySpendingLimit
-      tags: [YouthAccount]
+      summary: Configure weekly spending limit
+      operationId: setSpendingLimit
+      tags: [Youth Account]
       security:
-        - OAuth2: [youth_accounts]
+        - OAuth2: [parent]
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
       requestBody:
         required: true
         content:
@@ -265,109 +242,96 @@ paths:
               schema:
                 $ref: '#/components/schemas/SpendingLimitResponse'
         '400':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Youth account not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/Forbidden'
+        default:
+          $ref: '#/components/responses/Error'
 
   /api/youth-accounts/{youthAccountId}/transactions:
     get:
-      summary: Retrieve Youth Account Transaction History
-      description: >-
-        Returns transaction history for the youth account within a specified date range, paginated.
-      operationId: getYouthAccountTransactionHistory
-      tags: [YouthAccount]
+      summary: Retrieve youth account transaction history
+      operationId: getYouthAccountTransactions
+      tags: [Youth Account]
       security:
-        - OAuth2: [youth_accounts]
+        - OAuth2: [parent, youth]
       parameters:
         - name: youthAccountId
           in: path
           required: true
           schema:
             type: string
-          description: Youth account identifier
         - name: startDate
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: Start date (inclusive) for transaction history (YYYY-MM-DD)
         - name: endDate
           in: query
           required: false
           schema:
             type: string
             format: date
-          description: End date (inclusive) for transaction history (YYYY-MM-DD)
         - name: page
           in: query
           required: false
           schema:
             type: integer
-            default: 1
-          description: Page number for pagination
         - name: pageSize
           in: query
           required: false
           schema:
             type: integer
-            default: 20
-          description: Number of records per page
       responses:
         '200':
-          description: Paginated list of transactions
+          description: Transaction history
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransactionHistoryResponse'
-        '400':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/TransactionListResponse'
         '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Youth account not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
 
-  /api/health:
-    get:
-      summary: Health Check
-      description: Returns API health status
-      operationId: getHealth
-      tags: [Health]
-      responses:
-        '200':
-          description: API is healthy
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: OK
-
+components:
+  responses:
+    BadRequest:
+      description: Invalid input or request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - insufficient privileges or RBAC failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
