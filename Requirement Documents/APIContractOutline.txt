@@ -1,88 +1,82 @@
-API Contract Outline
+API Contract Outline: Youth Account Management
 
-1. GET /api/youth-accounts/{youthAccountId}/dashboard
-- Method: GET
-- Description: Retrieves consolidated youth account dashboard information (balance, spending limit, recent transactions)
-- Response:
-  {
-    "youthAccountId": "string",
-    "accountBalance": "decimal",
-    "spendingLimit": "decimal",
-    "currency": "string",
-    "recentTransactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "description": "string",
-        "amount": "decimal"
-      }
-    ]
-  }
-- Errors: 403, 404, 500
+1. Endpoint: GET /api/youth-accounts/{youthAccountId}/dashboard
+   - Description: Retrieve consolidated youth account details (balance, spending limit, recent transactions)
+   - Request: Path param youthAccountId
+   - Response:
+     {
+       "youthAccountId": "string",
+       "accountBalance": "decimal",
+       "spendingLimit": "decimal",
+       "currency": "string",
+       "recentTransactions": [
+         { "transactionId": "string", "date": "datetime", "description": "string", "amount": "decimal" }
+       ]
+     }
+   - Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-2. POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- Method: POST
-- Description: Transfers funds from parent account to youth account
-- Request:
-  {
-    "sourceAccountId": "string",
-    "transferAmount": "decimal",
-    "currency": "string"
-  }
-- Response:
-  {
-    "transferId": "string",
-    "status": "SUCCESS|FAILED",
-    "updatedBalance": "decimal"
-  }
-- Errors: 400, 404, 500
+2. Endpoint: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+   - Description: Transfer funds from parent to youth account
+   - Request Body:
+     {
+       "sourceAccountId": "string",
+       "transferAmount": "decimal",
+       "currency": "string"
+     }
+   - Response:
+     {
+       "transferId": "string",
+       "status": "SUCCESS|FAILED",
+       "updatedBalance": "decimal"
+     }
+   - Errors: 400 Bad Request (insufficient funds, invalid input), 403 Unauthorized, 409 Conflict, 500 Internal Error
 
-3. PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- Method: PUT
-- Description: Configure weekly spending limit
-- Request:
-  {
-    "weeklyLimit": "decimal"
-  }
-- Response:
-  {
-    "youthAccountId": "string",
-    "weeklyLimit": "decimal",
-    "status": "UPDATED"
-  }
-- Errors: 400, 404, 500
+3. Endpoint: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+   - Description: Configure weekly spending limit
+   - Request Body:
+     {
+       "weeklyLimit": "decimal"
+     }
+   - Response:
+     {
+       "youthAccountId": "string",
+       "weeklyLimit": "decimal",
+       "status": "UPDATED"
+     }
+   - Errors: 400 Bad Request (validation), 403 Unauthorized, 500 Internal Error
 
-4. GET /api/youth-accounts/{youthAccountId}/transactions
-- Method: GET
-- Description: Returns transaction history for youth account
-- Query Params: startDate, endDate, page, pageSize
-- Response:
-  {
-    "transactions": [
-      {
-        "transactionId": "string",
-        "date": "datetime",
-        "merchant": "string",
-        "amount": "decimal",
-        "transactionType": "debit|credit"
-      }
-    ],
-    "pagination": {
-      "page": "number",
-      "pageSize": "number",
-      "totalRecords": "number"
-    }
-  }
-- Errors: 403, 404, 500
+4. Endpoint: GET /api/youth-accounts/{youthAccountId}/transactions
+   - Description: Retrieve youth account transaction history
+   - Query Params: startDate, endDate, page, pageSize
+   - Response:
+     {
+       "transactions": [
+         {
+           "transactionId": "string",
+           "date": "datetime",
+           "merchant": "string",
+           "amount": "decimal",
+           "transactionType": "debit|credit"
+         }
+       ],
+       "pagination": {
+         "page": "number",
+         "pageSize": "number",
+         "totalRecords": "number"
+       }
+     }
+   - Errors: 403 Unauthorized, 404 Not Found, 500 Internal Error
 
-Error Schema:
-{
-  "errorCode": "string",
-  "message": "string",
-  "details": "object"
-}
+5. Common Error Handling
+   - 400: { "error": "string", "details": "string" }
+   - 403: { "error": "Unauthorized access" }
+   - 404: { "error": "Resource not found" }
+   - 409: { "error": "Conflict" }
+   - 500: { "error": "Internal server error" }
 
-RBAC:
-- All endpoints require OAuth2 Bearer token
-- Parent must own youth account; youth may only view dashboard
-- All actions are logged for audit
+6. Security
+   - OAuth2 token required in Authorization header
+   - RBAC: Only parent/guardian with account ownership may access/modify
+
+---
+END OF API CONTRACT OUTLINE

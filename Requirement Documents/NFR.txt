@@ -1,67 +1,70 @@
-Non-Functional Requirements (NFRs)
+Non-Functional Requirements: Youth Account Management
 
 1. Security
-- All data in transit encrypted (TLS 1.2+)
-- Data at rest encrypted (AES-256)
-- RBAC enforced at API and UI
-- OAuth2 authentication for all endpoints
-- Input validation and output filtering
-- Audit logs for all sensitive actions
+- OAuth2 authentication for all APIs
+- RBAC: Only parents/guardians can manage youth accounts
+- Data encryption (TLS 1.2+ in transit, AES-256 at rest)
+- Input validation on all endpoints (amounts, account IDs)
+- Output filtering (no sensitive/internal fields exposed)
+- Audit logging for all fund movements, limit changes, and dashboard access
+- Secure error handling (no sensitive data in errors)
 
 2. Compliance
-- GDPR: Data minimization, right to access, erasure
-- PCI-DSS: No cardholder data stored; secure fund transfer
-- ISO 27001: Controls for confidentiality, integrity, availability
+- GDPR: Personal data protected, data subject rights supported
+- PCI-DSS: Cardholder data not stored, all payments via compliant services
+- ISO 27001: Information security management
+- Audit trails for all sensitive actions
 
 3. Performance
-- 95% of API responses <200ms, max 500ms (dashboard)
-- UI loads in <2s for dashboard views
+- 95% of API responses <500ms under normal load
+- Max dashboard load time: 2s
+- Fund transfers processed within 2s
 
 4. Scalability
-- APIs stateless, support horizontal scaling
-- DB supports partitioning and read replicas
+- Horizontal scaling for API and service containers
+- Support for 10,000+ concurrent parent/youth sessions
 
 5. Availability
-- 99.99% uptime
-- Redundant deployment and failover
+- 99.99% uptime (SLA)
+- Multi-AZ deployment
+- Health checks and auto-healing
 
 6. Reliability
-- Transactional integrity, ACID DB
-- Retry logic for transient failures
+- Transactional integrity for all fund movements
+- Automatic retry for transient failures
+- Graceful degradation for partial outages
 
 7. Maintainability
-- Modular architecture, OpenAPI docs
-- Automated CI/CD and regression tests
+- Modular microservices, well-documented APIs
+- Automated CI/CD pipeline
+- API versioning policy
 
 8. Auditability
-- All fund transfers, limit changes, dashboard accesses logged
-- Logs immutable and exportable for compliance
+- All fund movements, limit changes, and dashboard accesses are logged with timestamp, user, and action details
+- Tamper-evident logs
+- On-demand audit report export
 
 9. Disaster Recovery
-- RTO <4h, RPO <1h
-- Geo-redundant, automated failover
+- RTO < 4 hours
+- RPO < 1 hour
+- Regular DR tests
 
 10. Backup
-- Daily, encrypted, automated
-- Backup verification and restore tests
+- Daily encrypted database backups (7-day retention)
+- Backup integrity verified weekly
 
 11. Monitoring
-- Real-time metrics, centralized logging
-- Alerting for failures, performance, and security events
+- Real-time metrics (API latency, error rates, fund transfer volumes)
+- Alerting for SLA breaches, security anomalies
 
 12. Logging
-- Centralized log aggregation
-- Error and access logs with correlation IDs
+- Centralized log aggregation (ELK stack)
+- Log rotation and secure retention (90 days)
 
 13. RBAC
-- Parent can manage only linked youth accounts
-- Youth cannot initiate fund transfer or limit changes
-- All access controlled and logged
+- Role-based access enforced at API gateway and service layers
+- Only authorized parents/guardians can view or manage youth accounts
+- All access attempts logged
 
-14. Input Validation & Output Filtering
-- All APIs and UI inputs validated for type, range, and format
-- All API outputs filtered for PII and overexposure
-
-15. Audit Logging
-- All sensitive actions logged with user, timestamp, and context
-- Immutable storage for logs
+---
+END OF NFR LIST
