@@ -1,55 +1,49 @@
-%% Sequence Diagram: Parent Allocates Funds, Sets Limit, Views Dashboard & Transactions
+---
 sequenceDiagram
-  autonumber
-  participant Parent as Parent/Guardian
-  participant UI as Parent Dashboard UI
-  participant API as Youth Account API
-  participant Auth as OAuth2 Service
-  participant Account as Account Service
-  participant Payment as Payment Service
-  participant Transaction as Transaction Service
-  participant DB as Database
+    participant Parent as Parent/Guardian
+    participant UI as React Frontend
+    participant API as API Layer
+    participant DB as Account Database
+    participant Notification as Notification Service
+    participant CoreBanking as Core Banking System
 
-  %% Dashboard Access
-  Parent->>UI: Login & select youth account
-  UI->>Auth: Validate OAuth2 token
-  Auth-->>UI: Token valid (RBAC: Parent)
-  UI->>API: GET /api/youth-accounts/{id}/dashboard
-  API->>Account: Fetch youth account details
-  API->>Transaction: Fetch recent transactions
-  Account-->>API: Account details
-  Transaction-->>API: Recent transactions
-  API-->>UI: Dashboard data
-  UI-->>Parent: Render dashboard
+    Note over Parent,UI: Parent logs in, views dashboard
+    Parent->>UI: Login
+    UI->>API: Authenticate (OAuth2)
+    API->>DB: Validate session, fetch parent/youth accounts
+    DB-->>API: Account info
+    API-->>UI: Dashboard data
+    UI-->>Parent: Dashboard (balance, recent transactions, limit)
 
-  %% Fund Transfer
-  Parent->>UI: Initiate fund transfer
-  UI->>API: POST /api/youth-accounts/{id}/fund-transfer
-  API->>Auth: Validate RBAC/ownership
-  Auth-->>API: Authorized
-  API->>Account: Check parent balance
-  Account-->>API: Balance OK
-  API->>Payment: Execute fund transfer
-  Payment-->>API: TransferId, status
-  API->>DB: Update youth account balance
-  API-->>UI: Transfer confirmation
-  UI-->>Parent: Show updated balance/status
+    Note over Parent,UI: Parent initiates fund transfer
+    Parent->>UI: Initiate fund transfer
+    UI->>API: POST /api/youth-accounts/{youthAccountId}/fund-transfer
+    API->>DB: Validate source, check funds
+    DB-->>API: Funds validated
+    API->>CoreBanking: Process transfer
+    CoreBanking-->>API: Transfer result
+    API->>DB: Update balances, log transaction
+    DB-->>API: Updated balances
+    API-->>UI: Transfer confirmation
+    UI-->>Parent: Transfer result
+    API->>Notification: Notify parent/youth
 
-  %% Set Spending Limit
-  Parent->>UI: Set weekly spending limit
-  UI->>API: PUT /api/youth-accounts/{id}/spending-limit
-  API->>Auth: Validate RBAC/ownership
-  Auth-->>API: Authorized
-  API->>DB: Update weekly_spending_limit
-  API-->>UI: Limit updated
-  UI-->>Parent: Show confirmation
+    Note over Parent,UI: Parent sets spending limit
+    Parent->>UI: Set weekly limit
+    UI->>API: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+    API->>DB: Update settings
+    DB-->>API: Confirmation
+    API-->>UI: Limit confirmation
+    UI-->>Parent: Limit updated
+    API->>Notification: Notify parent
 
-  %% View Transactions
-  Parent->>UI: View transaction history
-  UI->>API: GET /api/youth-accounts/{id}/transactions
-  API->>Auth: Validate RBAC/ownership
-  Auth-->>API: Authorized
-  API->>Transaction: Query transactions
-  Transaction-->>API: Transaction list
-  API-->>UI: Paginated transactions
-  UI-->>Parent: Display transaction list
+    Note over Parent,UI: Parent views transaction history
+    Parent->>UI: View transactions
+    UI->>API: GET /api/youth-accounts/{youthAccountId}/transactions
+    API->>DB: Fetch transaction history
+    DB-->>API: Transactions
+    API-->>UI: Transaction list
+    UI-->>Parent: Transaction history
+
+    Note over API: All actions logged for audit
+    API->>DB: Audit log (action, user, timestamp)

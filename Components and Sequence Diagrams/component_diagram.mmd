@@ -1,0 +1,11 @@
+---
+C4Container
+System(bankingWebApp, "Banking Web Application", "Web portal for parents and youth")
+Container(api, "API Layer", "Spring Boot REST APIs", "Manages requests, auth, validation")
+Container(ui, "React Frontend", "ReactJS", "Renders dashboards and forms")
+Container(db, "Account Database", "PostgreSQL", "Stores accounts, limits, transactions")
+Container(notification, "Notification Service", "Microservice", "Alerts and notifications")
+
+Rel(ui, api, "REST/JSON")
+Rel(api, db, "Reads/writes accounts, limits, transactions")
+Rel(api, notification, "Sends notification events")
